@@ -304,7 +304,7 @@ export interface PropertyFilters {
 }
 
 // API Configuration
-export const API_BASE_URL = "https://503ea819-c717-40a8-96f7-c18f9b8757a3-00-2fupo50g28wxz.worf.replit.dev/api";
+export const API_BASE_URL = "https://backendvillago.onrender.com/api";
 
 // Local storage keys
 export const AUTH_TOKEN_KEY = "villago_auth_tokens";
