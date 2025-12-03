@@ -311,8 +311,7 @@ export interface PropertyFilters {
   page?: number;
 }
 
-// API Configuration
-export const API_BASE_URL = "https://503ea819-c717-40a8-96f7-c18f9b8757a3-00-2fupo50g28wxz.worf.replit.dev/api";
+
 
 // Change password schema
 export const changePasswordSchema = z.object({
@@ -346,6 +345,10 @@ export const ownerReviewCreateSchema = z.object({
   responsiveness_rating: z.number().min(1).max(5).optional(),
 });
 export type OwnerReviewCreateInput = z.infer<typeof ownerReviewCreateSchema>;
+
+
+// API Configuration
+export const API_BASE_URL = "https://backendvillago.onrender.com/api";
 
 // Local storage keys
 export const AUTH_TOKEN_KEY = "villago_auth_tokens";
