@@ -81,7 +81,7 @@ export default function HowItWorksPage() {
               {steps.map((step, index) => (
                 <div key={step.title} className="relative">
                   {index < steps.length - 1 && (
-                    <div className="absolute left-8 top-20 h-[calc(100%+48px)] w-0.5 bg-gradient-to-b from-primary to-primary/20 hidden md:block" />
+                    <div className="absolute left-8 top-[4.5rem] h-[calc(100%+0.5rem)] w-0.5 bg-gradient-to-b from-primary to-primary/20 hidden md:block" />
                   )}
                   <Card className="overflow-hidden">
                     <CardContent className="p-0">

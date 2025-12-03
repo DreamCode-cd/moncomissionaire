@@ -394,8 +394,8 @@ export default function PropertyDetailPage() {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <Card className="sticky top-24">
+            <div className="lg:sticky lg:top-24 space-y-6 self-start">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />

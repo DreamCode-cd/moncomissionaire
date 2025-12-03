@@ -226,6 +226,14 @@ export interface OwnerAvailability {
   is_active: boolean;
 }
 
+export const availabilityCreateSchema = z.object({
+  day_of_week: z.number().min(0).max(6),
+  start_time: z.string().min(1, "L'heure de début est requise"),
+  end_time: z.string().min(1, "L'heure de fin est requise"),
+  is_active: z.boolean().default(true),
+});
+export type AvailabilityCreateInput = z.infer<typeof availabilityCreateSchema>;
+
 // Review types
 export interface PropertyReview {
   id: number;
@@ -304,7 +312,7 @@ export interface PropertyFilters {
 }
 
 // API Configuration
-export const API_BASE_URL = "https://backendvillago.onrender.com/api";
+export const API_BASE_URL = "https://503ea819-c717-40a8-96f7-c18f9b8757a3-00-2fupo50g28wxz.worf.replit.dev/api";
 
 // Local storage keys
 export const AUTH_TOKEN_KEY = "villago_auth_tokens";

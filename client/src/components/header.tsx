@@ -19,17 +19,24 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/lib/auth";
 
-const navigation = [
-  { name: "Accueil", href: "/" },
-  { name: "Propriétés", href: "/properties" },
-  { name: "Comment ça marche", href: "/how-it-works" },
-  { name: "Contact", href: "/contact" },
-];
-
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
+
+  const navigation = user?.role === "proprietaire" 
+    ? [
+        { name: "Accueil", href: "/" },
+        { name: "Propriétés", href: "/properties" },
+        { name: "Dashboard", href: "/dashboard/owner" },
+        { name: "Contact", href: "/contact" },
+      ]
+    : [
+        { name: "Accueil", href: "/" },
+        { name: "Propriétés", href: "/properties" },
+        { name: "Comment ça marche", href: "/how-it-works" },
+        { name: "Contact", href: "/contact" },
+      ];
 
   const getInitials = () => {
     if (!user) return "U";
@@ -79,71 +86,73 @@ export function Header() {
 
           <ThemeToggle />
 
-          {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full" data-testid="button-user-menu">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={user?.profile_picture} alt={user?.username} />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user?.first_name} {user?.last_name}</p>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+          <div className="hidden sm:flex sm:items-center sm:gap-2">
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full" data-testid="button-user-menu">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={user?.profile_picture} alt={user?.username} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user?.first_name} {user?.last_name}</p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
                   </div>
-                </div>
-                <DropdownMenuSeparator />
-                <Link href={getDashboardLink()}>
-                  <DropdownMenuItem data-testid="link-dashboard">
-                    <Building className="mr-2 h-4 w-4" />
-                    Tableau de bord
+                  <DropdownMenuSeparator />
+                  <Link href={getDashboardLink()}>
+                    <DropdownMenuItem data-testid="link-dashboard">
+                      <Building className="mr-2 h-4 w-4" />
+                      Tableau de bord
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/dashboard/client/bookings">
+                    <DropdownMenuItem data-testid="link-my-bookings">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Mes réservations
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/dashboard/client/favorites">
+                    <DropdownMenuItem data-testid="link-favorites">
+                      <Heart className="mr-2 h-4 w-4" />
+                      Favoris
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/profile">
+                    <DropdownMenuItem data-testid="link-profile">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Profil
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} data-testid="button-logout">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Déconnexion
                   </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" data-testid="link-login">
+                    Connexion
+                  </Button>
                 </Link>
-                <Link href="/dashboard/client/bookings">
-                  <DropdownMenuItem data-testid="link-my-bookings">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Mes réservations
-                  </DropdownMenuItem>
+                <Link href="/register">
+                  <Button data-testid="link-register">
+                    S'inscrire
+                  </Button>
                 </Link>
-                <Link href="/dashboard/client/favorites">
-                  <DropdownMenuItem data-testid="link-favorites">
-                    <Heart className="mr-2 h-4 w-4" />
-                    Favoris
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/profile">
-                  <DropdownMenuItem data-testid="link-profile">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Profil
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} data-testid="button-logout">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="hidden sm:flex sm:items-center sm:gap-2">
-              <Link href="/login">
-                <Button variant="ghost" data-testid="link-login">
-                  Connexion
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button data-testid="link-register">
-                  S'inscrire
-                </Button>
-              </Link>
-            </div>
-          )}
+              </>
+            )}
+          </div>
 
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
