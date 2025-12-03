@@ -75,7 +75,7 @@ export default function OwnerDashboard() {
           apiGet<PaginatedResponse<VisitBooking>>("/bookings/visits/", true),
           apiGet<PaginatedResponse<RentalBooking>>("/bookings/rentals/pending/", true),
           apiGet<PaginatedResponse<RentalBooking>>("/bookings/rentals/", true),
-          apiGet<PaginatedResponse<OwnerReview>>(`/reviews/owners/by_owner/?owner=${user?.id}`, true),
+          apiGet<PaginatedResponse<OwnerReview>>("/reviews/owners/my_reviews/", true),
         ]);
         setProperties(propertiesData.results || []);
         setPendingVisits(pendingVisitsData.results || []);

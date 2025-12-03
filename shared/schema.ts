@@ -314,6 +314,39 @@ export interface PropertyFilters {
 // API Configuration
 export const API_BASE_URL = "https://503ea819-c717-40a8-96f7-c18f9b8757a3-00-2fupo50g28wxz.worf.replit.dev/api";
 
+// Change password schema
+export const changePasswordSchema = z.object({
+  old_password: z.string().min(1, "L'ancien mot de passe est requis"),
+  new_password: z.string().min(6, "Le nouveau mot de passe doit avoir au moins 6 caractères"),
+  new_password_confirm: z.string().min(1, "Veuillez confirmer le nouveau mot de passe"),
+}).refine((data) => data.new_password === data.new_password_confirm, {
+  message: "Les nouveaux mots de passe ne correspondent pas",
+  path: ["new_password_confirm"],
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+// Profile update schema
+export const profileUpdateSchema = z.object({
+  email: z.string().email("Email invalide").optional(),
+  first_name: z.string().min(1, "Le prénom est requis").optional(),
+  last_name: z.string().min(1, "Le nom est requis").optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  bio: z.string().optional(),
+});
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+
+// Owner review create schema
+export const ownerReviewCreateSchema = z.object({
+  owner: z.number(),
+  rental_booking: z.number().optional(),
+  rating: z.number().min(1).max(5),
+  comment: z.string().min(1, "Le commentaire est requis"),
+  communication_rating: z.number().min(1).max(5).optional(),
+  responsiveness_rating: z.number().min(1).max(5).optional(),
+});
+export type OwnerReviewCreateInput = z.infer<typeof ownerReviewCreateSchema>;
+
 // Local storage keys
 export const AUTH_TOKEN_KEY = "villago_auth_tokens";
 export const USER_KEY = "villago_user";

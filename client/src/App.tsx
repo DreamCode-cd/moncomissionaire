@@ -4,7 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/lib/theme";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { LoadingScreen } from "@/components/loading-screen";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Properties from "@/pages/properties";
@@ -12,6 +13,7 @@ import PropertyDetail from "@/pages/property-detail";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ClientDashboard from "@/pages/dashboard/client";
+import ClientProfile from "@/pages/dashboard/client/profile";
 import OwnerDashboard from "@/pages/dashboard/owner";
 import PropertyNew from "@/pages/dashboard/owner/property-new";
 import PropertyEdit from "@/pages/dashboard/owner/property-edit";
@@ -40,6 +42,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard/client" component={ClientDashboard} />
+      <Route path="/dashboard/client/profile" component={ClientProfile} />
       <Route path="/dashboard/owner" component={OwnerDashboard} />
       <Route path="/dashboard/owner/properties/new" component={PropertyNew} />
       <Route path="/dashboard/owner/properties/:id/edit" component={PropertyEdit} />
@@ -52,14 +55,28 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const { isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <>
+      <ScrollToTop />
+      <Toaster />
+      <Router />
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <ScrollToTop />
-          <Toaster />
-          <Router />
+          <AppContent />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
