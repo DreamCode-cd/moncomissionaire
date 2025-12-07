@@ -2,9 +2,11 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { setupWebSocket } from "./websocket";
 
 const app = express();
 const httpServer = createServer(app);
+setupWebSocket(httpServer);
 
 declare module "http" {
   interface IncomingMessage {
@@ -12,15 +14,33 @@ declare module "http" {
   }
 }
 
-app.use(
-  express.json({
-    verify: (req, _res, buf) => {
-      req.rawBody = buf;
-    },
-  }),
-);
+// Skip body parsing for proxied API routes to allow proxy to forward raw body
+const shouldParseBody = (req: Request) => {
+  // Don't parse body for /api/v1 routes when proxying to Django
+  const DJANGO_API_URL = process.env.DJANGO_API_URL;
+  if (DJANGO_API_URL && req.path.startsWith('/api/v1')) {
+    return false;
+  }
+  return true;
+};
 
-app.use(express.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  if (!shouldParseBody(req)) {
+    return next();
+  }
+  express.json({
+    verify: (innerReq, _res, buf) => {
+      innerReq.rawBody = buf;
+    },
+  })(req, res, next);
+});
+
+app.use((req, res, next) => {
+  if (!shouldParseBody(req)) {
+    return next();
+  }
+  express.urlencoded({ extended: false })(req, res, next);
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

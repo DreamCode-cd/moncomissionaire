@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { api } from "./api";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -23,23 +24,54 @@ export async function apiRequest(
   return res;
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+function buildUrl(queryKey: readonly unknown[]): string {
+  const pathParts: string[] = [];
+  let params: Record<string, string> = {};
+  
+  for (const part of queryKey) {
+    if (typeof part === 'string') {
+      const trimmed = part.replace(/^\/+|\/+$/g, '');
+      if (trimmed) {
+        pathParts.push(trimmed);
+      }
+    } else if (typeof part === 'number') {
+      pathParts.push(String(part));
+    } else if (typeof part === 'object' && part !== null) {
+      params = { ...params, ...(part as Record<string, string>) };
     }
+  }
+  
+  let url = '/' + pathParts.join('/') + '/';
+  url = url.replace(/\/+/g, '/');
+  
+  const paramEntries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '');
+  if (paramEntries.length > 0) {
+    const searchParams = new URLSearchParams(paramEntries);
+    url += '?' + searchParams.toString();
+  }
+  
+  return url;
+}
 
-    await throwIfResNotOk(res);
-    return await res.json();
+type UnauthorizedBehavior = "returnNull" | "throw";
+export function getQueryFn<T>(options: {
+  on401: UnauthorizedBehavior;
+}): QueryFunction<T> {
+  return async ({ queryKey }) => {
+    const url = buildUrl(queryKey);
+    
+    try {
+      return await api.get<T>(url);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('401')) {
+        if (options.on401 === "returnNull") {
+          return null as T;
+        }
+      }
+      throw error;
+    }
   };
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {

@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link, useLocation, useSearch } from "wouter";
-import { Eye, EyeOff, Home, UserPlus } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from 'react';
+import { Link, useLocation, useSearch } from 'wouter';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Layout } from '@/components/layout/Layout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -13,131 +14,77 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { registerSchema, type RegisterInput, API_BASE_URL } from "@shared/schema";
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { registerSchema, type RegisterInput } from '@shared/schema';
 
 export default function Register() {
-  const [, navigate] = useLocation();
-  const searchString = useSearch();
-  const params = new URLSearchParams(searchString);
-  const roleFromUrl = params.get("role");
-  
-  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const searchParams = useSearch();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
+  const { toast } = useToast();
+
+  const defaultRole = new URLSearchParams(searchParams).get('role') === 'proprietaire' 
+    ? 'proprietaire' 
+    : 'client';
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      password_confirm: "",
-      first_name: "",
-      last_name: "",
-      phone: "",
-      role: (roleFromUrl === "proprietaire" ? "proprietaire" : "client") as "client" | "proprietaire",
+      username: '',
+      email: '',
+      password: '',
+      password_confirm: '',
+      first_name: '',
+      last_name: '',
+      phone: '',
+      role: defaultRole,
     },
   });
 
   const onSubmit = async (data: RegisterInput) => {
-    setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: data.username,
-          email: data.email,
-          password: data.password,
-          password_confirm: data.password_confirm,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          phone: data.phone || undefined,
-          role: data.role,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        const errorMessage = Object.values(error).flat().join(", ") || "Erreur lors de l'inscription";
-        throw new Error(errorMessage);
-      }
-
+      await register(data);
       toast({
-        title: "Inscription réussie",
-        description: "Votre compte a été créé. Vous pouvez maintenant vous connecter.",
+        title: 'Inscription réussie',
+        description: 'Bienvenue sur VillaGo !',
       });
-
-      navigate("/login");
+      setLocation('/');
     } catch (error) {
       toast({
-        title: "Erreur d'inscription",
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
-        variant: "destructive",
+        title: 'Erreur d\'inscription',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-        <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Home className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-serif text-xl font-bold tracking-tight">VillaGo</span>
-          </Link>
-          <ThemeToggle />
-        </nav>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
+    <Layout hideNav>
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-8">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Créer un compte</CardTitle>
+            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
+              <span className="text-primary-foreground font-bold text-2xl">V</span>
+            </div>
+            <CardTitle className="text-2xl">Créer un compte</CardTitle>
             <CardDescription>
-              Rejoignez VillaGo et trouvez votre logement idéal
+              Inscrivez-vous pour accéder à toutes les fonctionnalités
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Je suis</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-role">
-                            <SelectValue placeholder="Sélectionnez votre profil" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="client">Un locataire (je cherche un logement)</SelectItem>
-                          <SelectItem value="proprietaire">Un propriétaire (je propose des biens)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="first_name"
@@ -145,13 +92,12 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>Prénom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Jean" {...field} data-testid="input-first-name" />
+                          <Input placeholder="Jean" {...field} data-testid="input-firstname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="last_name"
@@ -159,7 +105,7 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>Nom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Dupont" {...field} data-testid="input-last-name" />
+                          <Input placeholder="Dupont" {...field} data-testid="input-lastname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -188,10 +134,10 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="jean.dupont@email.com"
-                          {...field}
+                        <Input 
+                          type="email" 
+                          placeholder="jean@example.com" 
+                          {...field} 
                           data-testid="input-email"
                         />
                       </FormControl>
@@ -205,15 +151,37 @@ export default function Register() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Téléphone (optionnel)</FormLabel>
+                      <FormLabel>Téléphone</FormLabel>
                       <FormControl>
-                        <Input
-                          type="tel"
-                          placeholder="+33 6 12 34 56 78"
-                          {...field}
+                        <Input 
+                          type="tel" 
+                          placeholder="+243 812 345 678" 
+                          {...field} 
                           data-testid="input-phone"
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Je suis</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-role">
+                            <SelectValue placeholder="Sélectionnez votre rôle" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="client">Locataire - Je cherche un bien</SelectItem>
+                          <SelectItem value="proprietaire">Propriétaire - J'ai des biens à louer</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -228,7 +196,7 @@ export default function Register() {
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type={showPassword ? "text" : "password"}
+                            type={showPassword ? 'text' : 'password'}
                             placeholder="Minimum 6 caractères"
                             {...field}
                             data-testid="input-password"
@@ -237,7 +205,7 @@ export default function Register() {
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="absolute right-0 top-0 h-full px-3"
+                            className="absolute right-0 top-0"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -257,8 +225,8 @@ export default function Register() {
                       <FormLabel>Confirmer le mot de passe</FormLabel>
                       <FormControl>
                         <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Répétez votre mot de passe"
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Répétez le mot de passe"
                           {...field}
                           data-testid="input-password-confirm"
                         />
@@ -268,18 +236,18 @@ export default function Register() {
                   )}
                 />
 
-                <Button
-                  type="submit"
-                  className="w-full gap-2"
-                  disabled={isLoading}
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={form.formState.isSubmitting}
                   data-testid="button-submit-register"
                 >
-                  {isLoading ? (
-                    "Création du compte..."
+                  {form.formState.isSubmitting ? (
+                    'Inscription...'
                   ) : (
                     <>
-                      <UserPlus className="h-4 w-4" />
-                      Créer mon compte
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      S'inscrire
                     </>
                   )}
                 </Button>
@@ -287,14 +255,16 @@ export default function Register() {
             </Form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Déjà inscrit ?</span>{" "}
-              <Link href="/login" className="text-primary hover:underline" data-testid="link-login">
-                Se connecter
+              <span className="text-muted-foreground">Déjà un compte ? </span>
+              <Link href="/login">
+                <span className="text-primary font-medium cursor-pointer" data-testid="link-login">
+                  Se connecter
+                </span>
               </Link>
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }

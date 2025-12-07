@@ -1,124 +1,146 @@
-import { API_BASE_URL, AUTH_TOKEN_KEY, type AuthTokens } from "@shared/schema";
+const API_URL = import.meta.env.VITE_API_URL || '';
 
-function getTokens(): AuthTokens | null {
-  const stored = localStorage.getItem(AUTH_TOKEN_KEY);
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return null;
+interface RequestOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  body?: unknown;
+  headers?: Record<string, string>;
+  isFormData?: boolean;
+}
+
+class ApiClient {
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+
+  constructor() {
+    this.loadTokens();
   }
-}
 
-function setTokens(tokens: AuthTokens) {
-  localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(tokens));
-}
+  private loadTokens() {
+    if (typeof window !== 'undefined') {
+      this.accessToken = localStorage.getItem('access_token');
+      this.refreshToken = localStorage.getItem('refresh_token');
+    }
+  }
 
-async function refreshAccessToken(): Promise<string | null> {
-  const tokens = getTokens();
-  if (!tokens?.refresh) return null;
+  setTokens(access: string, refresh: string) {
+    this.accessToken = access;
+    this.refreshToken = refresh;
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+  }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh: tokens.refresh }),
+  clearTokens() {
+    this.accessToken = null;
+    this.refreshToken = null;
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+
+  getAccessToken() {
+    return this.accessToken;
+  }
+
+  isAuthenticated() {
+    return !!this.accessToken;
+  }
+
+  private async refreshAccessToken(): Promise<boolean> {
+    if (!this.refreshToken) return false;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/auth/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: this.refreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.accessToken = data.access;
+        localStorage.setItem('access_token', data.access);
+        return true;
+      }
+    } catch {
+      console.error('Token refresh failed');
+    }
+
+    this.clearTokens();
+    return false;
+  }
+
+  async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    const { method = 'GET', body, headers = {}, isFormData = false } = options;
+
+    const requestHeaders: Record<string, string> = {
+      ...headers,
+    };
+
+    if (!isFormData) {
+      requestHeaders['Content-Type'] = 'application/json';
+    }
+
+    if (this.accessToken) {
+      requestHeaders['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+
+    let requestBody: string | FormData | undefined;
+    if (body) {
+      if (isFormData && body instanceof FormData) {
+        requestBody = body;
+      } else {
+        requestBody = JSON.stringify(body);
+      }
+    }
+
+    let response = await fetch(`${API_URL}${endpoint}`, {
+      method,
+      headers: requestHeaders,
+      body: requestBody,
     });
 
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    setTokens({ access: data.access, refresh: tokens.refresh });
-    return data.access;
-  } catch {
-    return null;
-  }
-}
-
-interface ApiRequestOptions {
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  body?: unknown;
-  requireAuth?: boolean;
-  headers?: Record<string, string>;
-}
-
-export async function apiRequest<T = unknown>(
-  endpoint: string,
-  options: ApiRequestOptions = {}
-): Promise<T> {
-  const { method = "GET", body, requireAuth = false, headers = {} } = options;
-
-  const requestHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...headers,
-  };
-
-  const tokens = getTokens();
-  if (tokens?.access) {
-    requestHeaders.Authorization = `Bearer ${tokens.access}`;
-  } else if (requireAuth) {
-    throw new Error("Non authentifié");
-  }
-
-  let response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method,
-    headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (response.status === 401 && tokens?.refresh) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      requestHeaders.Authorization = `Bearer ${newToken}`;
-      response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method,
-        headers: requestHeaders,
-        body: body ? JSON.stringify(body) : undefined,
-      });
+    if (response.status === 401 && this.refreshToken) {
+      const refreshed = await this.refreshAccessToken();
+      if (refreshed) {
+        requestHeaders['Authorization'] = `Bearer ${this.accessToken}`;
+        response = await fetch(`${API_URL}${endpoint}`, {
+          method,
+          headers: requestHeaders,
+          body: requestBody,
+        });
+      }
     }
-  }
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || errorData.message || `Erreur ${response.status}`);
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json();
-}
-
-export async function apiGet<T = unknown>(endpoint: string, requireAuth = false): Promise<T> {
-  return apiRequest<T>(endpoint, { method: "GET", requireAuth });
-}
-
-export async function apiPost<T = unknown>(endpoint: string, body: unknown, requireAuth = true): Promise<T> {
-  return apiRequest<T>(endpoint, { method: "POST", body, requireAuth });
-}
-
-export async function apiPut<T = unknown>(endpoint: string, body: unknown, requireAuth = true): Promise<T> {
-  return apiRequest<T>(endpoint, { method: "PUT", body, requireAuth });
-}
-
-export async function apiPatch<T = unknown>(endpoint: string, body: unknown, requireAuth = true): Promise<T> {
-  return apiRequest<T>(endpoint, { method: "PATCH", body, requireAuth });
-}
-
-export async function apiDelete(endpoint: string, requireAuth = true): Promise<void> {
-  return apiRequest<void>(endpoint, { method: "DELETE", requireAuth });
-}
-
-export function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      searchParams.append(key, String(value));
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Une erreur est survenue' }));
+      throw new Error(error.detail || error.message || JSON.stringify(error));
     }
-  });
-  
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : "";
+
+    if (response.status === 204) {
+      return {} as T;
+    }
+
+    return response.json();
+  }
+
+  get<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  post<T>(endpoint: string, body?: unknown, isFormData = false) {
+    return this.request<T>(endpoint, { method: 'POST', body, isFormData });
+  }
+
+  put<T>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, { method: 'PUT', body });
+  }
+
+  patch<T>(endpoint: string, body?: unknown) {
+    return this.request<T>(endpoint, { method: 'PATCH', body });
+  }
+
+  delete<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
 }
+
+export const api = new ApiClient();
