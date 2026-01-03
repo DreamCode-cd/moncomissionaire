@@ -107,22 +107,45 @@ export async function registerRoutes(
 
     app.post('/api/v1/biens/commissionnaire/:id/valider/', (req: Request, res: Response) => {
       const bien = mockData.biens.find(b => b.id === parseInt(req.params.id));
-      if (bien) {
-        const { statut_validation, motif_rejet } = req.body;
-        if (statut_validation === 'rejete') {
-          bien.statut_validation = 'rejete';
-          bien.statut_validation_display = 'Rejete';
-          bien.motif_rejet = motif_rejet;
-        } else {
-          bien.statut_validation = 'valide';
-          bien.statut_validation_display = 'Valide';
-          bien.statut_location = 'disponible';
-          bien.statut_location_display = 'Disponible';
-        }
-        res.json(bien);
-      } else {
-        res.status(404).json({ detail: 'Bien non trouve' });
+      if (!bien) {
+        return res.status(404).json({ detail: 'Bien non trouve' });
       }
+      
+      const { statut_validation, motif_rejet } = req.body;
+      
+      if (!statut_validation) {
+        return res.status(400).json({ 
+          statut_validation: ['Ce champ est requis.'],
+          detail: 'Le champ statut_validation ne peut pas etre null'
+        });
+      }
+      
+      if (statut_validation === 'rejete') {
+        if (!motif_rejet) {
+          return res.status(400).json({ 
+            motif_rejet: ['Ce champ est requis pour un rejet.'],
+            detail: 'Le motif de rejet est requis'
+          });
+        }
+        bien.statut_validation = 'rejete';
+        bien.statut_validation_display = 'Rejete';
+        bien.motif_rejet = motif_rejet;
+        bien.date_validation = new Date().toISOString();
+      } else if (statut_validation === 'valide') {
+        bien.statut_validation = 'valide';
+        bien.statut_validation_display = 'Valide';
+        bien.statut_location = 'disponible';
+        bien.statut_location_display = 'Disponible';
+        bien.motif_rejet = '';
+        bien.date_validation = new Date().toISOString();
+      } else {
+        return res.status(400).json({ 
+          statut_validation: [`"${statut_validation}" n'est pas un choix valide.`],
+          detail: 'Statut de validation invalide'
+        });
+      }
+      
+      res.json(bien);
     });
 
     app.post('/api/v1/biens/', (req: Request, res: Response) => {
@@ -313,6 +336,45 @@ export async function registerRoutes(
       
       mockData.users.splice(agentIndex, 1);
       res.json({ success: true, message: 'Agent supprime avec succes' });
+    });
+
+    app.get('/api/v1/auth/agents/:id/', (req: Request, res: Response) => {
+      const agentId = parseInt(req.params.id);
+      const agent = mockData.users.find(u => u.id === agentId && u.role === 'agent');
+      
+      if (agent) {
+        res.json(agent);
+      } else {
+        res.status(404).json({ detail: 'Agent non trouve' });
+      }
+    });
+
+    app.put('/api/v1/auth/agents/:id/', (req: Request, res: Response) => {
+      const agentId = parseInt(req.params.id);
+      const agentIndex = mockData.users.findIndex(u => u.id === agentId && u.role === 'agent');
+      
+      if (agentIndex === -1) {
+        res.status(404).json({ detail: 'Agent non trouve' });
+        return;
+      }
+      
+      const { email, first_name, last_name, phone } = req.body;
+      
+      if (email) {
+        const existingUser = mockData.users.find(u => u.email === email && u.id !== agentId);
+        if (existingUser) {
+          res.status(400).json({ detail: 'Un utilisateur avec cet email existe deja' });
+          return;
+        }
+      }
+      
+      const agent = mockData.users[agentIndex];
+      if (email) agent.email = email;
+      if (first_name) agent.first_name = first_name;
+      if (last_name) agent.last_name = last_name;
+      if (phone !== undefined) agent.phone = phone;
+      
+      res.json(agent);
     });
 
     app.get('/api/v1/users/me/', (req: Request, res: Response) => {
@@ -595,20 +657,7 @@ ${commissionnerName}`;
       }
     });
 
-    app.post('/api/v1/messaging/chatrooms/:id/messages/', (req: Request, res: Response) => {
-      const chatroomId = parseInt(req.params.id);
-      const newMessage = {
-        id: mockData.messages.length + 1,
-        chatroom: chatroomId,
-        sender: 1,
-        sender_detail: mockData.users[0],
-        content: req.body.content,
-        is_read: false,
-        created_at: new Date().toISOString()
-      };
-      mockData.messages.push(newMessage as any);
-      res.status(201).json(newMessage);
-    });
+    // Removed mock endpoint - will be proxied to Django
 
     app.get('/api/v1/notifications/', (req: Request, res: Response) => {
       res.json(paginateResults(mockData.notifications));
@@ -632,70 +681,7 @@ ${commissionnerName}`;
   } else {
     console.log('[API] Proxying to Django API:', DJANGO_API_URL);
     
-    // Local storage for agents when Django doesn't support the endpoint
-    let localAgents: any[] = [];
-    let localAgentIdCounter = 1000;
-    
-    // Middleware to parse JSON body for local agent routes (since global body parsing is skipped for /api/v1)
-    const jsonBodyParser = express.json();
-    
-    // Agent management routes that work locally when Django doesn't support them
-    app.post('/api/v1/auth/agents/', jsonBodyParser, (req: Request, res: Response) => {
-      const { username, email, first_name, last_name, phone, password } = req.body;
-      
-      if (!username || !email || !first_name || !last_name) {
-        res.status(400).json({ detail: 'Tous les champs obligatoires doivent etre remplis' });
-        return;
-      }
-      
-      const existingAgent = localAgents.find(u => u.username === username || u.email === email);
-      if (existingAgent) {
-        res.status(400).json({ detail: 'Un utilisateur avec ce nom ou email existe deja' });
-        return;
-      }
-      
-      const newAgent = {
-        id: localAgentIdCounter++,
-        username,
-        email,
-        first_name,
-        last_name,
-        role: 'agent' as const,
-        role_display: 'Agent',
-        phone: phone || '',
-        date_joined: new Date().toISOString(),
-        last_login: new Date().toISOString()
-      };
-      localAgents.push(newAgent);
-      console.log('[Local API] Created agent:', newAgent.username);
-      res.status(201).json(newAgent);
-    });
-    
-    app.delete('/api/v1/auth/agents/:id/', (req: Request, res: Response) => {
-      const agentId = parseInt(req.params.id);
-      const agentIndex = localAgents.findIndex(u => u.id === agentId);
-      
-      if (agentIndex === -1) {
-        res.status(404).json({ detail: 'Agent non trouve' });
-        return;
-      }
-      
-      localAgents.splice(agentIndex, 1);
-      console.log('[Local API] Deleted agent:', agentId);
-      res.json({ success: true, message: 'Agent supprime avec succes' });
-    });
-    
-    app.get('/api/v1/auth/agents/:id/', (req: Request, res: Response) => {
-      const agentId = parseInt(req.params.id);
-      const agent = localAgents.find(u => u.id === agentId);
-      
-      if (agent) {
-        res.json(agent);
-      } else {
-        res.status(404).json({ detail: 'Agent non trouve' });
-      }
-    });
-    
+    // All agent CRUD operations are now proxied directly to Django API
     const { createProxyMiddleware } = await import("http-proxy-middleware");
     
     const proxyMiddleware = createProxyMiddleware({
@@ -722,6 +708,21 @@ ${commissionnerName}`;
         proxyRes: (proxyRes, req) => {
           const originalUrl = (req as any).originalUrl || req.url;
           console.log(`[Proxy Response] ${originalUrl} -> ${proxyRes.statusCode}`);
+          
+          // Log response body for agents, chatrooms, and favoris endpoints to debug
+          if (originalUrl.includes('/auth/agents') || originalUrl.includes('/messaging/chatrooms') || originalUrl.includes('/favoris/check')) {
+            let body = '';
+            proxyRes.on('data', (chunk) => {
+              body += chunk.toString();
+            });
+            proxyRes.on('end', () => {
+              let prefix = 'Unknown';
+              if (originalUrl.includes('/auth/agents')) prefix = 'Agents';
+              else if (originalUrl.includes('/messaging/chatrooms')) prefix = 'Chatrooms';
+              else if (originalUrl.includes('/favoris/check')) prefix = 'FavorisCheck';
+              console.log(`[Proxy ${prefix} Response Body] ${body.substring(0, 1000)}`);
+            });
+          }
         },
         error: (err, req, res) => {
           console.error('[Proxy Error]:', err.message);

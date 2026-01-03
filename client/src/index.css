@@ -337,3 +337,53 @@
 .leaflet-control-attribution a {
   color: hsl(var(--primary)) !important;
 }
+
+/* Fix date/time input icons for dark mode */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: light !important;
+}
+
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="datetime-local"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="datetime-local"] {
+  color-scheme: dark !important;
+}
+
+/* Ensure form elements have proper colors */
+input::-webkit-calendar-picker-indicator {
+  filter: invert(0) !important;
+  opacity: 0.8 !important;
+  cursor: pointer;
+}
+
+.dark input::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
+  opacity: 0.8 !important;
+}
+
+/* Firefox date/time inputs */
+input[type="date"]::-moz-calendar-picker-indicator,
+input[type="time"]::-moz-calendar-picker-indicator {
+  filter: invert(0);
+}
+
+.dark input[type="date"]::-moz-calendar-picker-indicator,
+.dark input[type="time"]::-moz-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Fix select dropdown arrow in both themes */
+select {
+  color-scheme: light !important;
+}
+
+.dark select,
+[data-theme="dark"] select {
+  color-scheme: dark !important;
+}

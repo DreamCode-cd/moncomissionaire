@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,8 +26,9 @@ function getRedirectPath(role: UserRole): string {
     case 'proprietaire':
       return '/my-properties';
     case 'agent':
-      return '/dashboard';
+      return '/agent-dashboard';
     case 'client':
+      return '/my-visits';
     default:
       return '/';
   }
@@ -36,16 +37,46 @@ function getRedirectPath(role: UserRole): string {
 export default function Login() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated, user, isLoading } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
+      login: '',
       password: '',
     },
   });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      const redirectPath = getRedirectPath(user.role);
+      setLocation(redirectPath);
+    }
+  }, [isLoading, isAuthenticated, user, setLocation]);
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <Layout hideNav>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-muted-foreground">Chargement...</div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Already authenticated, will redirect
+  if (isAuthenticated && user) {
+    return (
+      <Layout hideNav>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-muted-foreground">Redirection...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   const onSubmit = async (data: LoginInput) => {
     try {
@@ -55,7 +86,8 @@ export default function Login() {
         description: 'Bienvenue sur VillaGo !',
       });
       const redirectPath = getRedirectPath(profile.role);
-      setLocation(redirectPath);
+      // Use window.location for more reliable navigation after login
+      window.location.href = redirectPath;
     } catch (error) {
       toast({
         title: 'Erreur de connexion',
@@ -70,9 +102,7 @@ export default function Login() {
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
-              <span className="text-primary-foreground font-bold text-2xl">V</span>
-            </div>
+            <img src="/logo.png" alt="VillaGo" className="w-12 h-12 rounded-xl mx-auto mb-4 object-cover" />
             <CardTitle className="text-2xl">Connexion</CardTitle>
             <CardDescription>
               Connectez-vous à votre compte VillaGo
@@ -83,15 +113,15 @@ export default function Login() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="username"
+                  name="login"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom d'utilisateur</FormLabel>
+                      <FormLabel>Nom d'utilisateur ou email</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Votre nom d'utilisateur" 
+                          placeholder="Votre nom d'utilisateur ou email" 
                           {...field} 
-                          data-testid="input-username"
+                          data-testid="input-login"
                         />
                       </FormControl>
                       <FormMessage />

@@ -13,7 +13,7 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
     return (
       <div className={variant === 'horizontal' 
         ? "space-y-2" 
-        : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+        : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"
       }>
         {[...Array(6)].map((_, i) => (
           <PropertyCardSkeleton key={i} variant={variant} />
@@ -59,7 +59,7 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
       {properties.map((property) => (
         <PropertyCard key={property.id} property={property} />
       ))}
@@ -70,9 +70,9 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
 function PropertyCardSkeleton({ variant = 'default' }: { variant?: 'default' | 'horizontal' }) {
   if (variant === 'horizontal') {
     return (
-      <div className="flex h-28 border rounded-lg overflow-hidden">
-        <Skeleton className="w-36 h-full flex-shrink-0" />
-        <div className="flex-1 p-2.5 space-y-2">
+      <div className="flex h-24 border rounded-lg overflow-hidden">
+        <Skeleton className="w-28 h-full flex-shrink-0" />
+        <div className="flex-1 p-2 space-y-2">
           <Skeleton className="h-4 w-3/4" />
           <Skeleton className="h-3 w-1/2" />
           <Skeleton className="h-3 w-2/3" />
@@ -84,8 +84,8 @@ function PropertyCardSkeleton({ variant = 'default' }: { variant?: 'default' | '
 
   return (
     <div className="border rounded-lg overflow-hidden">
-      <Skeleton className="aspect-[4/3]" />
-      <div className="p-3 space-y-2">
+      <Skeleton className="aspect-square" />
+      <div className="p-2.5 space-y-2">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-1/2" />
         <div className="flex gap-3">

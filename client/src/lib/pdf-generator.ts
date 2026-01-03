@@ -82,7 +82,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
 
-  const bienDetail = visite.demande_visite_detail?.bien_detail;
+  const bienDetail = visite.demande_detail?.bien_detail;
   if (bienDetail) {
     const bienInfo = [
       ['Titre:', safeString(bienDetail.titre, 'Non spécifié')],
@@ -112,7 +112,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
   y += 8;
 
   doc.setFontSize(11);
-  const client = visite.demande_visite_detail?.client;
+  const client = visite.demande_detail?.client;
   if (client) {
     doc.setFont('helvetica', 'bold');
     doc.text('Client:', margin, y);
@@ -307,7 +307,7 @@ export function generateVisiteSummaryPDF(visites: Visite[]): boolean {
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    const titre = visite.demande_visite_detail?.bien_detail?.titre || 'Bien non spécifié';
+    const titre = visite.demande_detail?.bien_detail?.titre || 'Bien non spécifié';
     doc.text(`${index + 1}. ${titre}`, margin + 2, y);
     y += 6;
 
@@ -315,8 +315,8 @@ export function generateVisiteSummaryPDF(visites: Visite[]): boolean {
     doc.setFontSize(10);
     doc.text(`Date: ${formatDate(visite.date_visite)} à ${formatTime(visite.heure_visite)}`, margin + 2, y);
     y += 5;
-    const quartier = safeString(visite.demande_visite_detail?.bien_detail?.quartier, '');
-    const ville = safeString(visite.demande_visite_detail?.bien_detail?.ville, '');
+    const quartier = safeString(visite.demande_detail?.bien_detail?.quartier, '');
+    const ville = safeString(visite.demande_detail?.bien_detail?.ville, '');
     const lieu = [quartier, ville].filter(Boolean).join(', ') || 'Lieu non spécifié';
     doc.text(`Lieu: ${lieu}`, margin + 2, y);
     y += 5;

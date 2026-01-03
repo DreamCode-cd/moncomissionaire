@@ -14,3 +14,18 @@ export function getDjangoImageUrl(imagePath?: string | null): string | null {
   }
   return `${DJANGO_MEDIA_URL}${imagePath}`;
 }
+
+export function getVilleName(ville: string | number | { id?: number; nom?: string } | null | undefined, villeNom?: string, villeDetail?: { id?: number; nom?: string } | null): string {
+  if (villeNom) return villeNom;
+  if (villeDetail?.nom) return villeDetail.nom;
+  if (!ville) return '';
+  if (typeof ville === 'string') return ville;
+  if (typeof ville === 'number') return '';
+  return ville.nom || '';
+}
+
+export function getVilleId(ville: string | { id?: number; nom?: string } | null | undefined): string {
+  if (!ville) return '';
+  if (typeof ville === 'string') return ville;
+  return ville.id ? String(ville.id) : '';
+}

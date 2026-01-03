@@ -3,13 +3,13 @@ import { MapPin, Bed, Bath, Maximize, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { BienList } from '@shared/schema';
-import { cn, getDjangoImageUrl } from '@/lib/utils';
+import { cn, getDjangoImageUrl, getVilleName } from '@/lib/utils';
 
-import villaImage from '@assets/generated_images/luxury_villa_hero_image.png';
-import apartmentImage from '@assets/generated_images/modern_apartment_interior.png';
-import studioImage from '@assets/generated_images/cozy_studio_apartment.png';
-import houseImage from '@assets/generated_images/family_house_with_garden.png';
-import duplexImage from '@assets/generated_images/duplex_penthouse_terrace.png';
+import villaImage from '@assets/images/luxury_villa_hero_image.png';
+import apartmentImage from '@assets/images/modern_apartment_interior.png';
+import studioImage from '@assets/images/cozy_studio_apartment.png';
+import houseImage from '@assets/images/family_house_with_garden.png';
+import duplexImage from '@assets/images/duplex_penthouse_terrace.png';
 
 const defaultImages: Record<string, string> = {
   villa: villaImage,
@@ -60,15 +60,15 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
           className="overflow-hidden hover-elevate cursor-pointer"
           data-testid={`card-property-${property.id}`}
         >
-          <div className="flex h-28">
-            <div className="relative w-36 h-full flex-shrink-0">
+          <div className="flex h-24">
+            <div className="relative w-28 h-full flex-shrink-0">
               <img
                 src={imageUrl}
                 alt={property.titre}
                 className="w-full h-full object-cover"
               />
             </div>
-            <CardContent className="flex-1 p-2.5 min-w-0">
+            <CardContent className="flex-1 p-2 min-w-0">
               <div className="flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-1">
@@ -87,7 +87,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                   </div>
                   <div className="flex items-center text-muted-foreground text-xs mb-1">
                     <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="line-clamp-1">{property.quartier}, {property.ville}</span>
+                    <span className="line-clamp-1">{property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -134,7 +134,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
         className="overflow-hidden hover-elevate cursor-pointer group"
         data-testid={`card-property-${property.id}`}
       >
-        <div className="relative aspect-[4/3]">
+        <div className="relative aspect-square">
           <img
             src={imageUrl}
             alt={property.titre}
@@ -153,28 +153,31 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
             </Badge>
           </div>
         </div>
-        <CardContent className="p-3">
-          <h3 className="font-semibold text-sm line-clamp-1 mb-1">{property.titre}</h3>
+        <CardContent className="p-2.5">
+          <h3 className="font-semibold text-xs line-clamp-1 mb-1">{property.titre}</h3>
           <div className="flex items-center text-muted-foreground text-xs mb-2">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="line-clamp-1">{property.quartier}, {property.ville}</span>
+            <span className="line-clamp-1">{property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
             {property.nombre_chambres > 0 && (
               <span className="flex items-center gap-1">
                 <Bed className="w-3 h-3" />
-                {property.nombre_chambres} ch.
+                <span className="md:hidden">{property.nombre_chambres}</span>
+                <span className="hidden md:inline">{property.nombre_chambres} ch.</span>
               </span>
             )}
             {property.nombre_salles_bain > 0 && (
               <span className="flex items-center gap-1">
                 <Bath className="w-3 h-3" />
-                {property.nombre_salles_bain} sdb.
+                <span className="md:hidden">{property.nombre_salles_bain}</span>
+                <span className="hidden md:inline">{property.nombre_salles_bain} sdb.</span>
               </span>
             )}
             <span className="flex items-center gap-1">
               <Maximize className="w-3 h-3" />
-              {property.superficie}m²
+              <span className="md:hidden">{property.superficie}</span>
+              <span className="hidden md:inline">{property.superficie}m²</span>
             </span>
           </div>
           <div className="flex items-center justify-between gap-2">

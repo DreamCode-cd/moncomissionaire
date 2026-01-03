@@ -11,7 +11,7 @@ const publicNavItems = [
 const clientNavItems = [
   { href: '/', icon: Home, label: 'Accueil' },
   { href: '/search', icon: Search, label: 'Recherche' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
+  { href: '/my-visits', icon: Building2, label: 'Visites' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 
@@ -23,15 +23,14 @@ const proprietaireNavItems = [
 ];
 
 const commissionnaireNavItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
+  { href: '/', icon: Home, label: 'Accueil' },
   { href: '/pending-properties', icon: Building2, label: 'Biens' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 
 const agentNavItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
-  { href: '/my-visits', icon: Building2, label: 'Visites' },
+  { href: '/agent-dashboard', icon: Home, label: 'Dashboard' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];

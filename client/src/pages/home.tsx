@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, MapPin, Search } from 'lucide-react';
@@ -7,27 +7,80 @@ import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { BienList, PaginatedResponse } from '@shared/schema';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
+import { getVilleName } from '@/lib/utils';
+import type { BienList, PaginatedResponse, AvisBien } from '@shared/schema';
 
-import heroImage from '@assets/generated_images/luxury_villa_hero_image.png';
-
-const cities = [
-  { name: 'Kinshasa', count: 245 },
-  { name: 'Lubumbashi', count: 128 },
-  { name: 'Goma', count: 89 },
-  { name: 'Bukavu', count: 67 },
-];
+import heroImage from '@assets/images/luxury_villa_hero_image.png';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { isAuthenticated } = useAuth();
 
-  const { data: featuredProperties, isLoading } = useQuery<PaginatedResponse<BienList>>({
+  const { data: allProperties, isLoading } = useQuery<PaginatedResponse<BienList>>({
     queryKey: ['/api/v1/biens/', { statut_validation: 'valide', statut_location: 'disponible' }],
+    refetchInterval: 60000, // Rafraîchir toutes les 60 secondes
+    refetchOnWindowFocus: true, // Rafraîchir quand l'utilisateur revient sur l'onglet
   });
+
+  // Calculate property details score (more amenities/features = higher score)
+  const calculateDetailsScore = (property: BienList) => {
+    let score = 0;
+    
+    // Features that add to the score
+    if (property.nombre_chambres > 0) score += property.nombre_chambres;
+    if (property.nombre_salles_bain > 0) score += property.nombre_salles_bain;
+    if (parseFloat(property.superficie) > 0) score += Math.min(parseFloat(property.superficie) / 10, 10);
+    
+    return score;
+  };
+
+  // Get featured properties sorted by rating or details
+  const featuredProperties = useMemo(() => {
+    if (!allProperties?.results) return [];
+    
+    // Create a copy of the properties array to sort
+    const propertiesWithScores = allProperties.results.map(property => ({
+      property,
+      detailsScore: calculateDetailsScore(property)
+    }));
+    
+    // Sort by details score descending
+    return propertiesWithScores
+      .sort((a, b) => b.detailsScore - a.detailsScore)
+      .slice(0, 8)
+      .map(item => item.property);
+  }, [allProperties?.results]);
+
+  // Calculate popular cities from real property data
+  const popularCities = useMemo(() => {
+    if (!allProperties?.results) return [];
+    
+    const cityData: Record<string, { count: number; id: string }> = {};
+    
+    allProperties.results.forEach((property) => {
+      const cityName = getVilleName(property.ville, property.ville_nom, property.ville_detail)?.trim();
+      const cityId = property.ville_detail?.id?.toString() || 
+                     (typeof property.ville === 'number' ? property.ville.toString() : '');
+      if (cityName && cityId) {
+        if (!cityData[cityName]) {
+          cityData[cityName] = { count: 0, id: cityId };
+        }
+        cityData[cityName].count += 1;
+      }
+    });
+    
+    // Sort by count descending and take top 4
+    return Object.entries(cityData)
+      .map(([name, data]) => ({ name, count: data.count, id: data.id }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 4);
+  }, [allProperties?.results]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
     }
   };
 
@@ -82,20 +135,38 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {cities.map((city) => (
-              <Link key={city.name} href={`/search?ville=${city.name}`}>
-                <div 
-                  className="bg-card rounded-lg p-4 hover-elevate cursor-pointer border border-border"
-                  data-testid={`link-city-${city.name.toLowerCase()}`}
-                >
+            {isLoading ? (
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="bg-card rounded-lg p-4 border border-border">
                   <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    <span className="font-semibold">{city.name}</span>
+                    <Skeleton className="w-5 h-5 rounded-full" />
+                    <Skeleton className="h-5 w-24" />
                   </div>
-                  <p className="text-sm text-muted-foreground">{city.count} biens disponibles</p>
+                  <Skeleton className="h-4 w-32" />
                 </div>
-              </Link>
-            ))}
+              ))
+            ) : popularCities.length > 0 ? (
+              popularCities.map((city) => (
+                <Link key={city.name} href={`/search?ville=${city.id}`}>
+                  <div 
+                    className="bg-card rounded-lg p-4 hover-elevate cursor-pointer border border-border"
+                    data-testid={`link-city-${city.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <span className="font-semibold">{city.name}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {city.count} bien{city.count > 1 ? 's' : ''} disponible{city.count > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                Aucune ville disponible pour le moment
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -113,8 +184,8 @@ export default function Home() {
           </div>
           
           <PropertyGrid 
-            properties={featuredProperties?.results?.slice(0, 6) || []} 
-            isLoading={isLoading} 
+            properties={featuredProperties} 
+            isLoading={isLoading}
           />
         </div>
       </section>
@@ -132,32 +203,34 @@ export default function Home() {
           </div>
           
           <div className="space-y-4">
-            {featuredProperties?.results?.slice(0, 4).map((property) => (
+            {allProperties?.results?.slice(0, 5).map((property) => (
               <PropertyCard key={property.id} property={property} variant="horizontal" />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-12 md:py-20 px-4 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-serif text-2xl md:text-4xl font-bold mb-4">
-            Vous êtes propriétaire ?
-          </h2>
-          <p className="text-primary-foreground/90 mb-8 max-w-xl mx-auto">
-            Publiez votre bien gratuitement et trouvez des locataires qualifiés rapidement.
-          </p>
-          <Link href="/register?role=proprietaire">
-            <Button 
-              variant="secondary" 
-              size="lg"
-              data-testid="button-become-owner"
-            >
-              Devenir propriétaire
-            </Button>
-          </Link>
-        </div>
-      </section>
+      {!isAuthenticated && (
+        <section className="py-12 md:py-20 px-4 bg-primary text-primary-foreground">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-serif text-2xl md:text-4xl font-bold mb-4">
+              Vous êtes propriétaire ?
+            </h2>
+            <p className="text-primary-foreground/90 mb-8 max-w-xl mx-auto">
+              Publiez votre bien gratuitement et trouvez des locataires qualifiés rapidement.
+            </p>
+            <Link href="/register?role=proprietaire">
+              <Button 
+                variant="secondary" 
+                size="lg"
+                data-testid="button-become-owner"
+              >
+                Devenir propriétaire
+              </Button>
+            </Link>
+          </div>
+        </section>
+      )}
     </Layout>
   );
 }
