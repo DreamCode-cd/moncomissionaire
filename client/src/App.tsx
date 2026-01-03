@@ -9,10 +9,10 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
-import Home from "@/pages/Home";
+import Home from "@/pages/home";
 import Search from "@/pages/Search";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
 import Profile from "@/pages/Profile";
 import PropertyDetail from "@/pages/PropertyDetail";
 import Notifications from "@/pages/Notifications";
