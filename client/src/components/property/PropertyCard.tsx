@@ -2,6 +2,7 @@ import { Link } from 'wouter';
 import { MapPin, Bed, Bath, Maximize, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { LazyImage } from '@/components/ui/lazy-image';
 import type { BienList } from '@shared/schema';
 import { cn, getDjangoImageUrl, getVilleName } from '@/lib/utils';
 
@@ -62,10 +63,10 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
         >
           <div className="flex h-24">
             <div className="relative w-28 h-full flex-shrink-0">
-              <img
+              <LazyImage
                 src={imageUrl}
                 alt={property.titre}
-                className="w-full h-full object-cover"
+                className="w-full h-full"
               />
             </div>
             <CardContent className="flex-1 p-2 min-w-0">
@@ -135,12 +136,12 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
         data-testid={`card-property-${property.id}`}
       >
         <div className="relative aspect-square">
-          <img
+          <LazyImage
             src={imageUrl}
             alt={property.titre}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
           <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-1">
             <Badge 
               variant="secondary" 

@@ -38,6 +38,7 @@ import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import type { BienDetail, BienList, AvisBien, PaginatedResponse } from '@shared/schema';
 import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 import villaImage from '@assets/images/luxury_villa_hero_image.png';
 import apartmentImage from '@assets/images/modern_apartment_interior.png';
@@ -539,6 +540,8 @@ export default function PropertyDetail() {
             src={mainImage}
             alt={property.titre}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            loading="eager"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none" />
           
@@ -980,10 +983,10 @@ export default function PropertyDetail() {
                       <Link key={bien.id} href={`/property/${bien.id}`}>
                         <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                           <div className="aspect-video relative">
-                            <img 
+                            <LazyImage 
                               src={image} 
                               alt={bien.titre}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full"
                             />
                             <Badge 
                               className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm text-xs"
