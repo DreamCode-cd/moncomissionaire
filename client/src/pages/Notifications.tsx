@@ -53,8 +53,10 @@ const getNotificationColor = (type: string) => {
 export default function Notifications() {
   const { toast } = useToast();
 
-  const { data, isLoading } = useQuery<PaginatedResponse<Notification>>({
+  const { data: notifications, isLoading } = useQuery<PaginatedResponse<Notification>>({
     queryKey: ['/api/v1/notifications/'],
+    refetchInterval: 15000, // Rafraîchir toutes les 15 secondes
+    refetchOnWindowFocus: true,
   });
 
   const markAsReadMutation = useMutation({
@@ -65,7 +67,7 @@ export default function Notifications() {
   });
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: () => api.post('/api/v1/notifications/mark-all-read/'),
+    mutationFn: () => api.post('/api/v1/notifications/mark_all_as_read/'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/'] });
       toast({
@@ -88,7 +90,7 @@ export default function Notifications() {
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   };
 
-  const unreadCount = data?.results?.filter(n => !n.is_read).length || 0;
+  const unreadCount = notifications?.results?.filter(n => !n.is_read).length || 0;
 
   return (
     <Layout>
@@ -133,7 +135,7 @@ export default function Notifications() {
               </Card>
             ))}
           </div>
-        ) : data?.results?.length === 0 ? (
+        ) : notifications?.results?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
               <Bell className="w-8 h-8 text-muted-foreground" />
@@ -145,7 +147,7 @@ export default function Notifications() {
           </div>
         ) : (
           <div className="space-y-3">
-            {data?.results?.map((notification) => {
+            {notifications?.results?.map((notification) => {
               const Icon = getNotificationIcon(notification.type_notification);
               return (
                 <Card 

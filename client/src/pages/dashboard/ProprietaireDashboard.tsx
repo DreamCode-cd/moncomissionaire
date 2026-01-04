@@ -1,20 +1,37 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { 
-  Home, Plus, Eye, Clock, CheckCircle, XCircle, ChevronRight,
-  Building2, TrendingUp
+  Home, Plus, Clock, CheckCircle, XCircle,
+  Building2, TrendingUp, MapPin, Pencil
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { PropertyCard } from '@/components/property/PropertyCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDjangoImageUrl } from '@/lib/utils';
+import { api } from '@/lib/api';
+import { queryClient } from '@/lib/queryClient';
+import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import type { BienList, PaginatedResponse } from '@shared/schema';
+
+const locationStatuses = [
+  { value: 'disponible', label: 'Disponible' },
+  { value: 'en_visite', label: 'En visite' },
+  { value: 'loue', label: 'Loué' },
+  { value: 'indisponible', label: 'Indisponible' },
+];
 
 const getValidationBadge = (status: string) => {
   switch (status) {
@@ -47,9 +64,33 @@ const getLocationBadge = (status: string) => {
 export default function ProprietaireDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
+  const { toast } = useToast();
 
   const { data: myProperties, isLoading } = useQuery<PaginatedResponse<BienList>>({
     queryKey: ['/api/v1/biens/proprietaire/'],
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await api.request(`/api/v1/biens/proprietaire/${id}/`, {
+        method: 'PATCH',
+        body: { statut_location: status },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
+      toast({
+        title: 'Statut mis à jour',
+        description: 'Le statut du bien a été modifié.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
   });
 
   const properties = myProperties?.results || [];
@@ -69,80 +110,88 @@ export default function ProprietaireDashboard() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">
-              Mes biens
-            </h1>
-            <p className="text-muted-foreground">
-              Gérez vos propriétés et suivez leur statut
-            </p>
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-14 h-14 md:w-16 md:h-16">
+                <AvatarImage src={user?.photo} alt={user?.username} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                  {user?.first_name?.[0]?.toUpperCase() || 'P'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold">
+                  {user?.first_name} {user?.last_name}
+                </h1>
+                <p className="text-sm text-muted-foreground">Propriétaire</p>
+              </div>
+            </div>
+            <Link href="/add-property">
+              <Button size="sm" data-testid="button-add-property">
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter
+              </Button>
+            </Link>
           </div>
-          <Link href="/add-property">
-            <Button data-testid="button-add-property">
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un bien
-            </Button>
-          </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-4 gap-2 md:gap-4 mb-6">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-primary" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Building2 className="w-4 h-4 text-primary" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" data-testid="text-total-count">
+                <div className="min-w-0">
+                  <p className="text-lg md:text-xl font-bold" data-testid="text-total-count">
                     {properties.length}
                   </p>
-                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-xs text-muted-foreground truncate">Total</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-yellow-600" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-yellow-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" data-testid="text-pending-count">
+                <div className="min-w-0">
+                  <p className="text-lg md:text-xl font-bold" data-testid="text-pending-count">
                     {pendingCount}
                   </p>
-                  <p className="text-xs text-muted-foreground">En attente</p>
+                  <p className="text-xs text-muted-foreground truncate">Attente</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" data-testid="text-validated-count">
+                <div className="min-w-0">
+                  <p className="text-lg md:text-xl font-bold" data-testid="text-validated-count">
                     {validatedCount}
                   </p>
-                  <p className="text-xs text-muted-foreground">Validés</p>
+                  <p className="text-xs text-muted-foreground truncate">Validés</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" data-testid="text-rented-count">
+                <div className="min-w-0">
+                  <p className="text-lg md:text-xl font-bold" data-testid="text-rented-count">
                     {rentedCount}
                   </p>
-                  <p className="text-xs text-muted-foreground">Loués</p>
+                  <p className="text-xs text-muted-foreground truncate">Loués</p>
                 </div>
               </div>
             </CardContent>
@@ -150,58 +199,58 @@ export default function ProprietaireDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="all" data-testid="tab-all">
+          <TabsList className="mb-4">
+            <TabsTrigger value="all" data-testid="tab-all" className="text-xs md:text-sm">
               Tous ({properties.length})
             </TabsTrigger>
-            <TabsTrigger value="pending" data-testid="tab-pending">
-              En attente ({pendingCount})
+            <TabsTrigger value="pending" data-testid="tab-pending" className="text-xs md:text-sm">
+              Attente ({pendingCount})
             </TabsTrigger>
-            <TabsTrigger value="validated" data-testid="tab-validated">
+            <TabsTrigger value="validated" data-testid="tab-validated" className="text-xs md:text-sm">
               Validés ({validatedCount})
             </TabsTrigger>
-            <TabsTrigger value="rented" data-testid="tab-rented">
+            <TabsTrigger value="rented" data-testid="tab-rented" className="text-xs md:text-sm">
               Loués ({rentedCount})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab}>
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i}>
-                    <Skeleton className="aspect-[4/3]" />
-                    <CardContent className="p-4 space-y-3">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-1/2" />
-                      <Skeleton className="h-6 w-1/3" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {[...Array(8)].map((_, i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <Skeleton className="aspect-[16/10]" />
+                    <CardContent className="p-3 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-5 w-1/3" />
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : filteredProperties.length === 0 ? (
               <div className="text-center py-12">
-                <Home className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <Home className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">Aucun bien</h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   {activeTab === 'all' 
                     ? "Vous n'avez pas encore ajouté de bien"
                     : "Aucun bien dans cette catégorie"
                   }
                 </p>
                 <Link href="/add-property">
-                  <Button>
+                  <Button size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Ajouter un bien
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {filteredProperties.map((property) => (
                   <Card key={property.id} className="overflow-hidden" data-testid={`property-${property.id}`}>
                     <Link href={`/property/${property.id}`}>
-                      <div className="relative aspect-[4/3]">
+                      <div className="relative aspect-[16/10]">
                         {property.photo_principale?.image ? (
                           <img
                             src={getDjangoImageUrl(property.photo_principale.image) || undefined}
@@ -214,34 +263,51 @@ export default function ProprietaireDashboard() {
                           />
                         ) : null}
                         <div className={`w-full h-full bg-muted flex items-center justify-center ${property.photo_principale?.image ? 'hidden' : ''}`}>
-                          <Home className="w-12 h-12 text-muted-foreground" />
+                          <Home className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <div className="absolute top-2 left-2">
+                          {getValidationBadge(property.statut_validation)}
                         </div>
                       </div>
                     </Link>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold line-clamp-1 mb-2">
+                    <CardContent className="p-3">
+                      <h3 className="font-semibold text-sm line-clamp-1 mb-1">
                         {property.titre}
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {property.quartier}, {property.ville}
+                      <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}
                       </p>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {getValidationBadge(property.statut_validation)}
-                        {property.statut_validation === 'valide' && 
-                          getLocationBadge(property.statut_location)
-                        }
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-lg">
-                          ${parseFloat(property.prix_mensuel).toLocaleString()}
-                          <span className="text-sm font-normal text-muted-foreground">/mois</span>
+                      
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="font-bold text-sm">
+                          ${parseFloat(property.prix_mensuel).toLocaleString()}/mois
                         </span>
-                        <Link href={`/property/${property.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            Modifier
-                          </Button>
-                        </Link>
+                        {property.statut_validation === 'valide' && (
+                          <Select
+                            value={property.statut_location}
+                            onValueChange={(value) => updateStatusMutation.mutate({ id: property.id, status: value })}
+                          >
+                            <SelectTrigger className="h-7 text-xs w-[110px]" data-testid={`select-status-${property.id}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {locationStatuses.map((status) => (
+                                <SelectItem key={status.value} value={status.value} className="text-xs">
+                                  {status.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
+                      
+                      <Link href={`/property/${property.id}/edit`}>
+                        <Button variant="outline" size="sm" className="w-full h-8 text-xs">
+                          <Pencil className="w-3 h-3 mr-1" />
+                          Modifier
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}

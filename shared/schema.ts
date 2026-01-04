@@ -8,6 +8,7 @@ export interface UserList {
   email: string;
   first_name: string;
   last_name: string;
+  full_name?: string;
   role: UserRole;
   role_display: string;
   phone: string;
@@ -65,6 +66,14 @@ export interface Photo {
   created_at: string;
 }
 
+export interface VilleDetail {
+  id: number;
+  nom: string;
+  code_postal?: string;
+  pays?: string;
+  nombre_biens?: number;
+}
+
 export interface BienList {
   id: number;
   titre: string;
@@ -75,7 +84,9 @@ export interface BienList {
   superficie: string;
   nombre_chambres: number;
   nombre_salles_bain: number;
-  ville: string;
+  ville: number | string;
+  ville_nom?: string;
+  ville_detail?: VilleDetail;
   quartier: string;
   statut_validation: StatutValidation;
   statut_validation_display: string;
@@ -197,17 +208,18 @@ export type StatutVisite = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
 
 export interface Visite {
   id: number;
-  demande_visite: number;
-  demande_visite_detail: DemandeVisite;
+  demande: number;
+  demande_detail?: DemandeVisite;
   agent?: number;
   agent_detail?: UserList;
-  commissionnaire: number;
-  commissionnaire_detail: UserList;
+  commissionnaire?: number;
+  commissionnaire_detail?: UserList;
   date_visite: string;
   heure_visite: string;
   statut: StatutVisite;
   statut_display: string;
   notes_commissionnaire?: string;
+  rapport?: string;
   created_at: string;
   updated_at: string;
 }
@@ -347,7 +359,7 @@ export interface PaginatedResponse<T> {
 }
 
 export const loginSchema = z.object({
-  username: z.string().min(1, "Nom d'utilisateur requis"),
+  login: z.string().min(1, "Nom d'utilisateur ou email requis"),
   password: z.string().min(1, "Mot de passe requis"),
 });
 
@@ -355,14 +367,18 @@ export const registerSchema = z.object({
   username: z.string().min(3, "Minimum 3 caractères"),
   email: z.string().email("Email invalide"),
   password: z.string().min(6, "Minimum 6 caractères"),
-  password_confirm: z.string().min(6, "Minimum 6 caractères"),
+  password2: z.string().min(6, "Minimum 6 caractères"),
   first_name: z.string().min(1, "Prénom requis"),
   last_name: z.string().min(1, "Nom requis"),
   phone: z.string().min(8, "Numéro de téléphone invalide"),
-  role: z.enum(['client', 'proprietaire']),
-}).refine((data) => data.password === data.password_confirm, {
+  address: z.string().min(3, "Adresse requise"),
+  user_type: z.enum(['client', 'proprietaire']),
+  terms_accepted: z.boolean().refine((val) => val === true, {
+    message: "Vous devez accepter les conditions d'utilisation",
+  }),
+}).refine((data) => data.password === data.password2, {
   message: "Les mots de passe ne correspondent pas",
-  path: ["password_confirm"],
+  path: ["password2"],
 });
 
 export const bienCreateSchema = z.object({
@@ -376,7 +392,7 @@ export const bienCreateSchema = z.object({
   nombre_salles_bain: z.number().min(0).optional(),
   nombre_pieces: z.number().min(0).optional(),
   adresse: z.string().min(5, "Adresse requise"),
-  ville: z.string().min(2, "Ville requise"),
+  ville: z.string().min(1, "Ville requise"),
   quartier: z.string().min(2, "Quartier requis"),
   commune: z.string().optional(),
   eau_courante: z.boolean().optional(),
@@ -397,7 +413,7 @@ export const demandeVisiteSchema = z.object({
 
 export const avisSchema = z.object({
   note: z.number().min(1).max(5),
-  commentaire: z.string().min(10, "Minimum 10 caractères"),
+  commentaire: z.string().optional().default(""),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

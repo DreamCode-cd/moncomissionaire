@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 type ThemeMode = 'system' | 'light' | 'dark';
 type ResolvedTheme = 'light' | 'dark';
@@ -18,22 +18,24 @@ function getSystemTheme(): ResolvedTheme {
   return 'light';
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme-mode') as ThemeMode;
-      if (saved && ['system', 'light', 'dark'].includes(saved)) {
-        return saved;
-      }
+function getInitialThemeMode(): ThemeMode {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('theme-mode') as ThemeMode;
+    if (saved && ['system', 'light', 'dark'].includes(saved)) {
+      return saved;
     }
-    return 'system';
-  });
+  }
+  return 'system';
+}
 
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(getInitialThemeMode);
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
-    if (themeMode === 'system') {
+    const mode = getInitialThemeMode();
+    if (mode === 'system') {
       return getSystemTheme();
     }
-    return themeMode;
+    return mode;
   });
 
   useEffect(() => {

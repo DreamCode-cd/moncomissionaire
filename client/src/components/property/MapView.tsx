@@ -5,16 +5,16 @@ import { useLocation } from 'wouter';
 import { MapPin, Bed, Bath, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getDjangoImageUrl } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import type { BienList, BienDetail } from '@shared/schema';
 
 import 'leaflet/dist/leaflet.css';
 
-import villaImage from '@assets/generated_images/luxury_villa_hero_image.png';
-import apartmentImage from '@assets/generated_images/modern_apartment_interior.png';
-import studioImage from '@assets/generated_images/cozy_studio_apartment.png';
-import houseImage from '@assets/generated_images/family_house_with_garden.png';
-import duplexImage from '@assets/generated_images/duplex_penthouse_terrace.png';
+import villaImage from '@assets/images/luxury_villa_hero_image.png';
+import apartmentImage from '@assets/images/modern_apartment_interior.png';
+import studioImage from '@assets/images/cozy_studio_apartment.png';
+import houseImage from '@assets/images/family_house_with_garden.png';
+import duplexImage from '@assets/images/duplex_penthouse_terrace.png';
 
 const defaultImages: Record<string, string> = {
   villa: villaImage,
@@ -207,7 +207,7 @@ export function MapView({
                   
                   <div className="flex items-center text-xs text-muted-foreground">
                     <MapPin className="w-3 h-3 mr-1" />
-                    <span className="line-clamp-1">{property.quartier}, {property.ville}</span>
+                    <span className="line-clamp-1">{property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
                   </div>
                   
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">

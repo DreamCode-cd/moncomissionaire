@@ -1,16 +1,26 @@
-import { useState, useRef } from 'react';
-import { useLocation } from 'wouter';
+import { useState, useRef, useEffect } from 'react';
+import { useLocation, useParams } from 'wouter';
 import { useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronLeft, Upload, X, Star, ImagePlus } from 'lucide-react';
-import heic2any from 'heic2any';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { ChevronLeft, X, Star, ImagePlus, Trash2, Loader2 } from 'lucide-react';
+
+interface Ville {
+  id: number;
+  nom: string;
+}
+
+interface VillesResponse {
+  results?: Ville[];
+  count?: number;
+}
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Form,
   FormControl,
@@ -26,19 +36,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import { bienCreateSchema, type BienCreateInput } from '@shared/schema';
-
-interface Ville {
-  id: number;
-  nom: string;
-}
-
-interface VillesResponse {
-  results?: Ville[];
-  count?: number;
-}
+import { queryClient } from '@/lib/queryClient';
+import { getDjangoImageUrl, getVilleId } from '@/lib/utils';
+import { bienCreateSchema, type BienCreateInput, type BienDetail } from '@shared/schema';
 
 const propertyTypes = [
   { value: 'maison', label: 'Maison' },
@@ -49,18 +62,39 @@ const propertyTypes = [
   { value: 'terrain', label: 'Terrain' },
 ];
 
+const locationStatuses = [
+  { value: 'disponible', label: 'Disponible' },
+  { value: 'en_visite', label: 'En visite' },
+  { value: 'loue', label: 'Loué' },
+  { value: 'indisponible', label: 'Indisponible' },
+];
+
 interface PhotoPreview {
-  file: File;
+  id?: number;
+  file?: File;
   preview: string;
+  isExisting: boolean;
+  isPrincipal: boolean;
 }
 
-export default function AddProperty() {
+export default function EditProperty() {
+  const params = useParams<{ id: string }>();
+  const propertyId = params.id;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [photos, setPhotos] = useState<PhotoPreview[]>([]);
   const [principalIndex, setPrincipalIndex] = useState(0);
+  const [photosToDelete, setPhotosToDelete] = useState<number[]>([]);
+  const [newPhotos, setNewPhotos] = useState<File[]>([]);
+  const [locationStatus, setLocationStatus] = useState('disponible');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: property, isLoading } = useQuery<BienDetail>({
+    queryKey: ['/api/v1/biens/proprietaire/', propertyId],
+    enabled: !!propertyId,
+  });
 
   const { data: villesData } = useQuery<VillesResponse | Ville[]>({
     queryKey: ['/api/v1/biens/villes/'],
@@ -94,55 +128,65 @@ export default function AddProperty() {
     },
   });
 
-  const convertHeicToJpg = async (file: File): Promise<File> => {
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    
-    if (fileExtension === 'heic' || fileExtension === 'heif') {
-      try {
-        const convertedBlob = await heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.9,
-        });
-        
-        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-        const newFileName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
-        return new File([blob], newFileName, { type: 'image/jpeg' });
-      } catch (error) {
-        console.error('Erreur lors de la conversion HEIC:', error);
-        toast({
-          title: 'Erreur de conversion',
-          description: 'Impossible de convertir l\'image HEIC. Veuillez utiliser un autre format.',
-          variant: 'destructive',
-        });
-        throw error;
+  useEffect(() => {
+    if (property) {
+      form.reset({
+        titre: property.titre || '',
+        description: property.description || '',
+        type_bien: property.type_bien || 'appartement',
+        prix_mensuel: property.prix_mensuel || '',
+        garantie: property.garantie || '',
+        superficie: property.superficie || '',
+        nombre_chambres: property.nombre_chambres || 1,
+        nombre_salles_bain: property.nombre_salles_bain || 1,
+        nombre_pieces: property.nombre_pieces || 2,
+        adresse: property.adresse || '',
+        ville: typeof property.ville === 'number' ? String(property.ville) : (getVilleId(property.ville) || ''),
+        quartier: property.quartier || '',
+        commune: property.commune || '',
+        eau_courante: property.eau_courante ?? true,
+        electricite: property.electricite ?? true,
+        parking: property.parking ?? false,
+        jardin: property.jardin ?? false,
+        meuble: property.meuble ?? false,
+        climatisation: property.climatisation ?? false,
+        gardien: property.gardien ?? false,
+      });
+
+      if (property.photos && property.photos.length > 0) {
+        const existingPhotos: PhotoPreview[] = property.photos.map((photo, index) => ({
+          id: photo.id,
+          preview: getDjangoImageUrl(photo.image) || '',
+          isExisting: true,
+          isPrincipal: photo.is_principale || false,
+        }));
+        setPhotos(existingPhotos);
+        const principalIdx = existingPhotos.findIndex(p => p.isPrincipal);
+        if (principalIdx >= 0) setPrincipalIndex(principalIdx);
+      }
+
+      if (property.statut_location) {
+        setLocationStatus(property.statut_location);
       }
     }
-    
-    return file;
-  };
+  }, [property, form]);
 
-  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const remainingSlots = 10 - photos.length;
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
-    try {
-      const convertedFiles = await Promise.all(
-        filesToAdd.map(file => convertHeicToJpg(file))
-      );
+    const newPhotosPreviews: PhotoPreview[] = filesToAdd.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      isExisting: false,
+      isPrincipal: false,
+    }));
 
-      const newPhotos: PhotoPreview[] = convertedFiles.map(file => ({
-        file,
-        preview: URL.createObjectURL(file),
-      }));
-
-      setPhotos(prev => [...prev, ...newPhotos]);
-    } catch (error) {
-      console.error('Erreur lors du traitement des images:', error);
-    }
+    setPhotos(prev => [...prev, ...newPhotosPreviews]);
+    setNewPhotos(prev => [...prev, ...filesToAdd]);
     
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -150,11 +194,16 @@ export default function AddProperty() {
   };
 
   const removePhoto = (index: number) => {
-    setPhotos(prev => {
-      const newPhotos = prev.filter((_, i) => i !== index);
-      URL.revokeObjectURL(prev[index].preview);
-      return newPhotos;
-    });
+    const photo = photos[index];
+    
+    if (photo.isExisting && photo.id) {
+      setPhotosToDelete(prev => [...prev, photo.id!]);
+    } else if (photo.file) {
+      setNewPhotos(prev => prev.filter(f => f !== photo.file));
+      URL.revokeObjectURL(photo.preview);
+    }
+    
+    setPhotos(prev => prev.filter((_, i) => i !== index));
     
     if (principalIndex === index) {
       setPrincipalIndex(0);
@@ -165,32 +214,99 @@ export default function AddProperty() {
 
   const setPrincipal = (index: number) => {
     setPrincipalIndex(index);
+    setPhotos(prev => prev.map((p, i) => ({ ...p, isPrincipal: i === index })));
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/api/v1/biens/proprietaire/${propertyId}/`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
+      toast({
+        title: 'Bien supprimé',
+        description: 'Votre bien a été supprimé avec succès.',
+      });
+      setLocation('/my-properties');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const onSubmit = async (data: BienCreateInput) => {
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
-      
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          formData.append(key, String(value));
+      for (const photoId of photosToDelete) {
+        try {
+          await api.delete(`/api/v1/biens/proprietaire/${propertyId}/photos/${photoId}/`);
+        } catch (err) {
+          console.error('Error deleting photo:', err);
         }
+      }
+
+      if (newPhotos.length > 0) {
+        const formData = new FormData();
+        
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            formData.append(key, String(value));
+          }
+        });
+
+        formData.append('statut_location', locationStatus);
+
+        newPhotos.forEach((file) => {
+          formData.append('photos', file);
+        });
+
+        const currentPrincipalPhoto = photos[principalIndex];
+        if (currentPrincipalPhoto?.isExisting && currentPrincipalPhoto?.id) {
+          formData.append('photo_principale_id', String(currentPrincipalPhoto.id));
+        } else {
+          const newPhotoIndex = photos.slice(0, principalIndex + 1).filter(p => !p.isExisting).length - 1;
+          if (newPhotoIndex >= 0) {
+            formData.append('photo_principale_index', String(newPhotoIndex));
+          }
+        }
+
+        await api.request(`/api/v1/biens/proprietaire/${propertyId}/`, {
+          method: 'PATCH',
+          body: formData,
+          isFormData: true,
+        });
+      } else {
+        const jsonData: Record<string, unknown> = {};
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            jsonData[key] = value;
+          }
+        });
+        jsonData.statut_location = locationStatus;
+
+        const currentPrincipalPhoto = photos[principalIndex];
+        if (currentPrincipalPhoto?.isExisting && currentPrincipalPhoto?.id) {
+          jsonData.photo_principale_id = currentPrincipalPhoto.id;
+        }
+
+        await api.patch(`/api/v1/biens/proprietaire/${propertyId}/`, jsonData);
+      }
+
+      newPhotos.forEach(file => {
+        const photo = photos.find(p => p.file === file);
+        if (photo) URL.revokeObjectURL(photo.preview);
       });
 
-      photos.forEach((photo, index) => {
-        formData.append(`photos`, photo.file);
-      });
-
-      formData.append('photo_principale_index', String(principalIndex));
-
-      await api.post('/api/v1/biens/proprietaire/', formData, true);
-
-      photos.forEach(photo => URL.revokeObjectURL(photo.preview));
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/', propertyId] });
 
       toast({
-        title: 'Bien ajouté',
-        description: 'Votre bien a été soumis pour validation.',
+        title: 'Bien modifié',
+        description: 'Vos modifications ont été enregistrées.',
       });
       setLocation('/my-properties');
     } catch (error) {
@@ -204,19 +320,86 @@ export default function AddProperty() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+          <Skeleton className="h-10 w-1/2" />
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-8 w-1/2" />
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!property) {
+    return (
+      <Layout>
+        <div className="max-w-2xl mx-auto px-4 py-6 text-center">
+          <h1 className="text-xl font-bold mb-4">Bien non trouvé</h1>
+          <Button onClick={() => setLocation('/my-properties')}>
+            Retour à mes biens
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setLocation('/my-properties')}
-            data-testid="button-back"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Ajouter un bien</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation('/my-properties')}
+              data-testid="button-back"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">Modifier le bien</h1>
+          </div>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" data-testid="button-delete-property">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer ce bien ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Le bien et toutes ses photos seront supprimés définitivement.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteMutation.mutate()}
+                  className="bg-destructive text-destructive-foreground"
+                  disabled={deleteMutation.isPending}
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Suppression...
+                    </>
+                  ) : (
+                    'Supprimer'
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <Form {...form}>
@@ -227,13 +410,13 @@ export default function AddProperty() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Ajoutez jusqu'à 10 photos. Cliquez sur l'étoile pour définir la photo principale.
+                  Gérez les photos de votre bien. Cliquez sur l'étoile pour définir la photo principale.
                 </p>
                 
                 <div className="grid grid-cols-3 gap-3">
                   {photos.map((photo, index) => (
                     <div
-                      key={index}
+                      key={photo.id || index}
                       className="relative aspect-square rounded-md overflow-hidden border border-border group"
                     >
                       <img
@@ -286,20 +469,42 @@ export default function AddProperty() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,.heic,.heif"
+                  accept="image/*"
                   multiple
                   onChange={handlePhotoSelect}
                   className="hidden"
                   data-testid="input-photos"
                 />
-
-                {photos.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucune photo ajoutée. Les biens avec photos attirent plus de visiteurs.
-                  </p>
-                )}
               </CardContent>
             </Card>
+
+            {property.statut_validation === 'valide' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Statut de location</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">État du bien</label>
+                    <Select value={locationStatus} onValueChange={setLocationStatus}>
+                      <SelectTrigger data-testid="select-location-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locationStatuses.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Choisissez le statut actuel de votre bien
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
@@ -349,7 +554,7 @@ export default function AddProperty() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Type de bien</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-type">
                             <SelectValue />
@@ -446,7 +651,7 @@ export default function AddProperty() {
                             type="number"
                             min={1}
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                             data-testid="input-pieces"
                           />
                         </FormControl>
@@ -466,7 +671,7 @@ export default function AddProperty() {
                             type="number"
                             min={0}
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             data-testid="input-chambres"
                           />
                         </FormControl>
@@ -486,7 +691,7 @@ export default function AddProperty() {
                             type="number"
                             min={0}
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             data-testid="input-sdb"
                           />
                         </FormControl>
@@ -719,7 +924,14 @@ export default function AddProperty() {
               disabled={isSubmitting}
               data-testid="button-submit"
             >
-              {isSubmitting ? 'Publication...' : 'Publier le bien'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enregistrement...
+                </>
+              ) : (
+                'Enregistrer les modifications'
+              )}
             </Button>
           </form>
         </Form>

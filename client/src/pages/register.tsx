@@ -7,6 +7,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -43,11 +44,13 @@ export default function Register() {
       username: '',
       email: '',
       password: '',
-      password_confirm: '',
+      password2: '',
       first_name: '',
       last_name: '',
       phone: '',
-      role: defaultRole,
+      address: '',
+      user_type: defaultRole,
+      terms_accepted: false,
     },
   });
 
@@ -73,9 +76,7 @@ export default function Register() {
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-8">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
-              <span className="text-primary-foreground font-bold text-2xl">V</span>
-            </div>
+            <img src="/logo.png" alt="VillaGo" className="w-12 h-12 rounded-xl mx-auto mb-4 object-cover" />
             <CardTitle className="text-2xl">Créer un compte</CardTitle>
             <CardDescription>
               Inscrivez-vous pour accéder à toutes les fonctionnalités
@@ -167,13 +168,31 @@ export default function Register() {
 
                 <FormField
                   control={form.control}
-                  name="role"
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Adresse</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Dakar, Sénégal" 
+                          {...field} 
+                          data-testid="input-address"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="user_type"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Je suis</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-role">
+                          <SelectTrigger data-testid="select-user-type">
                             <SelectValue placeholder="Sélectionnez votre rôle" />
                           </SelectTrigger>
                         </FormControl>
@@ -219,7 +238,7 @@ export default function Register() {
 
                 <FormField
                   control={form.control}
-                  name="password_confirm"
+                  name="password2"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Confirmer le mot de passe</FormLabel>
@@ -228,7 +247,7 @@ export default function Register() {
                           type={showPassword ? 'text' : 'password'}
                           placeholder="Répétez le mot de passe"
                           {...field}
-                          data-testid="input-password-confirm"
+                          data-testid="input-password2"
                         />
                       </FormControl>
                       <FormMessage />
@@ -236,10 +255,39 @@ export default function Register() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="terms_accepted"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2">
+                      <FormControl>
+                        <Checkbox 
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="checkbox-accept-terms"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-normal leading-relaxed cursor-pointer">
+                          J'accepte les{' '}
+                          <Link href="/legal/terms">
+                            <span className="text-primary hover:underline">conditions d'utilisation</span>
+                          </Link>
+                          {' '}et la{' '}
+                          <Link href="/legal/privacy">
+                            <span className="text-primary hover:underline">politique de confidentialité</span>
+                          </Link>
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={form.formState.isSubmitting}
+                  disabled={form.formState.isSubmitting || !form.watch('terms_accepted')}
                   data-testid="button-submit-register"
                 >
                   {form.formState.isSubmitting ? (

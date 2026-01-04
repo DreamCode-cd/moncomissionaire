@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Search, SlidersHorizontal, X, Droplet, Zap, Car, Trees, Sofa, Snowflake, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,16 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+interface Ville {
+  id: number;
+  nom: string;
+}
+
+interface VillesResponse {
+  results?: Ville[];
+  count?: number;
+}
 
 export interface SearchFilters {
   query: string;
@@ -53,14 +64,6 @@ const propertyTypes = [
   { value: 'terrain', label: 'Terrain' },
 ];
 
-const cities = [
-  { value: 'all', label: 'Toutes les villes' },
-  { value: 'Kinshasa', label: 'Kinshasa' },
-  { value: 'Lubumbashi', label: 'Lubumbashi' },
-  { value: 'Goma', label: 'Goma' },
-  { value: 'Bukavu', label: 'Bukavu' },
-  { value: 'Kisangani', label: 'Kisangani' },
-];
 
 const amenities = [
   { key: 'eau_courante' as const, label: 'Eau courante', icon: Droplet },
@@ -78,6 +81,12 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
     filters.min_price || 0,
     filters.max_price || 5000,
   ]);
+
+  const { data: villesData } = useQuery<VillesResponse | Ville[]>({
+    queryKey: ['/api/v1/biens/villes/'],
+  });
+  
+  const villes = Array.isArray(villesData) ? villesData : (villesData?.results || []);
 
   const activeAmenitiesCount = amenities.filter(a => filters[a.key]).length;
   const activeFiltersCount = [
@@ -179,9 +188,10 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city.value} value={city.value}>
-                        {city.label}
+                    <SelectItem value="all">Toutes les villes</SelectItem>
+                    {villes.map((ville) => (
+                      <SelectItem key={ville.id} value={ville.id.toString()}>
+                        {ville.nom}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -280,7 +290,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
           )}
           {filters.ville && filters.ville !== 'all' && (
             <Badge variant="secondary" className="flex-shrink-0 gap-1">
-              {filters.ville}
+              {villes.find(v => v.id.toString() === filters.ville)?.nom || filters.ville}
               <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('ville')} />
             </Badge>
           )}

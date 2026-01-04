@@ -1,23 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutGrid, List, Map } from 'lucide-react';
+import { LayoutGrid, List } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
-import { MapView } from '@/components/property/MapView';
 import { SearchBar, type SearchFilters } from '@/components/property/SearchBar';
 import { Button } from '@/components/ui/button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { cn } from '@/lib/utils';
 import type { BienList, PaginatedResponse } from '@shared/schema';
+
+const ITEMS_PER_PAGE = 10;
 
 export default function Search() {
   const searchParams = useSearch();
   const [, setLocation] = useLocation();
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | undefined>();
-  
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+
   const parseSearchParams = (): SearchFilters => {
     const params = new URLSearchParams(searchParams);
+    const page = params.get('page') ? parseInt(params.get('page')!) : 1;
+    setCurrentPage(page);
     return {
       query: params.get('q') || '',
       type_bien: params.get('type') || undefined,
@@ -41,7 +53,7 @@ export default function Search() {
     setFilters(parseSearchParams());
   }, [searchParams]);
 
-  const buildQueryString = (f: SearchFilters) => {
+  const buildQueryString = (f: SearchFilters, page: number = 1) => {
     const params = new URLSearchParams();
     if (f.query) params.set('q', f.query);
     if (f.type_bien) params.set('type', f.type_bien);
@@ -56,19 +68,29 @@ export default function Search() {
     if (f.meuble) params.set('meuble', 'true');
     if (f.climatisation) params.set('climatisation', 'true');
     if (f.gardien) params.set('gardien', 'true');
+    if (page > 1) params.set('page', page.toString());
     return params.toString();
   };
 
   const handleFiltersChange = (newFilters: SearchFilters) => {
     setFilters(newFilters);
-    const queryString = buildQueryString(newFilters);
+    setCurrentPage(1);
+    const queryString = buildQueryString(newFilters, 1);
     setLocation(`/search${queryString ? `?${queryString}` : ''}`);
   };
 
-  const buildApiParams = () => {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const queryString = buildQueryString(filters, page);
+    setLocation(`/search${queryString ? `?${queryString}` : ''}`);
+  };
+
+  const apiParams = useMemo(() => {
     const params: Record<string, string> = {
       statut_validation: 'valide',
       statut_location: 'disponible',
+      limit: ITEMS_PER_PAGE.toString(),
+      offset: ((currentPage - 1) * ITEMS_PER_PAGE).toString(),
     };
     if (filters.query) params.search = filters.query;
     if (filters.type_bien) params.type_bien = filters.type_bien;
@@ -84,11 +106,13 @@ export default function Search() {
     if (filters.climatisation) params.climatisation = 'true';
     if (filters.gardien) params.gardien = 'true';
     return params;
-  };
-
+  }, [currentPage, filters]);
+  
   const { data, isLoading } = useQuery<PaginatedResponse<BienList>>({
-    queryKey: ['/api/v1/biens/', buildApiParams()],
+    queryKey: ['/api/v1/biens/', apiParams],
   });
+
+  const totalPages = data?.count ? Math.ceil(data.count / ITEMS_PER_PAGE) : 0;
 
   return (
     <Layout>
@@ -106,7 +130,7 @@ export default function Search() {
               <span>Recherche en cours...</span>
             )}
           </p>
-          
+
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -126,39 +150,73 @@ export default function Search() {
             >
               <List className="w-5 h-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(viewMode === 'map' && 'bg-muted')}
-              onClick={() => setViewMode('map')}
-              data-testid="button-view-map"
-            >
-              <Map className="w-5 h-5" />
-            </Button>
           </div>
         </div>
 
-        {viewMode === 'map' ? (
-          <MapView 
-            properties={data?.results || []} 
-            selectedId={selectedPropertyId}
-            onPropertySelect={setSelectedPropertyId}
-            height="calc(100vh - 280px)"
-            className="min-h-[400px]"
-          />
-        ) : (
-          <PropertyGrid
-            properties={data?.results || []}
-            isLoading={isLoading}
-            variant={viewMode === 'list' ? 'horizontal' : 'default'}
-          />
-        )}
+        <PropertyGrid
+          properties={data?.results || []}
+          isLoading={isLoading}
+          variant={viewMode === 'list' ? 'horizontal' : 'default'}
+        />
 
-        {data && data.next && (
-          <div className="mt-8 text-center">
-            <Button variant="outline" data-testid="button-load-more">
-              Charger plus
-            </Button>
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) handlePageChange(currentPage - 1);
+                    }}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1;
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handlePageChange(page);
+                          }}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return null;
+                })}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                    }}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </div>

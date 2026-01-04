@@ -64,18 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterInput) => {
-    const apiData = {
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      password2: data.password_confirm,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      phone: data.phone,
-      role: data.role,
-    };
-    await api.post('/api/v1/auth/register/', apiData);
-    await login({ username: data.username, password: data.password });
+    await api.post('/api/v1/auth/register/', data);
+    await login({ login: data.username, password: data.password });
   };
 
   const logout = () => {

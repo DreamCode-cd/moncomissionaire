@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoute, useLocation } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Send, Phone, MoreVertical, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
-import { queryClient } from '@/lib/queryClient';
-import { useWebSocket } from '@/hooks/use-websocket';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { ChatSocket } from '@/lib/websocket';
+import { useToast } from '@/hooks/use-toast';
 import type { ChatRoomDetail, Message } from '@shared/schema';
 import { cn } from '@/lib/utils';
 
@@ -18,113 +17,143 @@ export default function ChatRoom() {
   const [, params] = useRoute('/messages/:id');
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [messageInput, setMessageInput] = useState('');
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
-  const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
-  const [isTabVisible, setIsTabVisible] = useState(!document.hidden);
+  const [wsConnected, setWsConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const chatSocketRef = useRef<ChatSocket | null>(null);
 
   const chatroomId = params?.id ? parseInt(params.id) : undefined;
-  const { showMessageNotification, permission } = usePushNotifications();
 
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsTabVisible(!document.hidden);
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  const handleWebSocketMessage = useCallback((wsMessage: {
-    type: string;
-    chatroomId: number;
-    data: {
-      id?: number;
-      content?: string;
-      sender?: number;
-      sender_detail?: {
-        id: number;
-        first_name: string;
-        last_name: string;
-        photo?: string;
-      };
-      created_at?: string;
-      userId?: number;
-    };
-  }) => {
-    if (wsMessage.type === 'message' && wsMessage.data.content) {
-      const newMessage: Message = {
-        id: wsMessage.data.id || Date.now(),
-        chatroom: wsMessage.chatroomId,
-        sender: wsMessage.data.sender || 0,
-        sender_detail: {
-          id: wsMessage.data.sender_detail?.id || 0,
-          username: '',
-          email: '',
-          first_name: wsMessage.data.sender_detail?.first_name || '',
-          last_name: wsMessage.data.sender_detail?.last_name || '',
-          role: 'client',
-          role_display: '',
-          phone: '',
-          photo: wsMessage.data.sender_detail?.photo,
-        },
-        content: wsMessage.data.content,
-        is_read: false,
-        created_at: wsMessage.data.created_at || new Date().toISOString(),
-      };
-      setLocalMessages(prev => [...prev, newMessage]);
-
-      if (!isTabVisible && wsMessage.data.sender !== user?.id && permission === 'granted') {
-        const senderName = `${wsMessage.data.sender_detail?.first_name || ''} ${wsMessage.data.sender_detail?.last_name || ''}`.trim() || 'Quelqu\'un';
-        showMessageNotification(senderName, wsMessage.data.content, wsMessage.chatroomId);
-      }
-    }
-  }, [isTabVisible, user?.id, permission, showMessageNotification]);
-
-  const handleTyping = useCallback((userId: number) => {
-    setTypingUsers(prev => new Set(prev).add(userId));
-    setTimeout(() => {
-      setTypingUsers(prev => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }, 3000);
-  }, []);
-
-  const { isConnected, sendMessage: wsSendMessage, sendTyping } = useWebSocket({
-    chatroomId: chatroomId || 0,
-    userId: user?.id || 0,
-    onMessage: handleWebSocketMessage,
-    onTyping: handleTyping,
-  });
-
-  const { data: chatroom, isLoading } = useQuery<ChatRoomDetail>({
+  const { data: chatroom, isLoading, refetch, isFetching } = useQuery<ChatRoomDetail>({
     queryKey: ['/api/v1/messaging/chatrooms/', chatroomId],
-    enabled: !!chatroomId,
+    enabled: !!chatroomId && !!user,
+    refetchInterval: wsConnected ? false : 5000, // Disable polling if WebSocket is connected
+    refetchOnWindowFocus: true,
   });
 
+  // Sync local messages with server data
   useEffect(() => {
     if (chatroom?.messages) {
       setLocalMessages(chatroom.messages);
     }
   }, [chatroom?.messages]);
 
+  // Handle incoming WebSocket message
+  const handleWsMessage = useCallback((message: Message) => {
+    setLocalMessages(prev => {
+      // Avoid duplicates
+      if (prev.some(m => m.id === message.id)) return prev;
+      
+      // Show notification for messages from others
+      if (message.sender !== user?.id) {
+        const senderName = message.sender_detail?.full_name || 'Nouveau message';
+        toast({
+          title: senderName,
+          description: message.content.length > 50 
+            ? message.content.substring(0, 50) + '...' 
+            : message.content,
+        });
+        
+        // Browser push notification via Service Worker
+        if ('Notification' in window && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(senderName, {
+              body: message.content,
+              icon: '/favicon.png',
+              tag: `chat-message-${message.id}`,
+            });
+          }).catch(() => {});
+        }
+      }
+      
+      return [...prev, message];
+    });
+  }, [user?.id, toast]);
+
+  // WebSocket connection
+  useEffect(() => {
+    if (!chatroomId || !user) return;
+
+    const socket = new ChatSocket(
+      chatroomId,
+      handleWsMessage,
+      (error) => {
+        console.error('[ChatRoom] WebSocket error:', error);
+        setWsConnected(false);
+      }
+    );
+
+    socket.connect();
+    chatSocketRef.current = socket;
+
+    // Check connection status periodically
+    const checkInterval = setInterval(() => {
+      setWsConnected(socket.connected);
+    }, 1000);
+
+    return () => {
+      clearInterval(checkInterval);
+      socket.disconnect();
+      chatSocketRef.current = null;
+    };
+  }, [chatroomId, user, handleWsMessage]);
+
+  // Mark as read on load + request notification permission
+  useEffect(() => {
+    if (chatroomId && user) {
+      // Mark messages as read and invalidate cache
+      api.post(`/api/v1/messaging/chatrooms/${chatroomId}/mark_as_read/`, {})
+        .then(() => {
+          // Invalidate messages list to update unread counts
+          queryClient.invalidateQueries({ queryKey: ['/api/v1/messaging/chatrooms/'] });
+        })
+        .catch(() => {});
+      
+      // Request notification permission for all user types
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          console.log('[ChatRoom] Notification permission:', permission);
+        });
+      }
+    }
+  }, [chatroomId, user, queryClient]);
+
+  // Mark as read when window gains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      if (chatroomId && user && document.visibilityState === 'visible') {
+        api.post(`/api/v1/messaging/chatrooms/${chatroomId}/mark_as_read/`, {})
+          .then(() => {
+            queryClient.invalidateQueries({ queryKey: ['/api/v1/messaging/chatrooms/'] });
+          })
+          .catch(() => {});
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [chatroomId, user, queryClient]);
+
+  // Fallback HTTP mutation for sending messages
   const sendMessageMutation = useMutation({
     mutationFn: (content: string) => 
-      api.post(`/api/v1/messaging/chatrooms/${chatroomId}/messages/`, { content }),
-    onSuccess: (newMsg) => {
-      if (!isConnected) {
-        queryClient.invalidateQueries({ queryKey: ['/api/v1/messaging/chatrooms/', chatroomId] });
-      }
+      api.post(`/api/v1/messaging/chatrooms/${chatroomId}/send_message/`, { content }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/messaging/chatrooms/', chatroomId] });
       queryClient.invalidateQueries({ queryKey: ['/api/v1/messaging/chatrooms/'] });
-      setMessageInput('');
-      inputRef.current?.focus();
     },
+    onError: (error) => {
+      console.error('[ChatRoom] Error sending message:', error);
+    }
   });
 
   useEffect(() => {
@@ -133,55 +162,21 @@ export default function ChatRoom() {
 
   const handleSend = () => {
     if (!messageInput.trim() || !user) return;
-    
-    const content = messageInput.trim();
-    
-    if (isConnected) {
-      const optimisticMessage: Message = {
-        id: Date.now(),
-        chatroom: chatroomId || 0,
-        sender: user.id,
-        sender_detail: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          role: user.role,
-          role_display: user.role_display,
-          phone: user.phone,
-          photo: user.photo,
-        },
-        content,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      };
-      setLocalMessages(prev => [...prev, optimisticMessage]);
-      
-      wsSendMessage(content, {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        photo: user.photo,
-      });
-      
-      setMessageInput('');
-      inputRef.current?.focus();
-    }
-    
-    sendMessageMutation.mutate(content);
-  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessageInput(e.target.value);
-    
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
+    const content = messageInput.trim();
+    setMessageInput('');
+
+    // Try WebSocket first, fallback to HTTP
+    if (chatSocketRef.current?.connected) {
+      const sent = chatSocketRef.current.sendMessage(content);
+      if (!sent) {
+        sendMessageMutation.mutate(content);
+      }
+    } else {
+      sendMessageMutation.mutate(content);
     }
-    sendTyping();
-    typingTimeoutRef.current = setTimeout(() => {
-      typingTimeoutRef.current = null;
-    }, 2000);
+    
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -205,8 +200,27 @@ export default function ChatRoom() {
     return chatroom.client_detail;
   };
 
-  const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase() || '?';
+  const getParticipantName = (participant: any) => {
+    return participant?.full_name || `${participant?.first_name || ''} ${participant?.last_name || ''}`.trim() || participant?.username || 'Inconnu';
+  };
+
+  const getInitials = (participant: any) => {
+    const name = participant?.full_name || participant?.first_name || '';
+    return name?.[0]?.toUpperCase() || '?';
+  };
+
+  const getUserTypeLabel = (participant: any) => {
+    if (!participant) return '';
+    // Utiliser user_type_display de l'API si disponible
+    if (participant.user_type_display) return participant.user_type_display;
+    // Sinon mapper manuellement
+    const typeLabels: Record<string, string> = {
+      'client': 'Client',
+      'commissionnaire': 'Commissionnaire',
+      'agent': 'Agent',
+      'proprietaire': 'Propriétaire',
+    };
+    return typeLabels[participant.user_type] || participant.role_display || '';
   };
 
   const formatTime = (dateString: string) => {
@@ -297,25 +311,33 @@ export default function ChatRoom() {
         <Avatar className="w-10 h-10">
           <AvatarImage src={otherParticipant?.photo} />
           <AvatarFallback className="bg-primary text-primary-foreground">
-            {getInitials(otherParticipant?.first_name, otherParticipant?.last_name)}
+            {getInitials(otherParticipant)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="font-semibold line-clamp-1" data-testid="text-chat-participant">
-              {otherParticipant?.first_name} {otherParticipant?.last_name}
+              {getParticipantName(otherParticipant)}
             </h1>
-            {isConnected ? (
-              <Wifi className="w-3 h-3 text-green-500" data-testid="icon-connected" />
+            {wsConnected ? (
+              <Wifi className="w-3 h-3 text-green-500" />
             ) : (
-              <WifiOff className="w-3 h-3 text-muted-foreground" data-testid="icon-disconnected" />
+              <WifiOff className="w-3 h-3 text-muted-foreground" />
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {typingUsers.size > 0 ? 'En train d\'écrire...' : otherParticipant?.role_display}
+            {otherParticipant?.role_display || 'Utilisateur'}
           </p>
         </div>
-        <Button variant="ghost" size="icon" data-testid="button-call">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          data-testid="button-call"
+          onClick={() => toast({
+            title: 'Fonctionnalité indisponible',
+            description: 'Les appels ne sont pas disponibles pour le moment.',
+          })}
+        >
           <Phone className="w-5 h-5" />
         </Button>
         <Button variant="ghost" size="icon" data-testid="button-more">
@@ -324,60 +346,67 @@ export default function ChatRoom() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messageGroups.map((group, groupIndex) => (
-          <div key={groupIndex}>
-            <div className="flex justify-center mb-4">
-              <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                {formatDate(group.date)}
-              </span>
-            </div>
-            {group.messages.map((message) => {
-              const isOwn = message.sender === user?.id;
-              return (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'flex mb-2',
-                    isOwn ? 'justify-end' : 'justify-start'
-                  )}
-                  data-testid={`message-${message.id}`}
-                >
-                  <div className="flex items-end gap-2 max-w-[80%]">
-                    {!isOwn && (
-                      <Avatar className="w-6 h-6 flex-shrink-0">
-                        <AvatarImage src={message.sender_detail.photo} />
-                        <AvatarFallback className="text-xs">
-                          {getInitials(
-                            message.sender_detail.first_name,
-                            message.sender_detail.last_name
-                          )}
-                        </AvatarFallback>
-                      </Avatar>
+        {localMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <p className="text-muted-foreground">Aucun message pour le moment</p>
+            <p className="text-sm text-muted-foreground mt-1">Envoyez le premier message!</p>
+          </div>
+        ) : (
+          messageGroups.map((group, groupIndex) => (
+            <div key={groupIndex}>
+              <div className="flex justify-center mb-4">
+                <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                  {formatDate(group.date)}
+                </span>
+              </div>
+              {group.messages.map((message) => {
+                const isOwn = message.sender === user?.id;
+                return (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      'flex mb-2',
+                      isOwn ? 'justify-end' : 'justify-start'
                     )}
-                    <div
-                      className={cn(
-                        'px-4 py-2 rounded-2xl',
-                        isOwn
-                          ? 'bg-primary text-primary-foreground rounded-br-sm'
-                          : 'bg-muted rounded-bl-sm'
+                    data-testid={`message-${message.id}`}
+                  >
+                    <div className="flex items-end gap-2 max-w-[80%]">
+                      {!isOwn && (
+                        <Avatar className="w-6 h-6 flex-shrink-0">
+                          <AvatarImage src={message.sender_detail?.photo} />
+                          <AvatarFallback className="text-xs">
+                            {getInitials(message.sender_detail)}
+                          </AvatarFallback>
+                        </Avatar>
                       )}
-                    >
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
-                      <p className={cn(
-                        'text-[10px] mt-1',
-                        isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                      )}>
-                        {formatTime(message.created_at)}
-                      </p>
+                      <div
+                        className={cn(
+                          'px-4 py-2 rounded-2xl',
+                          isOwn
+                            ? 'bg-primary text-primary-foreground rounded-br-sm'
+                            : 'bg-muted rounded-bl-sm'
+                        )}
+                      >
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {message.content}
+                        </p>
+                        <p className={cn(
+                          'text-[10px] mt-1 flex items-center gap-1',
+                          isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        )}>
+                          {formatTime(message.created_at)}
+                          {!isOwn && getUserTypeLabel(message.sender_detail) && (
+                            <span>• {getUserTypeLabel(message.sender_detail)}</span>
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                );
+              })}
+            </div>
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -387,7 +416,7 @@ export default function ChatRoom() {
             ref={inputRef}
             placeholder="Écrivez un message..."
             value={messageInput}
-            onChange={handleInputChange}
+            onChange={(e) => setMessageInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className="flex-1"
             data-testid="input-message"
