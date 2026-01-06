@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, Component, ReactNode } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -17,19 +17,28 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import NotFound from "@/pages/not-found";
 
-const Profile = lazy(() => import("@/pages/Profile"));
-const PropertyDetail = lazy(() => import("@/pages/PropertyDetail"));
-const Notifications = lazy(() => import("@/pages/Notifications"));
-const Messages = lazy(() => import("@/pages/Messages"));
-const ChatRoom = lazy(() => import("@/pages/ChatRoom"));
-const AddProperty = lazy(() => import("@/pages/AddProperty"));
-const EditProperty = lazy(() => import("@/pages/EditProperty"));
-const ClientDashboard = lazy(() => import("@/pages/dashboard/ClientDashboard"));
-const MyVisits = lazy(() => import("@/pages/MyVisits"));
-const ProprietaireDashboard = lazy(() => import("@/pages/dashboard/ProprietaireDashboard"));
-const CommissionnaireDashboard = lazy(() => import("@/pages/dashboard/CommissionnaireDashboard"));
-const AgentDashboard = lazy(() => import("@/pages/dashboard/AgentDashboard"));
-const LegalPage = lazy(() => import("@/pages/LegalPage"));
+function lazyWithRetry(importFn: () => Promise<{ default: React.ComponentType<any> }>) {
+  return lazy(() => 
+    importFn().catch(() => {
+      window.location.reload();
+      return { default: () => null };
+    })
+  );
+}
+
+const Profile = lazyWithRetry(() => import("@/pages/Profile"));
+const PropertyDetail = lazyWithRetry(() => import("@/pages/PropertyDetail"));
+const Notifications = lazyWithRetry(() => import("@/pages/Notifications"));
+const Messages = lazyWithRetry(() => import("@/pages/Messages"));
+const ChatRoom = lazyWithRetry(() => import("@/pages/ChatRoom"));
+const AddProperty = lazyWithRetry(() => import("@/pages/AddProperty"));
+const EditProperty = lazyWithRetry(() => import("@/pages/EditProperty"));
+const ClientDashboard = lazyWithRetry(() => import("@/pages/dashboard/ClientDashboard"));
+const MyVisits = lazyWithRetry(() => import("@/pages/MyVisits"));
+const ProprietaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/ProprietaireDashboard"));
+const CommissionnaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/CommissionnaireDashboard"));
+const AgentDashboard = lazyWithRetry(() => import("@/pages/dashboard/AgentDashboard"));
+const LegalPage = lazyWithRetry(() => import("@/pages/LegalPage"));
 
 function PageLoader() {
   return (
@@ -42,6 +51,28 @@ function PageLoader() {
       </div>
     </div>
   );
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch() {
+    setTimeout(() => window.location.reload(), 100);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <PageLoader />;
+    }
+    return this.props.children;
+  }
 }
 
 function useRoutePreloader() {
@@ -66,8 +97,9 @@ function Router() {
   return (
     <>
       <ScrollToTop />
-      <Suspense fallback={<PageLoader />}>
-        <Switch>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Switch>
           <Route path="/" component={Home} />
           <Route path="/search" component={Search} />
           <Route path="/login" component={Login} />
@@ -111,8 +143,9 @@ function Router() {
           </Route>
           <Route path="/legal/:pageType" component={LegalPage} />
           <Route component={NotFound} />
-        </Switch>
-      </Suspense>
+          </Switch>
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 }
