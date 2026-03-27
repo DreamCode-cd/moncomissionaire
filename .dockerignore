@@ -3,9 +3,8 @@ dist
 .git
 .gitignore
 *.md
+Dockerfile
+docker-compose*.yml
 .env
-.env.*
-.replit
-replit.nix
-.config
-.upm
+.npm
+npm-debug.log

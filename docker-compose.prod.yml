@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - DJANGO_API_URL=${DJANGO_API_URL}
+    restart: always
