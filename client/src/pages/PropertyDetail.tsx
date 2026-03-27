@@ -40,11 +40,11 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 
-import villaImage from '@assets/images/luxury_villa_hero_image.png';
-import apartmentImage from '@assets/images/modern_apartment_interior.png';
-import studioImage from '@assets/images/cozy_studio_apartment.png';
-import houseImage from '@assets/images/family_house_with_garden.png';
-import duplexImage from '@assets/images/duplex_penthouse_terrace.png';
+const villaImage = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80";
+const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
+const studioImage = "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&q=80";
+const houseImage = "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80";
+
 
 const defaultImages: Record<string, string> = {
   villa: villaImage,
