@@ -51,7 +51,6 @@ const defaultImages: Record<string, string> = {
   appartement: apartmentImage,
   studio: studioImage,
   maison: houseImage,
-  duplex: duplexImage,
   terrain: houseImage,
 };
 
