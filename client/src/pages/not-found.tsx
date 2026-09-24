@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { Home, Search, ArrowLeft } from 'lucide-react';
+import { House, Search, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
@@ -20,7 +20,7 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/">
             <Button size="lg" className="w-full sm:w-auto">
-              <Home className="w-4 h-4 mr-2" />
+              <House className="w-4 h-4 mr-2" />
               Retour à l'accueil
             </Button>
           </Link>

@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ChevronLeft, X, Star, ImagePlus, Trash2, Loader2 } from 'lucide-react';
+import { ChevronLeft, X, Star, ImagePlus, Trash2, LoaderCircle } from 'lucide-react';
 
 interface Ville {
   id: number;
@@ -243,7 +243,9 @@ export default function EditProperty() {
     try {
       for (const photoId of photosToDelete) {
         try {
-          await api.delete(`/api/v1/biens/proprietaire/${propertyId}/photos/${photoId}/`);
+          // « photo » au singulier : c'est ce qu'expose le backend et ce que
+          // déclare swagger.json. Le pluriel renvoyait 404 en silence.
+          await api.delete(`/api/v1/biens/proprietaire/${propertyId}/photo/${photoId}/`);
         } catch (err) {
           console.error('Error deleting photo:', err);
         }
@@ -390,7 +392,7 @@ export default function EditProperty() {
                 >
                   {deleteMutation.isPending ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
                       Suppression...
                     </>
                   ) : (
@@ -926,7 +928,7 @@ export default function EditProperty() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
                   Enregistrement...
                 </>
               ) : (

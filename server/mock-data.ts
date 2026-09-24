@@ -313,8 +313,8 @@ const mockDemandesVisite: DemandeVisite[] = [
 const mockVisites: Visite[] = [
   {
     id: 1,
-    demande_visite: 1,
-    demande_visite_detail: mockDemandesVisite[0],
+    demande: 1,
+    demande_detail: mockDemandesVisite[0],
     agent: 4,
     agent_detail: mockUsers[3],
     commissionnaire: 3,
@@ -328,8 +328,8 @@ const mockVisites: Visite[] = [
   },
   {
     id: 2,
-    demande_visite: 1,
-    demande_visite_detail: mockDemandesVisite[0],
+    demande: 1,
+    demande_detail: mockDemandesVisite[0],
     agent: 4,
     agent_detail: mockUsers[3],
     commissionnaire: 3,
@@ -343,8 +343,8 @@ const mockVisites: Visite[] = [
   },
   {
     id: 3,
-    demande_visite: 1,
-    demande_visite_detail: mockDemandesVisite[0],
+    demande: 1,
+    demande_detail: mockDemandesVisite[0],
     agent: 4,
     agent_detail: mockUsers[3],
     commissionnaire: 3,

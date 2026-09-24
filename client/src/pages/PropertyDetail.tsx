@@ -5,7 +5,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   MapPin, Bed, Bath, Maximize, Calendar, User, ChevronLeft, ChevronRight, X,
   Droplets, Zap, Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
-  Images, Edit2, Send, ChevronDown, ChevronUp, Loader2
+  Images, SquarePen, Send, ChevronDown, ChevronUp, LoaderCircle
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -517,7 +517,7 @@ export default function PropertyDetail() {
             data-testid="button-favorite"
           >
             {toggleFavoriteMutation.isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <LoaderCircle className="w-5 h-5 animate-spin" />
             ) : (
               <Heart 
                 className={`w-5 h-5 transition-all duration-300 ${
@@ -805,7 +805,7 @@ export default function PropertyDetail() {
                           onClick={() => startEditReview(existingUserReview)}
                           data-testid="button-edit-my-review"
                         >
-                          <Edit2 className="w-4 h-4 mr-1" />
+                          <SquarePen className="w-4 h-4 mr-1" />
                           Modifier
                         </Button>
                       </div>

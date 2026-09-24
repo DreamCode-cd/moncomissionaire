@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, User, Edit, Eye, EyeOff, FileText, CheckCircle } from 'lucide-react';
+import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, User, SquarePen, Eye, EyeOff, FileText, CircleCheck } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -207,7 +207,7 @@ export default function Profile() {
               <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="w-full sm:w-auto" data-testid="button-edit-profile">
-                    <Edit className="w-4 h-4 mr-2" />
+                    <SquarePen className="w-4 h-4 mr-2" />
                     Modifier le profil
                   </Button>
                 </DialogTrigger>
@@ -449,7 +449,7 @@ export default function Profile() {
               <>
                 <Separator />
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-muted-foreground" />
+                  <CircleCheck className="w-5 h-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Disponibilité</p>
                     <Badge 

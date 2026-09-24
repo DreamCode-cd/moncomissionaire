@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Bell, Check, CheckCheck, Home, Calendar, MessageCircle, FileText, Users } from 'lucide-react';
+import { Bell, Check, CheckCheck, House, Calendar, MessageCircle, FileText, Users } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +15,7 @@ const getNotificationIcon = (type: string) => {
   switch (type) {
     case 'bien_valide':
     case 'bien_rejete':
-      return Home;
+      return House;
     case 'nouvelle_demande':
     case 'demande_acceptee':
     case 'demande_rejetee':

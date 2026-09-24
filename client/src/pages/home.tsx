@@ -14,7 +14,7 @@ import type { BienList, PaginatedResponse, AvisBien } from '@shared/schema';
 
 import heroImage from '@assets/images/luxury_villa_hero_image.png';
 
-export default function Home() {
+export default function House() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useAuth();
 

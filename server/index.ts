@@ -3,6 +3,21 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
+// En production, une variable DJANGO_API_URL absente faisait basculer le
+// serveur sur ses données de démonstration : faux biens, faux utilisateurs, et
+// une authentification qui acceptait n'importe quel mot de passe. Le seul signe
+// visible était une ligne dans les journaux. On refuse désormais de démarrer.
+if (process.env.NODE_ENV === "production" && !process.env.DJANGO_API_URL) {
+  console.error(
+    "\n[villago] DÉMARRAGE INTERROMPU\n" +
+      "  DJANGO_API_URL n'est pas définie alors que NODE_ENV vaut « production ».\n" +
+      "  Sans elle, le serveur servirait des données fictives au lieu de l'API réelle.\n" +
+      "  Renseignez l'URL de l'API Django, par exemple :\n" +
+      "      DJANGO_API_URL=https://api.villago.cd\n",
+  );
+  process.exit(1);
+}
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -66,26 +81,18 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+// Journal d'accès : méthode, chemin, statut, durée. Rien de plus.
+// La version précédente sérialisait le corps JSON de TOUTES les réponses /api,
+// ce qui déversait les jetons d'accès et de rafraîchissement renvoyés par la
+// connexion, ainsi que les profils et les conversations, en clair dans les
+// journaux du conteneur.
 app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+  const debut = Date.now();
+  const chemin = req.path;
 
   res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      log(logLine);
+    if (chemin.startsWith("/api")) {
+      log(`${req.method} ${chemin} ${res.statusCode} en ${Date.now() - debut}ms`);
     }
   });
 
@@ -95,12 +102,26 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    const statut = err.status || err.statusCode || 500;
 
-    res.status(status).json({ message });
-    throw err;
+    // `throw err` suivait cet envoi : l'exception remontait hors du cycle
+    // Express, devenait un uncaughtException et arrêtait le processus. On
+    // journalise à la place.
+    console.error(`[erreur] ${req.method} ${req.path} ${statut}`, err);
+
+    if (res.headersSent) {
+      return;
+    }
+
+    // Le message d'une erreur serveur peut contenir un chemin de fichier, une
+    // requête SQL ou un identifiant : il ne sort pas vers le client.
+    res.status(statut).json({
+      message:
+        statut >= 500
+          ? "Une erreur interne est survenue."
+          : err.message || "Requête invalide.",
+    });
   });
 
   // importantly only setup vite in development and after

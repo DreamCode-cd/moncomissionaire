@@ -15,6 +15,7 @@ import apartmentImage from '@assets/images/modern_apartment_interior.png';
 import studioImage from '@assets/images/cozy_studio_apartment.png';
 import houseImage from '@assets/images/family_house_with_garden.png';
 import duplexImage from '@assets/images/duplex_penthouse_terrace.png';
+import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
 
 const defaultImages: Record<string, string> = {
   villa: villaImage,
@@ -25,12 +26,8 @@ const defaultImages: Record<string, string> = {
   terrain: houseImage,
 };
 
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+// Marqueur dessiné en SVG inline : plus aucune requête vers un CDN tiers.
+installerMarqueurParDefaut();
 
 const createCustomIcon = (selected: boolean = false) => {
   return L.divIcon({

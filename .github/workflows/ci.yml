@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  qualite:
+    name: Typage, construction et audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # npm ci et non npm install : le package-lock.json fait foi, sinon la CI
+      # peut valider un arbre de dépendances différent de celui déployé.
+      - name: Installer les dépendances
+        run: npm ci
+
+      # vite et esbuild transpilent sans contrôler les types : sans cette
+      # étape, une erreur de typage passe jusqu'en production.
+      - name: Vérifier le typage
+        run: npm run check
+
+      - name: Construire
+        env:
+          VITE_API_URL: ''
+          VITE_DJANGO_API_URL: https://api.villago.cd
+        run: npm run build
+
+      # Ne bloque pas la CI : le correctif d'une faille amont n'est pas
+      # toujours disponible le jour où elle est publiée. La consigne est de
+      # lire ce rapport à chaque exécution.
+      - name: Auditer les dépendances de production
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
+  docker:
+    name: Image de production
+    runs-on: ubuntu-latest
+    needs: [qualite]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire l'image
+        run: |
+          docker build --target production \
+            --build-arg VITE_API_URL= \
+            --build-arg VITE_DJANGO_API_URL=https://api.villago.cd \
+            -t villago-web:ci .

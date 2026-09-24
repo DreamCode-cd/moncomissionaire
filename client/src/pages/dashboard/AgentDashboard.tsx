@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { 
-  Calendar, Clock, CheckCircle, MapPin, User, FileText,
+  Calendar, Clock, CircleCheck, MapPin, User, FileText,
   ChevronRight, Play, Square, Download, Eye, Filter,
-  Home, Phone, Mail, XCircle, AlertCircle, ChevronLeft,
+  House, Phone, Mail, CircleX, CircleAlert, ChevronLeft,
   Droplets, Zap, Car, Trees, Sofa, Wind, Shield, Image,
   Bed, Bath, Ruler, Building, Navigation
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -45,17 +44,10 @@ import { queryClient } from '@/lib/queryClient';
 import type { Visite, RapportVisite, RapportVisiteCreate, PaginatedResponse, BienDetail } from '@shared/schema';
 import { generateVisiteReportPDF, generateVisiteSummaryPDF } from '@/lib/pdf-generator';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
 
-const defaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = defaultIcon;
+// Marqueur dessiné en SVG inline : plus aucune requête vers un CDN tiers.
+installerMarqueurParDefaut();
 
 const etatOptions = [
   { value: 'tres_interessant', label: 'Très intéressant' },
@@ -277,9 +269,9 @@ export default function AgentDashboard() {
       case 'en_cours':
         return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><Play className="w-3 h-3 mr-1" />En cours</Badge>;
       case 'terminee':
-        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />Terminée</Badge>;
+        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Terminée</Badge>;
       case 'annulee':
-        return <Badge className="bg-red-500/10 text-red-700 dark:text-red-400"><XCircle className="w-3 h-3 mr-1" />Annulée</Badge>;
+        return <Badge className="bg-red-500/10 text-red-700 dark:text-red-400"><CircleX className="w-3 h-3 mr-1" />Annulée</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -326,7 +318,7 @@ export default function AgentDashboard() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Home className="w-8 h-8 text-muted-foreground" />
+                  <House className="w-8 h-8 text-muted-foreground" />
                 </div>
               )}
             </div>
@@ -426,7 +418,7 @@ export default function AgentDashboard() {
                   disabled={createReportMutation.isPending}
                   data-testid={`button-terminer-${visite.id}`}
                 >
-                  <CheckCircle className="w-4 h-4 mr-1" />
+                  <CircleCheck className="w-4 h-4 mr-1" />
                   Terminer
                 </Button>
               )}
@@ -516,7 +508,7 @@ export default function AgentDashboard() {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <CircleCheck className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-terminees">{completedVisites.length}</p>
@@ -652,7 +644,7 @@ export default function AgentDashboard() {
                             {getEtatBadge(report.etat_general)}
                             {report.conformite_annonce && (
                               <Badge variant="outline" className="bg-green-500/10 text-green-700">
-                                <CheckCircle className="w-3 h-3 mr-1" />Conforme
+                                <CircleCheck className="w-3 h-3 mr-1" />Conforme
                               </Badge>
                             )}
                             {report.client_interesse && (
@@ -810,7 +802,7 @@ export default function AgentDashboard() {
                     {/* Property Details */}
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <Home className="w-4 h-4" />
+                        <House className="w-4 h-4" />
                         Informations du bien
                       </h4>
                       <Card>
@@ -1065,7 +1057,7 @@ export default function AgentDashboard() {
                           }}
                           disabled={createReportMutation.isPending}
                         >
-                          <CheckCircle className="w-4 h-4 mr-2" />
+                          <CircleCheck className="w-4 h-4 mr-2" />
                           Terminer la visite
                         </Button>
                       )}
@@ -1333,12 +1325,12 @@ export default function AgentDashboard() {
                       {getEtatBadge(selectedReport.etat_general)}
                       {selectedReport.conformite_annonce && (
                         <Badge variant="outline" className="bg-green-500/10 text-green-700">
-                          <CheckCircle className="w-3 h-3 mr-1" />Conforme à l'annonce
+                          <CircleCheck className="w-3 h-3 mr-1" />Conforme à l'annonce
                         </Badge>
                       )}
                       {!selectedReport.conformite_annonce && (
                         <Badge variant="outline" className="bg-red-500/10 text-red-700">
-                          <AlertCircle className="w-3 h-3 mr-1" />Non conforme
+                          <CircleAlert className="w-3 h-3 mr-1" />Non conforme
                         </Badge>
                       )}
                       {selectedReport.client_interesse && (

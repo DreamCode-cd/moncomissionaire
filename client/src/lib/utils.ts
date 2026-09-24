@@ -5,7 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-const DJANGO_MEDIA_URL = import.meta.env.VITE_DJANGO_API_URL || 'https://c66a0321-7dd3-4925-af55-66ab9f4fad15-00-2q1pqgvjvdlvv.kirk.replit.dev';
+// Vite fige cette valeur AU MOMENT DU BUILD, pas au démarrage : la définir
+// dans docker-compose n'a aucun effet, il faut la passer en ARG au Dockerfile.
+// Le repli précédent était une URL Replit morte codée en dur — les images
+// étaient toutes cassées, sans la moindre erreur pour le signaler.
+const DJANGO_MEDIA_URL = import.meta.env.VITE_DJANGO_API_URL ?? '';
+
+if (!DJANGO_MEDIA_URL && import.meta.env.PROD) {
+  throw new Error(
+    "VITE_DJANGO_API_URL est absente du build de production. " +
+      "Les images des biens seraient toutes cassées. " +
+      "Passez-la en argument de build (voir Dockerfile).",
+  );
+}
 
 export function getDjangoImageUrl(imagePath?: string | null): string | null {
   if (!imagePath) return null;

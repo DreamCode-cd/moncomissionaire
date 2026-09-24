@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Bell, Moon, Sun, Monitor, LogIn, LogOut, Check, MessageCircle, Home, ChevronRight, Search, Building2, User } from 'lucide-react';
+import { Bell, Moon, Sun, Monitor, LogIn, LogOut, Check, MessageCircle, House, ChevronRight, Search, Building2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -35,7 +35,7 @@ const getNotificationIcon = (type: string) => {
   switch (type) {
     case 'bien_valide':
     case 'bien_rejete':
-      return Home;
+      return House;
     case 'nouveau_message':
     case 'agent_ajoute_chat':
       return MessageCircle;
@@ -71,7 +71,7 @@ export function Header() {
   const getDesktopNavItems = () => {
     if (!isAuthenticated) {
       return [
-        { href: '/', icon: Home, label: 'Accueil' },
+        { href: '/', icon: House, label: 'Accueil' },
         { href: '/search', icon: Search, label: 'Recherche' },
       ];
     }
@@ -79,24 +79,24 @@ export function Header() {
     switch (user?.role) {
       case 'proprietaire':
         return [
-          { href: '/', icon: Home, label: 'Accueil' },
+          { href: '/', icon: House, label: 'Accueil' },
           { href: '/search', icon: Search, label: 'Recherche' },
           { href: '/my-properties', icon: Building2, label: 'Mes biens' },
         ];
       case 'commissionnaire':
         return [
-          { href: '/', icon: Home, label: 'Accueil' },
+          { href: '/', icon: House, label: 'Accueil' },
           { href: '/search', icon: Search, label: 'Recherche' },
           { href: '/pending-properties', icon: Building2, label: 'Dashboard' },
         ];
       case 'agent':
         return [
-          { href: '/agent-dashboard', icon: Home, label: 'Dashboard' },
+          { href: '/agent-dashboard', icon: House, label: 'Dashboard' },
           { href: '/search', icon: Search, label: 'Recherche' },
         ];
       default:
         return [
-          { href: '/', icon: Home, label: 'Accueil' },
+          { href: '/', icon: House, label: 'Accueil' },
           { href: '/search', icon: Search, label: 'Recherche' },
           { href: '/my-visits', icon: Building2, label: 'Mes visites' },
         ];
@@ -390,7 +390,7 @@ export function Header() {
                     {(user?.role === 'commissionnaire' || user?.role === 'proprietaire') && (
                       <Link href="/">
                         <DropdownMenuItem data-testid="menu-home">
-                          <Home className="mr-2 h-4 w-4" />
+                          <House className="mr-2 h-4 w-4" />
                           Parcourir les biens
                         </DropdownMenuItem>
                       </Link>

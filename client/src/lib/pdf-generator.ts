@@ -27,8 +27,12 @@ function formatTime(timeString: string | null | undefined): string {
   return timeString.substring(0, 5);
 }
 
-function safeString(value: string | null | undefined, fallback = 'N/A'): string {
-  return value ?? fallback;
+function safeString(
+  value: string | number | null | undefined,
+  fallback = 'N/A',
+): string {
+  // `ville` arrive tantôt comme identifiant numérique, tantôt comme nom.
+  return value === null || value === undefined ? fallback : String(value);
 }
 
 function safeNumber(value: number | null | undefined, fallback = 0): string {

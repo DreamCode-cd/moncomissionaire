@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { 
-  Home, Plus, Clock, CheckCircle, XCircle,
+  House, Plus, Clock, CircleCheck, CircleX,
   Building2, TrendingUp, MapPin, Pencil
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
@@ -38,9 +38,9 @@ const getValidationBadge = (status: string) => {
     case 'en_attente':
       return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
     case 'valide':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />Validé</Badge>;
+      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Validé</Badge>;
     case 'rejete':
-      return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejeté</Badge>;
+      return <Badge variant="destructive"><CircleX className="w-3 h-3 mr-1" />Rejeté</Badge>;
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }
@@ -170,7 +170,7 @@ export default function ProprietaireDashboard() {
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <CircleCheck className="w-4 h-4 text-green-600" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-lg md:text-xl font-bold" data-testid="text-validated-count">
@@ -230,7 +230,7 @@ export default function ProprietaireDashboard() {
               </div>
             ) : filteredProperties.length === 0 ? (
               <div className="text-center py-12">
-                <Home className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <House className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">Aucun bien</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   {activeTab === 'all' 
@@ -263,7 +263,7 @@ export default function ProprietaireDashboard() {
                           />
                         ) : null}
                         <div className={`w-full h-full bg-muted flex items-center justify-center ${property.photo_principale?.image ? 'hidden' : ''}`}>
-                          <Home className="w-8 h-8 text-muted-foreground" />
+                          <House className="w-8 h-8 text-muted-foreground" />
                         </div>
                         <div className="absolute top-2 left-2">
                           {getValidationBadge(property.statut_validation)}
