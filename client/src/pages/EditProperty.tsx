@@ -243,7 +243,9 @@ export default function EditProperty() {
     try {
       for (const photoId of photosToDelete) {
         try {
-          await api.delete(`/api/v1/biens/proprietaire/${propertyId}/photos/${photoId}/`);
+          // « photo » au singulier : c'est ce qu'expose le backend et ce que
+          // déclare swagger.json. Le pluriel renvoyait 404 en silence.
+          await api.delete(`/api/v1/biens/proprietaire/${propertyId}/photo/${photoId}/`);
         } catch (err) {
           console.error('Error deleting photo:', err);
         }

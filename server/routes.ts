@@ -702,33 +702,24 @@ ${commissionnerName}`;
           if (contentType) {
             proxyReq.setHeader('Content-Type', contentType);
           }
-          const originalUrl = (req as any).originalUrl || req.url;
-          console.log(`[Proxy] ${req.method} ${originalUrl} -> ${DJANGO_API_URL}${originalUrl}`);
         },
         proxyRes: (proxyRes, req) => {
-          const originalUrl = (req as any).originalUrl || req.url;
-          console.log(`[Proxy Response] ${originalUrl} -> ${proxyRes.statusCode}`);
-          
-          // Log response body for agents, chatrooms, and favoris endpoints to debug
-          if (originalUrl.includes('/auth/agents') || originalUrl.includes('/messaging/chatrooms') || originalUrl.includes('/favoris/check')) {
-            let body = '';
-            proxyRes.on('data', (chunk) => {
-              body += chunk.toString();
-            });
-            proxyRes.on('end', () => {
-              let prefix = 'Unknown';
-              if (originalUrl.includes('/auth/agents')) prefix = 'Agents';
-              else if (originalUrl.includes('/messaging/chatrooms')) prefix = 'Chatrooms';
-              else if (originalUrl.includes('/favoris/check')) prefix = 'FavorisCheck';
-              console.log(`[Proxy ${prefix} Response Body] ${body.substring(0, 1000)}`);
-            });
-          }
+          // Seulement le chemin et le statut. La version précédente recopiait
+          // le corps des réponses de /auth/agents, /messaging/chatrooms et
+          // /favoris/check dans les journaux : coordonnées d'agents et
+          // conversations privées en clair.
+          const chemin = (req as any).originalUrl || req.url;
+          console.log(`[proxy] ${req.method} ${chemin} -> ${proxyRes.statusCode}`);
         },
         error: (err, req, res) => {
-          console.error('[Proxy Error]:', err.message);
+          console.error('[proxy] erreur:', err.message);
           if ('writeHead' in res && typeof res.writeHead === 'function') {
             (res as any).writeHead(502, { 'Content-Type': 'application/json' });
-            (res as any).end(JSON.stringify({ error: 'Proxy error', message: err.message }));
+            // Le message d'erreur réseau expose l'hôte et le port internes :
+            // il reste dans les journaux, il ne part pas vers le navigateur.
+            (res as any).end(JSON.stringify({
+              error: "L'API est momentanément injoignable.",
+            }));
           }
         }
       }
