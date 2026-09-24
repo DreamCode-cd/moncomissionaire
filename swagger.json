@@ -2061,7 +2061,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2069,7 +2069,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2077,7 +2077,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2272,7 +2272,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2280,7 +2280,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2288,7 +2288,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2465,7 +2465,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2473,7 +2473,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2481,7 +2481,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2685,7 +2685,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2693,7 +2693,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -2701,7 +2701,7 @@
                         "in": "formData",
                         "required": false,
                         "type": "integer",
-                        "maximum": 9223372036854775807,
+                        "maximum": 2147483647,
                         "minimum": 0
                     },
                     {
@@ -5066,13 +5066,13 @@
                 "total_properties": {
                     "title": "Total propriétés",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "total_views": {
                     "title": "Total vues",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "created_at": {
@@ -5735,13 +5735,13 @@
                 "nombre_chambres": {
                     "title": "Nombre de chambres",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "nombre_salles_bain": {
                     "title": "Nombre de salles de bain",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "ville": {
@@ -5974,7 +5974,7 @@
                 "ordre": {
                     "title": "Ordre d'affichage",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "created_at": {
@@ -6086,19 +6086,19 @@
                 "nombre_chambres": {
                     "title": "Nombre de chambres",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "nombre_salles_bain": {
                     "title": "Nombre de salles de bain",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "nombre_pieces": {
                     "title": "Nombre de pièces",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "adresse": {
@@ -6298,19 +6298,19 @@
                 "nombre_chambres": {
                     "title": "Nombre de chambres",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "nombre_salles_bain": {
                     "title": "Nombre de salles de bain",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "nombre_pieces": {
                     "title": "Nombre de pièces",
                     "type": "integer",
-                    "maximum": 9223372036854775807,
+                    "maximum": 2147483647,
                     "minimum": 0
                 },
                 "adresse": {
