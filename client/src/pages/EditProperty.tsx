@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ChevronLeft, X, Star, ImagePlus, Trash2, Loader2 } from 'lucide-react';
+import { ChevronLeft, X, Star, ImagePlus, Trash2, LoaderCircle } from 'lucide-react';
 
 interface Ville {
   id: number;
@@ -392,7 +392,7 @@ export default function EditProperty() {
                 >
                   {deleteMutation.isPending ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
                       Suppression...
                     </>
                   ) : (
@@ -928,7 +928,7 @@ export default function EditProperty() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
                   Enregistrement...
                 </>
               ) : (

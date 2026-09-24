@@ -1,36 +1,36 @@
 import { Link, useLocation } from 'wouter';
-import { Home, Search, MessageCircle, User, Building2 } from 'lucide-react';
+import { House, Search, MessageCircle, User, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const publicNavItems = [
-  { href: '/', icon: Home, label: 'Accueil' },
+  { href: '/', icon: House, label: 'Accueil' },
   { href: '/search', icon: Search, label: 'Recherche' },
 ];
 
 const clientNavItems = [
-  { href: '/', icon: Home, label: 'Accueil' },
+  { href: '/', icon: House, label: 'Accueil' },
   { href: '/search', icon: Search, label: 'Recherche' },
   { href: '/my-visits', icon: Building2, label: 'Visites' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 
 const proprietaireNavItems = [
-  { href: '/', icon: Home, label: 'Accueil' },
+  { href: '/', icon: House, label: 'Accueil' },
   { href: '/my-properties', icon: Building2, label: 'Mes biens' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 
 const commissionnaireNavItems = [
-  { href: '/', icon: Home, label: 'Accueil' },
+  { href: '/', icon: House, label: 'Accueil' },
   { href: '/pending-properties', icon: Building2, label: 'Biens' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 
 const agentNavItems = [
-  { href: '/agent-dashboard', icon: Home, label: 'Dashboard' },
+  { href: '/agent-dashboard', icon: House, label: 'Dashboard' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];

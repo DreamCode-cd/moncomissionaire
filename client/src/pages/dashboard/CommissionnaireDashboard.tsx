@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { 
-  Home, CheckCircle, XCircle, Clock, Calendar, Users, 
+  House, CircleCheck, CircleX, Clock, Calendar, Users, 
   Eye, MessageCircle, FileText, UserPlus, RefreshCw,
-  MapPin, Phone, Mail, Star, AlertCircle, Trash2, Plus, Pencil
+  MapPin, Phone, Mail, Star, CircleAlert, Trash2, Plus, Pencil
 } from 'lucide-react';
 import {
   Pagination,
@@ -509,7 +509,7 @@ export default function CommissionnaireDashboard() {
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Home className="w-4 h-4 text-primary" />
+                  <House className="w-4 h-4 text-primary" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-total-properties-count">{totalPropertiesCount}</p>
@@ -522,7 +522,7 @@ export default function CommissionnaireDashboard() {
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <CircleCheck className="w-4 h-4 text-green-600" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-available-properties-count">{availablePropertiesCount}</p>
@@ -535,7 +535,7 @@ export default function CommissionnaireDashboard() {
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <Home className="w-4 h-4 text-blue-600" />
+                  <House className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-rented-properties-count">{rentedPropertiesCount}</p>
@@ -564,7 +564,7 @@ export default function CommissionnaireDashboard() {
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
-                  <AlertCircle className="w-4 h-4 text-orange-600" />
+                  <CircleAlert className="w-4 h-4 text-orange-600" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-demandes-count">{pendingDemandesCount}</p>
@@ -653,7 +653,7 @@ export default function CommissionnaireDashboard() {
               </div>
             ) : pendingProperties?.results?.length === 0 ? (
               <div className="text-center py-12">
-                <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
+                <CircleCheck className="w-16 h-16 mx-auto mb-4 text-green-500" />
                 <h3 className="text-lg font-semibold mb-2">Aucun bien en attente</h3>
                 <p className="text-muted-foreground">
                   Tous les biens ont ete traites
@@ -685,7 +685,7 @@ export default function CommissionnaireDashboard() {
                             />
                           ) : null}
                           <div className={`w-full h-full flex items-center justify-center ${property.photo_principale?.image ? 'hidden' : ''}`}>
-                            <Home className="w-8 h-8 text-muted-foreground" />
+                            <House className="w-8 h-8 text-muted-foreground" />
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -737,7 +737,7 @@ export default function CommissionnaireDashboard() {
                             disabled={validateMutation.isPending}
                             data-testid={`button-validate-${property.id}`}
                           >
-                            <CheckCircle className="w-4 h-4 mr-1" />
+                            <CircleCheck className="w-4 h-4 mr-1" />
                             Valider
                           </Button>
                           <Button 
@@ -749,7 +749,7 @@ export default function CommissionnaireDashboard() {
                             }}
                             data-testid={`button-reject-${property.id}`}
                           >
-                            <XCircle className="w-4 h-4 mr-1" />
+                            <CircleX className="w-4 h-4 mr-1" />
                             Rejeter
                           </Button>
                         </div>
@@ -867,7 +867,7 @@ export default function CommissionnaireDashboard() {
                                   }}
                                   data-testid={`button-accept-demande-${demande.id}`}
                                 >
-                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  <CircleCheck className="w-4 h-4 mr-1" />
                                   Accepter
                                 </Button>
                                 <Button 
@@ -880,7 +880,7 @@ export default function CommissionnaireDashboard() {
                                   }}
                                   data-testid={`button-reject-demande-${demande.id}`}
                                 >
-                                  <XCircle className="w-4 h-4 mr-1" />
+                                  <CircleX className="w-4 h-4 mr-1" />
                                   Rejeter
                                 </Button>
                               </>
@@ -1873,7 +1873,7 @@ export default function CommissionnaireDashboard() {
               </div>
             ) : propertyDetailError && !selectedPropertyFromList ? (
               <div className="py-8 text-center">
-                <AlertCircle className="w-16 h-16 mx-auto mb-4 text-destructive" />
+                <CircleAlert className="w-16 h-16 mx-auto mb-4 text-destructive" />
                 <h3 className="text-lg font-semibold mb-2">Impossible de charger les details</h3>
                 <p className="text-muted-foreground mb-4">
                   Les informations de ce bien n'ont pas pu etre recuperees. Le bien n'existe peut-etre plus.
@@ -1918,7 +1918,7 @@ export default function CommissionnaireDashboard() {
                     ('photos' in displayProperty && (displayProperty as BienDetail).photos?.length > 0) 
                       ? 'hidden' : ''
                   }`}>
-                    <Home className="w-16 h-16 text-muted-foreground" />
+                    <House className="w-16 h-16 text-muted-foreground" />
                   </div>
                 </div>
 
@@ -1941,7 +1941,7 @@ export default function CommissionnaireDashboard() {
                             />
                           ) : null}
                           <div className={`gallery-fallback absolute inset-0 flex items-center justify-center ${photo.image ? 'hidden' : ''}`}>
-                            <Home className="w-6 h-6 text-muted-foreground" />
+                            <House className="w-6 h-6 text-muted-foreground" />
                           </div>
                         </div>
                       ))}
@@ -2052,7 +2052,7 @@ export default function CommissionnaireDashboard() {
                     disabled={validateMutation.isPending}
                     data-testid="button-validate-from-detail"
                   >
-                    <CheckCircle className="w-4 h-4 mr-1" />
+                    <CircleCheck className="w-4 h-4 mr-1" />
                     Valider
                   </Button>
                   <Button 
@@ -2065,7 +2065,7 @@ export default function CommissionnaireDashboard() {
                     }}
                     data-testid="button-reject-from-detail"
                   >
-                    <XCircle className="w-4 h-4 mr-1" />
+                    <CircleX className="w-4 h-4 mr-1" />
                     Rejeter
                   </Button>
                 </div>

@@ -28,7 +28,8 @@ export async function registerRoutes(
         biens = biens.filter(b => b.statut_location === statut_location);
       }
       if (ville) {
-        biens = biens.filter(b => b.ville.toLowerCase().includes(String(ville).toLowerCase()));
+        biens = biens.filter(b =>
+          String(b.ville).toLowerCase().includes(String(ville).toLowerCase()));
       }
       if (type_bien) {
         biens = biens.filter(b => b.type_bien === type_bien);
@@ -38,7 +39,7 @@ export async function registerRoutes(
         const query = String(searchQuery).toLowerCase();
         biens = biens.filter(b => 
           b.titre.toLowerCase().includes(query) ||
-          b.ville.toLowerCase().includes(query) ||
+          String(b.ville).toLowerCase().includes(query) ||
           b.quartier.toLowerCase().includes(query)
         );
       }

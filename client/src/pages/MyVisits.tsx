@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Calendar, Clock, CheckCircle, XCircle, FileText, User, Eye, ArrowLeft, Home } from 'lucide-react';
+import { Calendar, Clock, CircleCheck, CircleX, FileText, User, Eye, ArrowLeft, House } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,13 +20,13 @@ const getStatusBadge = (status: string) => {
     case 'en_attente':
       return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
     case 'acceptee':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />Acceptée</Badge>;
+      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Acceptée</Badge>;
     case 'rejetee':
-      return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejetée</Badge>;
+      return <Badge variant="destructive"><CircleX className="w-3 h-3 mr-1" />Rejetée</Badge>;
     case 'annulee':
       return <Badge variant="outline">Annulée</Badge>;
     case 'terminee':
-      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><CheckCircle className="w-3 h-3 mr-1" />Terminée</Badge>;
+      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><CircleCheck className="w-3 h-3 mr-1" />Terminée</Badge>;
     case 'planifiee':
       return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400"><Calendar className="w-3 h-3 mr-1" />Planifiée</Badge>;
     default:
@@ -100,7 +100,7 @@ export default function MyVisits() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Home className="w-8 h-8 text-muted-foreground" />
+                  <House className="w-8 h-8 text-muted-foreground" />
                 </div>
               )}
             </div>
@@ -130,7 +130,7 @@ export default function MyVisits() {
               )}
               {demande.visite_detail?.date_visite && (
                 <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle className="w-4 h-4" />
+                  <CircleCheck className="w-4 h-4" />
                   <span>Planifiée: {formatDate(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}</span>
                 </div>
               )}

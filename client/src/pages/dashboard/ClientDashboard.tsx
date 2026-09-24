@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Calendar, Home, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, FileText, AlertCircle, User, Eye } from 'lucide-react';
+import { Calendar, House, MessageCircle, ChevronRight, Clock, CircleCheck, CircleX, FileText, CircleAlert, User, Eye } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { Button } from '@/components/ui/button';
@@ -21,13 +21,13 @@ const getStatusBadge = (status: string) => {
     case 'en_attente':
       return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
     case 'acceptee':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />Acceptée</Badge>;
+      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Acceptée</Badge>;
     case 'rejetee':
-      return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejetée</Badge>;
+      return <Badge variant="destructive"><CircleX className="w-3 h-3 mr-1" />Rejetée</Badge>;
     case 'annulee':
       return <Badge variant="outline">Annulée</Badge>;
     case 'terminee':
-      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><CheckCircle className="w-3 h-3 mr-1" />Terminée</Badge>;
+      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><CircleCheck className="w-3 h-3 mr-1" />Terminée</Badge>;
     case 'planifiee':
       return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400"><Calendar className="w-3 h-3 mr-1" />Planifiée</Badge>;
     default:
@@ -132,7 +132,7 @@ export default function ClientDashboard() {
             <CardContent className="p-3 md:p-6">
               <div className="flex items-center gap-2 md:gap-4">
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                  <CircleCheck className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl md:text-2xl font-bold" data-testid="text-accepted-count">
@@ -230,7 +230,7 @@ export default function ClientDashboard() {
                             />
                           ) : null}
                           <div className={`w-full h-full flex items-center justify-center ${demande.bien_detail?.photo_principale?.image ? 'hidden' : ''}`}>
-                            <Home className="w-8 h-8 text-muted-foreground" />
+                            <House className="w-8 h-8 text-muted-foreground" />
                           </div>
                         </div>
                       </Link>
@@ -326,7 +326,7 @@ export default function ClientDashboard() {
                           />
                         ) : null}
                         <div className={`w-full h-full flex items-center justify-center ${demande.bien_detail?.photo_principale?.image ? 'hidden' : ''}`}>
-                          <Home className="w-8 h-8 text-muted-foreground" />
+                          <House className="w-8 h-8 text-muted-foreground" />
                         </div>
                       </div>
                     </Link>
@@ -341,7 +341,7 @@ export default function ClientDashboard() {
                         {demande.visite_detail?.rapport && getEtatBadge(demande.visite_detail.rapport.etat_general)}
                         {demande.visite_detail?.rapport?.conformite_annonce && (
                           <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-400">
-                            <CheckCircle className="w-3 h-3 mr-1" />Conforme
+                            <CircleCheck className="w-3 h-3 mr-1" />Conforme
                           </Badge>
                         )}
                         {demande.visite_detail?.rapport?.client_interesse && (
@@ -391,12 +391,12 @@ export default function ClientDashboard() {
                     {getEtatBadge(selectedReport.etat_general)}
                     {selectedReport.conformite_annonce && (
                       <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-400">
-                        <CheckCircle className="w-3 h-3 mr-1" />Conforme à l'annonce
+                        <CircleCheck className="w-3 h-3 mr-1" />Conforme à l'annonce
                       </Badge>
                     )}
                     {!selectedReport.conformite_annonce && (
                       <Badge variant="outline" className="bg-red-500/10 text-red-700 dark:text-red-400">
-                        <AlertCircle className="w-3 h-3 mr-1" />Non conforme
+                        <CircleAlert className="w-3 h-3 mr-1" />Non conforme
                       </Badge>
                     )}
                     {selectedReport.client_interesse && (

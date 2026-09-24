@@ -26,11 +26,10 @@ ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_DJANGO_API_URL=$VITE_DJANGO_API_URL
 
 COPY . .
-# À FAIRE (étape 4) : préfixer par `npm run check &&`. Vite et esbuild
-# transpilent sans contrôler les types, donc cette commande seule laisse
-# passer des erreurs. Le verrou n'est pas posé tout de suite parce que
-# `npm run check` remonte encore 26 erreurs : il rendrait le build impossible.
-RUN npm run build
+# Le typage est vérifié AVANT la construction : vite et esbuild transpilent
+# sans contrôler les types, donc `npm run build` seul laisse passer des
+# erreurs jusqu'en production.
+RUN npm run check && npm run build
 
 # Production
 FROM node:20-alpine AS production
