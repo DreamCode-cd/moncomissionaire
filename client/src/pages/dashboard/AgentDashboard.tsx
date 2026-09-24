@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -45,17 +44,10 @@ import { queryClient } from '@/lib/queryClient';
 import type { Visite, RapportVisite, RapportVisiteCreate, PaginatedResponse, BienDetail } from '@shared/schema';
 import { generateVisiteReportPDF, generateVisiteSummaryPDF } from '@/lib/pdf-generator';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
 
-const defaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = defaultIcon;
+// Marqueur dessiné en SVG inline : plus aucune requête vers un CDN tiers.
+installerMarqueurParDefaut();
 
 const etatOptions = [
   { value: 'tres_interessant', label: 'Très intéressant' },
