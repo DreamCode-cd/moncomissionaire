@@ -3525,6 +3525,37 @@
             },
             "parameters": []
         },
+        "/notifications/appareils/": {
+            "post": {
+                "operationId": "notifications_appareils_create",
+                "summary": "Enregistrement et retrait d'un appareil pour les notifications push.",
+                "description": "POST   — l'application mobile s'enregistre à chaque démarrage : Expo\n         renouvelle le jeton après une réinstallation ou une mise à jour\n         du système.\nDELETE — à la déconnexion. Sans cela, l'utilisateur suivant du même\n         téléphone recevrait les notifications du précédent.",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "notifications"
+                ]
+            },
+            "delete": {
+                "operationId": "notifications_appareils_delete",
+                "summary": "Enregistrement et retrait d'un appareil pour les notifications push.",
+                "description": "POST   — l'application mobile s'enregistre à chaque démarrage : Expo\n         renouvelle le jeton après une réinstallation ou une mise à jour\n         du système.\nDELETE — à la déconnexion. Sans cela, l'utilisateur suivant du même\n         téléphone recevrait les notifications du précédent.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "notifications"
+                ]
+            },
+            "parameters": []
+        },
         "/notifications/clear_all/": {
             "delete": {
                 "operationId": "notifications_clear_all",
