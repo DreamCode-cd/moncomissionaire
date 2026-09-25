@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
@@ -563,13 +564,11 @@ export default function AgentDashboard() {
                 ))}
               </div>
             ) : allVisites.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucune visite</h3>
-                <p className="text-muted-foreground">
-                  Vous n'avez pas encore de visite assignée
-                </p>
-              </div>
+              <EtatVide
+                icone={Calendar}
+                titre="Aucune visite"
+                description="Les visites que le commissionnaire vous assignera apparaîtront ici."
+              />
             ) : (
               <div className="space-y-4">
                 {allVisites.map(renderVisiteCard)}
@@ -586,13 +585,11 @@ export default function AgentDashboard() {
                 ))}
               </div>
             ) : !reports?.results?.length ? (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucun rapport</h3>
-                <p className="text-muted-foreground">
-                  Vous n'avez pas encore créé de rapport de visite
-                </p>
-              </div>
+              <EtatVide
+                icone={FileText}
+                titre="Aucun rapport"
+                description="Vos rapports apparaîtront ici une fois vos visites terminées."
+              />
             ) : (
               <div className="space-y-4">
                 {reports.results.map((report) => (

@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { formaterAnciennete } from '@/lib/dates';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -140,15 +141,11 @@ export default function Messages() {
             </p>
           </div>
         ) : data?.results?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
-              <MessageCircle className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Aucun message</h3>
-            <p className="text-muted-foreground max-w-sm">
-              Vous n'avez pas encore de conversations. Les messages apparaîtront ici après une demande de visite.
-            </p>
-          </div>
+          <EtatVide
+            icone={MessageCircle}
+            titre="Aucune conversation"
+            description="Une discussion s'ouvre automatiquement lorsqu'un commissionnaire accepte votre demande de visite."
+          />
         ) : (
           <div className="space-y-2">
             {data?.results?.map((chatroom) => {

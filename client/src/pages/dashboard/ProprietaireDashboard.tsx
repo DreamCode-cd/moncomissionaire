@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -205,22 +206,25 @@ export default function ProprietaireDashboard() {
                 ))}
               </div>
             ) : filteredProperties.length === 0 ? (
-              <div className="text-center py-12">
-                <House className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucun bien</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {activeTab === 'all' 
-                    ? "Vous n'avez pas encore ajouté de bien"
-                    : "Aucun bien dans cette catégorie"
-                  }
-                </p>
-                <Link href="/add-property">
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Ajouter un bien
-                  </Button>
-                </Link>
-              </div>
+              <EtatVide
+                icone={House}
+                titre="Aucun bien"
+                description={
+                  activeTab === 'all'
+                    ? "Publiez votre premier bien : les annonces avec photos reçoivent nettement plus de demandes de visite."
+                    : 'Aucun bien dans cette catégorie pour le moment.'
+                }
+                action={
+                  activeTab === 'all' ? (
+                    <Link href="/add-property">
+                      <Button size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Ajouter un bien
+                      </Button>
+                    </Link>
+                  ) : undefined
+                }
+              />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {filteredProperties.map((property) => (

@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateCourte } from '@/lib/dates';
 import { useState } from 'react';
@@ -630,13 +631,12 @@ export default function CommissionnaireDashboard() {
                 ))}
               </div>
             ) : pendingProperties?.results?.length === 0 ? (
-              <div className="text-center py-12">
-                <CircleCheck className="w-16 h-16 mx-auto mb-4 text-statut-favorable" />
-                <h3 className="text-lg font-semibold mb-2">Aucun bien en attente</h3>
-                <p className="text-muted-foreground">
-                  Tous les biens ont ete traites
-                </p>
-              </div>
+              <EtatVide
+                icone={CircleCheck}
+                ton="favorable"
+                titre="Aucun bien en attente"
+                description="Tous les biens soumis ont été traités."
+              />
             ) : (
               <div className="space-y-4">
                 {pendingProperties?.results?.map((property) => (
@@ -761,13 +761,11 @@ export default function CommissionnaireDashboard() {
 
               if (filteredDemandes.length === 0) {
                 return (
-                  <div className="text-center py-12">
-                    <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold mb-2">Aucune demande à traiter</h3>
-                    <p className="text-muted-foreground">
-                      Les demandes de visite à traiter apparaitront ici
-                    </p>
-                  </div>
+                  <EtatVide
+                    icone={Calendar}
+                    titre="Aucune demande à traiter"
+                    description="Les demandes de visite envoyées par les clients apparaîtront ici."
+                  />
                 );
               }
 
@@ -908,13 +906,11 @@ export default function CommissionnaireDashboard() {
                 ))}
               </div>
             ) : visites?.results?.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucune visite</h3>
-                <p className="text-muted-foreground">
-                  Les visites planifiees apparaitront ici
-                </p>
-              </div>
+              <EtatVide
+                icone={Users}
+                titre="Aucune visite"
+                description="Les visites que vous planifierez apparaîtront ici."
+              />
             ) : (
               <div className="space-y-4">
                 {visites?.results?.map((visite) => (
@@ -1037,13 +1033,11 @@ export default function CommissionnaireDashboard() {
                 ))}
               </div>
             ) : rapports?.results?.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucun rapport</h3>
-                <p className="text-muted-foreground">
-                  Les rapports de visite apparaitront ici
-                </p>
-              </div>
+              <EtatVide
+                icone={FileText}
+                titre="Aucun rapport"
+                description="Les rapports rédigés par les agents après leurs visites apparaîtront ici."
+              />
             ) : (
               <div className="space-y-4">
                 {rapports?.results?.map((rapport) => (
@@ -1135,13 +1129,11 @@ export default function CommissionnaireDashboard() {
                 ))}
               </div>
             ) : agents?.results?.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucun agent</h3>
-                <p className="text-muted-foreground">
-                  Vous n'avez pas encore d'agents assignes. Les agents sont crees par l'administrateur.
-                </p>
-              </div>
+              <EtatVide
+                icone={Users}
+                titre="Aucun agent"
+                description="Aucun agent ne vous est encore assigné. Les comptes agent sont créés par l'administrateur."
+              />
             ) : (
               <div className="space-y-4">
                 {agents?.results?.map((agent) => (

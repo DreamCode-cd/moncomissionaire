@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
@@ -159,15 +160,17 @@ export default function ClientDashboard() {
                   ))}
                 </div>
               ) : demandes?.results?.length === 0 ? (
-                <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-muted-foreground mb-4">
-                    Vous n'avez pas encore fait de demande de visite
-                  </p>
-                  <Link href="/search">
-                    <Button>Découvrir des biens</Button>
-                  </Link>
-                </div>
+                <EtatVide
+                  icone={Calendar}
+                  titre="Aucune demande de visite"
+                  description="Parcourez les annonces et demandez une visite : un commissionnaire l'organisera avec vous."
+                  action={
+                    <Link href="/search">
+                      <Button>Découvrir des biens</Button>
+                    </Link>
+                  }
+                  className="py-8"
+                />
               ) : (
                 <div className="space-y-4">
                   {demandes?.results?.slice(0, 4).map((demande) => (

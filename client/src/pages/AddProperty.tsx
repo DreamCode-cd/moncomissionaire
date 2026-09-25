@@ -296,7 +296,7 @@ export default function AddProperty() {
 
                 {photos.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucune photo ajoutée. Les biens avec photos attirent plus de visiteurs.
+                    Aucune photo pour l'instant. Les annonces avec photos reçoivent nettement plus de demandes de visite.
                   </p>
                 )}
               </CardContent>

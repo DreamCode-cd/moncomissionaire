@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
@@ -128,12 +129,6 @@ export default function MyVisits() {
     </Card>
   );
 
-  const renderEmptyState = (message: string) => (
-    <div className="text-center py-12">
-      <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-      <p className="text-muted-foreground">{message}</p>
-    </div>
-  );
 
   const renderLoadingSkeleton = () => (
     <div className="space-y-4">
@@ -195,35 +190,35 @@ export default function MyVisits() {
 
           <TabsContent value="all">
             {isLoading ? renderLoadingSkeleton() : 
-              allDemandes.length === 0 ? renderEmptyState("Vous n'avez pas encore fait de demande de visite") :
+              allDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Vous n'avez pas encore fait de demande de visite" /> :
               <div className="space-y-4">{allDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="pending">
             {isLoading ? renderLoadingSkeleton() :
-              pendingDemandes.length === 0 ? renderEmptyState("Aucune demande en attente") :
+              pendingDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande en attente" /> :
               <div className="space-y-4">{pendingDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="accepted">
             {isLoading ? renderLoadingSkeleton() :
-              acceptedDemandes.length === 0 ? renderEmptyState("Aucune demande acceptée") :
+              acceptedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande acceptée" /> :
               <div className="space-y-4">{acceptedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="completed">
             {isLoading ? renderLoadingSkeleton() :
-              completedDemandes.length === 0 ? renderEmptyState("Aucune visite terminée") :
+              completedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune visite terminée" /> :
               <div className="space-y-4">{completedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="rejected">
             {isLoading ? renderLoadingSkeleton() :
-              rejectedDemandes.length === 0 ? renderEmptyState("Aucune demande rejetée") :
+              rejectedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande rejetée" /> :
               <div className="space-y-4">{rejectedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>

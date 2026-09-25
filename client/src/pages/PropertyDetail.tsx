@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
@@ -948,15 +949,21 @@ export default function PropertyDetail() {
                   </Button>
                 )}
                 {reviews.results.filter(review => review.client.id !== user?.id).length === 0 && !existingUserReview && (
-                  <p className="text-muted-foreground text-center py-4">
-                    Aucun avis pour le moment. Soyez le premier à donner votre avis !
-                  </p>
+                  <EtatVide
+                    icone={Star}
+                    titre="Aucun avis"
+                    description="Soyez la première personne à donner son avis sur ce bien."
+                    className="py-6"
+                  />
                 )}
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-4">
-                Aucun avis pour le moment. Soyez le premier à donner votre avis !
-              </p>
+              <EtatVide
+                icone={Star}
+                titre="Aucun avis"
+                description="Soyez la première personne à donner son avis sur ce bien."
+                className="py-6"
+              />
             )}
           </div>
 

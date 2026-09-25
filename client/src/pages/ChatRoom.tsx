@@ -1,8 +1,9 @@
+import { EtatVide } from '@/components/etats';
 import { formaterHeure, formaterSeparateurDeJour } from '@/lib/dates';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Send, Phone, EllipsisVertical, Wifi, WifiOff } from 'lucide-react';
+import { ChevronLeft, EllipsisVertical, MessageCircle, Phone, Send, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -328,10 +329,11 @@ export default function ChatRoom() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {localMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-muted-foreground">Aucun message pour le moment</p>
-            <p className="text-sm text-muted-foreground mt-1">Envoyez le premier message!</p>
-          </div>
+          <EtatVide
+            icone={MessageCircle}
+            titre="Aucun message"
+            description="Écrivez le premier message pour démarrer la discussion."
+          />
         ) : (
           messageGroups.map((group, groupIndex) => (
             <div key={groupIndex}>

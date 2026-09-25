@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { classesDuTon } from '@/lib/statuts';
 import { apparenceNotification } from '@/lib/notifications';
 import { formaterAnciennete } from '@/lib/dates';
@@ -90,15 +91,11 @@ export default function Notifications() {
             ))}
           </div>
         ) : notifications?.results?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 mb-4 rounded-full bg-muted flex items-center justify-center">
-              <Bell className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Aucune notification</h3>
-            <p className="text-muted-foreground max-w-sm">
-              Vous n'avez pas encore reçu de notifications.
-            </p>
-          </div>
+          <EtatVide
+            icone={Bell}
+            titre="Aucune notification"
+            description="Vous serez prévenu ici du traitement de vos demandes et de l'arrivée de nouveaux messages."
+          />
         ) : (
           <div className="space-y-3">
             {notifications?.results?.map((notification) => {

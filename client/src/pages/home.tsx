@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -163,9 +164,12 @@ export default function House() {
                 </Link>
               ))
             ) : (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                Aucune ville disponible pour le moment
-              </div>
+              <EtatVide
+                icone={MapPin}
+                titre="Aucune ville disponible"
+                description="Les villes apparaîtront ici dès que des biens y seront publiés."
+                className="col-span-full py-8"
+              />
             )}
           </div>
         </div>

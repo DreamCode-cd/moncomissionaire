@@ -1,7 +1,14 @@
-import { CircleAlert, Inbox, LoaderCircle, WifiOff } from 'lucide-react';
+import {
+  CircleAlert,
+  Inbox,
+  LoaderCircle,
+  WifiOff,
+  type LucideIcon,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
+import type { Ton } from '@/lib/statuts';
 import { cn } from '@/lib/utils';
 
 /**
@@ -54,12 +61,26 @@ function Cadre({
   );
 }
 
-/** Rien à afficher, et c'est normal. */
-export function EtatVide({ titre, description, action, className }: EtatProps) {
+/**
+ * Rien à afficher.
+ *
+ * Tous les états vides ne se valent pas : « aucun bien en attente de
+ * validation » signifie que le travail est fait, pas qu'il manque quelque
+ * chose. Le `ton` permet de le dire, et `icone` de choisir un symbole qui
+ * parle du contenu absent plutôt qu'une boîte générique.
+ */
+export function EtatVide({
+  titre,
+  description,
+  action,
+  className,
+  icone: Icone = Inbox,
+  ton = 'neutre',
+}: EtatProps & { icone?: LucideIcon; ton?: Ton }) {
   return (
     <Cadre
-      icone={<Inbox className="h-6 w-6 text-statut-neutre" aria-hidden />}
-      tonIcone="bg-statut-neutre-fond"
+      icone={<Icone className={cn('h-6 w-6', COULEUR_ICONE[ton])} aria-hidden />}
+      tonIcone={FOND_ICONE[ton]}
       titre={titre}
       description={description}
       action={action}
@@ -67,6 +88,22 @@ export function EtatVide({ titre, description, action, className }: EtatProps) {
     />
   );
 }
+
+const COULEUR_ICONE: Record<Ton, string> = {
+  favorable: 'text-statut-favorable',
+  attente: 'text-statut-attente',
+  defavorable: 'text-statut-defavorable',
+  information: 'text-statut-information',
+  neutre: 'text-statut-neutre',
+};
+
+const FOND_ICONE: Record<Ton, string> = {
+  favorable: 'bg-statut-favorable-fond',
+  attente: 'bg-statut-attente-fond',
+  defavorable: 'bg-statut-defavorable-fond',
+  information: 'bg-statut-information-fond',
+  neutre: 'bg-statut-neutre-fond',
+};
 
 /** Quelque chose a échoué, et ce n'est pas la faute de l'utilisateur. */
 export function EtatErreur({
