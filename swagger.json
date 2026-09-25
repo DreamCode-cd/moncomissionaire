@@ -1012,6 +1012,64 @@
                         "description": "A page number within the paginated result set.",
                         "required": false,
                         "type": "integer"
+                    },
+                    {
+                        "name": "type_bien",
+                        "in": "query",
+                        "description": "maison, appartement, studio, villa, duplex, terrain",
+                        "type": "string"
+                    },
+                    {
+                        "name": "ville",
+                        "in": "query",
+                        "description": "Identifiant de la ville",
+                        "type": "integer"
+                    },
+                    {
+                        "name": "quartier",
+                        "in": "query",
+                        "description": "Nom exact du quartier",
+                        "type": "string"
+                    },
+                    {
+                        "name": "statut_location",
+                        "in": "query",
+                        "description": "disponible, en_visite, loue, indisponible",
+                        "type": "string"
+                    },
+                    {
+                        "name": "devise",
+                        "in": "query",
+                        "description": "USD ou CDF. Filtre les annonces libellées dans cette devise.",
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
+                        ]
+                    },
+                    {
+                        "name": "prix_min",
+                        "in": "query",
+                        "description": "Loyer minimum. IMPORTANT : un intervalle de prix n'a de sens que dans une devise — 1 000 FC et 1 000 $ diffèrent d'un facteur supérieur à deux mille. À défaut de paramètre `devise`, le dollar est retenu et le résultat est restreint aux annonces en dollars.",
+                        "type": "number"
+                    },
+                    {
+                        "name": "prix_max",
+                        "in": "query",
+                        "description": "Loyer maximum. Même règle que prix_min : accompagner d'une `devise`.",
+                        "type": "number"
+                    },
+                    {
+                        "name": "chambres_min",
+                        "in": "query",
+                        "description": "Nombre minimum de chambres",
+                        "type": "integer"
+                    },
+                    {
+                        "name": "superficie_min",
+                        "in": "query",
+                        "description": "Superficie minimale en m²",
+                        "type": "number"
                     }
                 ],
                 "responses": {
@@ -2036,6 +2094,17 @@
                         ]
                     },
                     {
+                        "name": "devise",
+                        "in": "formData",
+                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
+                        ]
+                    },
+                    {
                         "name": "prix_mensuel",
                         "in": "formData",
                         "required": true,
@@ -2247,6 +2316,17 @@
                         ]
                     },
                     {
+                        "name": "devise",
+                        "in": "formData",
+                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
+                        ]
+                    },
+                    {
                         "name": "prix_mensuel",
                         "in": "formData",
                         "required": true,
@@ -2437,6 +2517,17 @@
                             "villa",
                             "duplex",
                             "terrain"
+                        ]
+                    },
+                    {
+                        "name": "devise",
+                        "in": "formData",
+                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
                         ]
                     },
                     {
@@ -2657,6 +2748,17 @@
                             "villa",
                             "duplex",
                             "terrain"
+                        ]
+                    },
+                    {
+                        "name": "devise",
+                        "in": "formData",
+                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
                         ]
                     },
                     {
@@ -5748,6 +5850,27 @@
                     "readOnly": true,
                     "minLength": 1
                 },
+                "devise": {
+                    "title": "Devise",
+                    "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "CDF"
+                    ]
+                },
+                "devise_display": {
+                    "title": "Devise display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise_symbole": {
+                    "title": "Devise symbole",
+                    "description": "Symbole court à afficher à côté du montant : $ ou FC.",
+                    "type": "string",
+                    "readOnly": true
+                },
                 "prix_mensuel": {
                     "title": "Prix mensuel",
                     "type": "string",
@@ -6073,6 +6196,18 @@
                     "readOnly": true,
                     "minLength": 1
                 },
+                "devise_display": {
+                    "title": "Devise display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise_symbole": {
+                    "title": "Devise symbole",
+                    "description": "Symbole court à afficher à côté du montant : $ ou FC.",
+                    "type": "string",
+                    "readOnly": true
+                },
                 "agency_detail": {
                     "$ref": "#/definitions/Agency"
                 },
@@ -6097,6 +6232,15 @@
                         "villa",
                         "duplex",
                         "terrain"
+                    ]
+                },
+                "devise": {
+                    "title": "Devise",
+                    "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "CDF"
                     ]
                 },
                 "prix_mensuel": {
@@ -6309,6 +6453,15 @@
                         "villa",
                         "duplex",
                         "terrain"
+                    ]
+                },
+                "devise": {
+                    "title": "Devise",
+                    "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "CDF"
                     ]
                 },
                 "prix_mensuel": {

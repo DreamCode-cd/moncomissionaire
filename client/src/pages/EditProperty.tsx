@@ -52,6 +52,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { getDjangoImageUrl, getVilleId } from '@/lib/utils';
 import { bienCreateSchema, type BienCreateInput, type BienDetail } from '@shared/schema';
+import { DEVISES } from '@/lib/prix';
 
 const propertyTypes = [
   { value: 'maison', label: 'Maison' },
@@ -582,13 +583,38 @@ export default function EditProperty() {
                 <CardTitle className="text-lg">Prix et caractéristiques</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="devise"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Devise du loyer et de la garantie</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-devise">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DEVISES.map((d) => (
+                            <SelectItem key={d.valeur} value={d.valeur}>
+                              {d.libelle} ({d.symbole})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="prix_mensuel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prix mensuel ($)</FormLabel>
+                        <FormLabel>Prix mensuel</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -607,7 +633,7 @@ export default function EditProperty() {
                     name="garantie"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Garantie ($)</FormLabel>
+                        <FormLabel>Garantie</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"

@@ -34,6 +34,7 @@ export default function Search() {
       query: params.get('q') || '',
       type_bien: params.get('type') || undefined,
       ville: params.get('ville') || undefined,
+      devise: (params.get('devise') as 'USD' | 'CDF') || undefined,
       min_price: params.get('min_price') ? parseInt(params.get('min_price')!) : undefined,
       max_price: params.get('max_price') ? parseInt(params.get('max_price')!) : undefined,
       min_chambres: params.get('chambres') ? parseInt(params.get('chambres')!) : undefined,
@@ -58,6 +59,7 @@ export default function Search() {
     if (f.query) params.set('q', f.query);
     if (f.type_bien) params.set('type', f.type_bien);
     if (f.ville) params.set('ville', f.ville);
+    if (f.devise) params.set('devise', f.devise);
     if (f.min_price) params.set('min_price', f.min_price.toString());
     if (f.max_price) params.set('max_price', f.max_price.toString());
     if (f.min_chambres) params.set('chambres', f.min_chambres.toString());
@@ -95,6 +97,10 @@ export default function Search() {
     if (filters.query) params.search = filters.query;
     if (filters.type_bien) params.type_bien = filters.type_bien;
     if (filters.ville) params.ville = filters.ville;
+    // La devise accompagne toujours un filtre de prix : côté serveur, un
+    // intervalle sans devise retombe sur le dollar et masquerait les
+    // annonces en francs sans le dire.
+    if (filters.devise) params.devise = filters.devise;
     if (filters.min_price) params.prix_min = filters.min_price.toString();
     if (filters.max_price) params.prix_max = filters.max_price.toString();
     if (filters.min_chambres) params.nombre_chambres_min = filters.min_chambres.toString();

@@ -39,6 +39,7 @@ import type { BienDetail, BienList, AvisBien, PaginatedResponse } from '@shared/
 import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
+import { formaterPrix } from '@/lib/prix';
 
 const villaImage = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80";
 const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
@@ -281,15 +282,6 @@ export default function PropertyDetail() {
     };
   }, [property]);
 
-  const formatPrice = (price?: string) => {
-    if (!price) return 'N/A';
-    const num = parseFloat(price);
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(num);
-  };
 
   const handleRequestVisit = async () => {
     if (!isAuthenticated) {
@@ -652,13 +644,13 @@ export default function PropertyDetail() {
 
             <div className="flex items-baseline gap-2 mt-4">
               <span className="text-3xl font-bold text-primary" data-testid="text-property-price">
-                {formatPrice(property.prix_mensuel)}
+                {formaterPrix(property.prix_mensuel, property.devise)}
               </span>
               <span className="text-muted-foreground">/mois</span>
             </div>
             {property.garantie && (
               <p className="text-sm text-muted-foreground mt-1">
-                Garantie: {formatPrice(property.garantie)}
+                Garantie: {formaterPrix(property.garantie, property.devise)}
               </p>
             )}
           </div>
@@ -1020,7 +1012,7 @@ export default function PropertyDetail() {
         <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 bg-background border-t p-4 flex items-center gap-4">
           <div className="flex-1">
             <span className="text-2xl font-bold text-primary">
-              {formatPrice(property.prix_mensuel)}
+              {formaterPrix(property.prix_mensuel, property.devise)}
             </span>
             <span className="text-muted-foreground">/mois</span>
           </div>

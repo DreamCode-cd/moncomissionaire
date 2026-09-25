@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { Visite, RapportVisite } from '@shared/schema';
+import { formaterPrix } from '@/lib/prix';
 
 const etatGeneralLabels: Record<string, string> = {
   tres_interessant: 'Très intéressant',
@@ -91,7 +92,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
     const bienInfo = [
       ['Titre:', safeString(bienDetail.titre, 'Non spécifié')],
       ['Type:', safeString(bienDetail.type_bien_display, bienDetail.type_bien ?? 'Non spécifié')],
-      ['Prix mensuel:', `${safeString(bienDetail.prix_mensuel, '0')} USD`],
+      ['Prix mensuel:', formaterPrix(bienDetail.prix_mensuel, bienDetail.devise)],
       ['Superficie:', `${safeString(bienDetail.superficie, '0')} m²`],
       ['Chambres:', safeNumber(bienDetail.nombre_chambres)],
       ['Salles de bain:', safeNumber(bienDetail.nombre_salles_bain)],

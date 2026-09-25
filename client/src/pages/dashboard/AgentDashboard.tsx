@@ -45,6 +45,7 @@ import type { Visite, RapportVisite, RapportVisiteCreate, PaginatedResponse, Bie
 import { generateVisiteReportPDF, generateVisiteSummaryPDF } from '@/lib/pdf-generator';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
+import { formaterPrix } from '@/lib/prix';
 
 // Marqueur dessiné en SVG inline : plus aucune requête vers un CDN tiers.
 installerMarqueurParDefaut();
@@ -816,7 +817,7 @@ export default function AgentDashboard() {
                           </div>
 
                           <p className="text-2xl font-bold text-primary">
-                            {bien?.prix_mensuel} FC<span className="text-sm font-normal text-muted-foreground">/mois</span>
+                            {formaterPrix(bien?.prix_mensuel, bien?.devise)}<span className="text-sm font-normal text-muted-foreground">/mois</span>
                           </p>
 
                           {bien?.description && (

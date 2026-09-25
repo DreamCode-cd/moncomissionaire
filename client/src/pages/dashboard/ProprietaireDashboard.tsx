@@ -25,6 +25,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import type { BienList, PaginatedResponse } from '@shared/schema';
+import { formaterLoyer } from '@/lib/prix';
 
 const locationStatuses = [
   { value: 'disponible', label: 'Disponible' },
@@ -281,7 +282,7 @@ export default function ProprietaireDashboard() {
                       
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <span className="font-bold text-sm">
-                          ${parseFloat(property.prix_mensuel).toLocaleString()}/mois
+                          {formaterLoyer(property.prix_mensuel, property.devise)}
                         </span>
                         {property.statut_validation === 'valide' && (
                           <Select
