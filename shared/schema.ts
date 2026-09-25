@@ -4,7 +4,15 @@ import { z } from "zod";
  *  Kinshasa et Lubumbashi ; le franc sert les montants plus petits. */
 export type Devise = 'USD' | 'CDF';
 
-export type UserRole = 'client' | 'proprietaire' | 'commissionnaire' | 'agent';
+/** Rôles du produit. `agence` et `admin` existaient côté Django sans être
+ *  déclarés ici : un administrateur voyait « admin » brut à l'écran. */
+export type UserRole =
+  | 'client'
+  | 'proprietaire'
+  | 'agence'
+  | 'commissionnaire'
+  | 'agent'
+  | 'admin';
 
 export interface UserList {
   id: number;
@@ -13,8 +21,16 @@ export interface UserList {
   first_name: string;
   last_name: string;
   full_name?: string;
+  /** Champ normalisé par le front. L'API, elle, envoie `user_type`. */
   role: UserRole;
   role_display: string;
+  /** Tel que renvoyé par l'API. Voir lib/roles.ts pour la traduction. */
+  user_type?: UserRole;
+  user_type_display?: string;
+  is_active?: boolean;
+  is_available?: boolean;
+  /** Présent sur la liste d'administration uniquement. */
+  created_at?: string;
   phone: string;
   photo?: string;
   avatar?: string | null;

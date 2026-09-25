@@ -32,6 +32,321 @@
         }
     ],
     "paths": {
+        "/administration/agences/": {
+            "get": {
+                "operationId": "administration_agences_list",
+                "summary": "Vérification des agences.",
+                "description": "Une agence vérifiée inspire confiance à un propriétaire qui lui confie un\nbien : c'est une décision humaine, pas un champ à cocher au hasard. Elle\nest donc tracée.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Agency"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": []
+        },
+        "/administration/agences/{id}/": {
+            "get": {
+                "operationId": "administration_agences_read",
+                "summary": "Vérification des agences.",
+                "description": "Une agence vérifiée inspire confiance à un propriétaire qui lui confie un\nbien : c'est une décision humaine, pas un champ à cocher au hasard. Elle\nest donc tracée.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Agency"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "A unique integer value identifying this Agence.",
+                    "required": true,
+                    "type": "integer"
+                }
+            ]
+        },
+        "/administration/agences/{id}/verifier/": {
+            "post": {
+                "operationId": "administration_agences_verifier",
+                "summary": "Vérification des agences.",
+                "description": "Une agence vérifiée inspire confiance à un propriétaire qui lui confie un\nbien : c'est une décision humaine, pas un champ à cocher au hasard. Elle\nest donc tracée.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Agency"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Agency"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "description": "A unique integer value identifying this Agence.",
+                    "required": true,
+                    "type": "integer"
+                }
+            ]
+        },
+        "/administration/apercu/": {
+            "get": {
+                "operationId": "administration_apercu_list",
+                "summary": "Les chiffres qui disent en un écran où en est la plateforme.",
+                "description": "Tout est calculé en quatre requêtes agrégées, pas en comptant ligne à\nligne : un tableau de bord qui s'ouvre lentement n'est pas consulté.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": []
+        },
+        "/administration/utilisateurs/": {
+            "get": {
+                "operationId": "administration_utilisateurs_list",
+                "summary": "Consultation et activation des comptes.",
+                "description": "En lecture seule par construction : les modifications passent par des\nactions nommées, qui journalisent. Un PATCH générique ouvrirait la porte\nà des changements de champ non tracés.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/UtilisateurAdministration"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": []
+        },
+        "/administration/utilisateurs/{id}/": {
+            "get": {
+                "operationId": "administration_utilisateurs_read",
+                "summary": "Consultation et activation des comptes.",
+                "description": "En lecture seule par construction : les modifications passent par des\nactions nommées, qui journalisent. Un PATCH générique ouvrirait la porte\nà des changements de champ non tracés.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/utilisateurs/{id}/activer/": {
+            "post": {
+                "operationId": "administration_utilisateurs_activer",
+                "summary": "Consultation et activation des comptes.",
+                "description": "En lecture seule par construction : les modifications passent par des\nactions nommées, qui journalisent. Un PATCH générique ouvrirait la porte\nà des changements de champ non tracés.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/utilisateurs/{id}/desactiver/": {
+            "post": {
+                "operationId": "administration_utilisateurs_desactiver",
+                "summary": "Désactive un compte, avec les deux mêmes garde-fous que l'admin Django.",
+                "description": "Se désactiver soi-même verrouille l'administration hors d'elle-même.\nCouper un agent qui a des visites planifiées laisse un client sans\npersonne le jour venu.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/auth/agencies/": {
             "get": {
                 "operationId": "auth_agencies_list",
@@ -5207,6 +5522,83 @@
                     "type": "integer",
                     "maximum": 2147483647,
                     "minimum": 0
+                },
+                "created_at": {
+                    "title": "Date de création",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "UtilisateurAdministration": {
+            "required": [
+                "username"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "username": {
+                    "title": "Nom d’utilisateur",
+                    "description": "Requis. 150 caractères maximum. Uniquement des lettres, nombres et les caractères « @ », « . », « + », « - » et « _ ».",
+                    "type": "string",
+                    "pattern": "^[\\w.@+-]+$",
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "email": {
+                    "title": "Adresse électronique",
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254
+                },
+                "full_name": {
+                    "title": "Full name",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "phone": {
+                    "title": "Téléphone",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "avatar": {
+                    "title": "Photo de profil",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "user_type": {
+                    "title": "Type d'utilisateur",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "client",
+                        "proprietaire",
+                        "agent",
+                        "commissionnaire",
+                        "agence"
+                    ]
+                },
+                "user_type_display": {
+                    "title": "User type display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "is_available": {
+                    "title": "Disponible",
+                    "type": "boolean"
+                },
+                "is_active": {
+                    "title": "Actif",
+                    "description": "Précise si l’utilisateur doit être considéré comme actif. Décochez ceci plutôt que de supprimer le compte.",
+                    "type": "boolean"
                 },
                 "created_at": {
                     "title": "Date de création",

@@ -1,3 +1,4 @@
+import { libelleRole } from '@/lib/roles';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import type { UserProfile, TokenResponse, LoginInput, RegisterInput } from '@shared/schema';
@@ -19,17 +20,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const normalizeProfile = (profile: UserProfile): UserProfile => {
+    // L'API envoie `user_type` ; le front parle de `role`. La traduction et
+    // les libellés vivent dans lib/roles.ts — la table locale qui était ici
+    // ignorait `agence` et `admin`.
     const role = profile.role || profile.user_type || 'client';
-    const roleDisplayMap: Record<string, string> = {
-      'client': 'Client',
-      'proprietaire': 'Propriétaire', 
-      'commissionnaire': 'Commissionnaire',
-      'agent': 'Agent'
-    };
     return {
       ...profile,
       role: role as UserProfile['role'],
-      role_display: profile.role_display || roleDisplayMap[role] || role,
+      role_display: libelleRole(role, profile.role_display),
     };
   };
 

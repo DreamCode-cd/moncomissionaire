@@ -94,18 +94,25 @@
 
      Quatre tons suffisent à couvrir les quatre familles de statuts du
      produit : validation d'un bien, disponibilité, visite, demande. */
-  --statut-favorable: 152 45% 32%;
+  --statut-favorable: 152 62% 30%;
   --statut-favorable-fond: 152 45% 95%;
-  --statut-attente: 35 85% 30%;
-  --statut-attente-fond: 35 85% 95%;
-  --statut-defavorable: 5 72% 37%;
-  --statut-defavorable-fond: 5 72% 96%;
-  --statut-neutre: 200 8% 42%;
+  --statut-attente: 42 95% 30%;
+  --statut-attente-fond: 42 90% 95%;
+  --statut-defavorable: 356 78% 42%;
+  --statut-defavorable-fond: 356 72% 96%;
+  --statut-neutre: 200 8% 38%;
   --statut-neutre-fond: 200 8% 95%;
-  --statut-information: 214 70% 40%;
+  --statut-information: 214 72% 42%;
   --statut-information-fond: 214 70% 96%;
 
-  /* Deux rôles qui ne sont pas des statuts mais des distinctions :
+  /* Contrastes vérifiés : chaque couleur de texte tient au moins 4,5:1 sur
+     son propre fond teinté (WCAG AA). L'ambre et le rouge restent proches en
+     vision déficiente — c'est pourquoi un badge porte TOUJOURS une icône et
+     un libellé, jamais la couleur seule. Le jour où ces teintes serviront de
+     série dans un graphique, il faudra une palette catégorielle distincte,
+     validée séparément : les deux exigences sont incompatibles sur cette paire.
+
+     Deux rôles qui ne sont pas des statuts mais des distinctions :
      - la note (étoiles) et la photo mise en avant : convention dorée ;
      - le favori : le cœur, dont la couleur est attendue rouge.
      Sans jeton, ces teintes étaient écrites en dur et cassaient en sombre. */
@@ -194,15 +201,15 @@
   /* Mêmes rôles, adaptés au fond sombre : on ne se contente pas d'inverser,
      les fonds deviennent des teintes profondes et les textes s'éclaircissent
      pour rester lisibles. */
-  --statut-favorable: 152 50% 62%;
+  --statut-favorable: 152 55% 62%;
   --statut-favorable-fond: 152 30% 14%;
-  --statut-attente: 35 80% 62%;
-  --statut-attente-fond: 35 40% 14%;
-  --statut-defavorable: 5 80% 68%;
-  --statut-defavorable-fond: 5 40% 15%;
-  --statut-neutre: 200 10% 65%;
+  --statut-attente: 42 88% 62%;
+  --statut-attente-fond: 42 40% 14%;
+  --statut-defavorable: 356 85% 70%;
+  --statut-defavorable-fond: 356 40% 15%;
+  --statut-neutre: 200 10% 68%;
   --statut-neutre-fond: 200 8% 16%;
-  --statut-information: 214 75% 70%;
+  --statut-information: 214 78% 70%;
   --statut-information-fond: 214 40% 16%;
 
   --note: 40 95% 62%;

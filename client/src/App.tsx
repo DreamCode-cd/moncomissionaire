@@ -38,6 +38,7 @@ const MyVisits = lazyWithRetry(() => import("@/pages/MyVisits"));
 const ProprietaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/ProprietaireDashboard"));
 const CommissionnaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/CommissionnaireDashboard"));
 const AgentDashboard = lazyWithRetry(() => import("@/pages/dashboard/AgentDashboard"));
+const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const LegalPage = lazyWithRetry(() => import("@/pages/LegalPage"));
 
 function PageLoader() {
@@ -141,6 +142,9 @@ function Router() {
           <Route path="/agent-dashboard">
             <ProtectedRoute allowedRoles={['agent']}><AgentDashboard /></ProtectedRoute>
           </Route>
+          <Route path="/administration">
+            <ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>
+          </Route>
           <Route path="/legal/:pageType" component={LegalPage} />
           <Route component={NotFound} />
           </Switch>
@@ -162,6 +166,8 @@ function DashboardRouter() {
   }
   
   switch (user.role) {
+    case 'admin':
+      return <Redirect to="/administration" />;
     case 'commissionnaire':
       return <Redirect to="/pending-properties" />;
     case 'proprietaire':
