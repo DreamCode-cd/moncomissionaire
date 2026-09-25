@@ -7,6 +7,7 @@ import type { BienList } from '@shared/schema';
 import { cn, getDjangoImageUrl, getVilleName } from '@/lib/utils';
 
 import villaImage from '@assets/images/luxury_villa_hero_image.png';
+import { formaterPrix } from '@/lib/prix';
 const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
 const studioImage = "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&q=80";
 const houseImage = "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80";
@@ -31,15 +32,6 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
   const photoUrl = getDjangoImageUrl(property.photo_principale?.image);
   const imageUrl = photoUrl || defaultImages[property.type_bien] || houseImage;
   
-  const formatPrice = (price: string) => {
-    const num = parseFloat(price);
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(num);
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -111,7 +103,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-sm">
-                    {formatPrice(property.prix_mensuel)}
+                    {formaterPrix(property.prix_mensuel, property.devise)}
                     <span className="text-[10px] font-normal text-muted-foreground">/mois</span>
                   </span>
                   {rating && (
@@ -183,7 +175,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
           </div>
           <div className="flex items-center justify-between gap-2">
             <span className="font-bold text-base">
-              {formatPrice(property.prix_mensuel)}
+              {formaterPrix(property.prix_mensuel, property.devise)}
               <span className="text-xs font-normal text-muted-foreground">/mois</span>
             </span>
             {rating && (

@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+/** Devises acceptées pour un loyer. Le dollar domine la location à
+ *  Kinshasa et Lubumbashi ; le franc sert les montants plus petits. */
+export type Devise = 'USD' | 'CDF';
+
 export type UserRole = 'client' | 'proprietaire' | 'commissionnaire' | 'agent';
 
 export interface UserList {
@@ -79,6 +83,9 @@ export interface BienList {
   titre: string;
   type_bien: TypeBien;
   type_bien_display: string;
+  devise: Devise;
+  devise_display?: string;
+  devise_symbole?: string;
   prix_mensuel: string;
   garantie: string;
   superficie: string;
@@ -124,6 +131,9 @@ export interface BienCreate {
   titre: string;
   description: string;
   type_bien: TypeBien;
+  devise: Devise;
+  devise_display?: string;
+  devise_symbole?: string;
   prix_mensuel: string;
   garantie?: string;
   superficie: string;
@@ -385,6 +395,7 @@ export const bienCreateSchema = z.object({
   titre: z.string().min(5, "Minimum 5 caractères"),
   description: z.string().min(20, "Minimum 20 caractères"),
   type_bien: z.enum(['maison', 'appartement', 'studio', 'villa', 'duplex', 'terrain']),
+  devise: z.enum(['USD', 'CDF']).default('USD'),
   prix_mensuel: z.string().min(1, "Prix requis"),
   garantie: z.string().optional(),
   superficie: z.string().min(1, "Superficie requise"),

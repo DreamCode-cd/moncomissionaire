@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { formaterLoyer } from '@/lib/prix';
 import { api } from '@/lib/api';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import { queryClient } from '@/lib/queryClient';
@@ -700,7 +701,7 @@ export default function CommissionnaireDashboard() {
                             {property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}
                           </p>
                           <p className="text-sm font-medium text-primary mb-2">
-                            {parseInt(property.prix_mensuel).toLocaleString()} FCFA/mois
+                            {formaterLoyer(property.prix_mensuel, property.devise)}
                           </p>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-6 h-6">
@@ -1958,7 +1959,7 @@ export default function CommissionnaireDashboard() {
                     {displayProperty.quartier}, {displayProperty.ville}
                   </p>
                   <p className="text-2xl font-bold text-primary mt-2" data-testid="text-property-detail-price">
-                    {parseInt(displayProperty.prix_mensuel).toLocaleString()} FCFA/mois
+                    {formaterLoyer(displayProperty.prix_mensuel, displayProperty.devise)}
                   </p>
                 </div>
 

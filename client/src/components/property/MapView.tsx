@@ -16,6 +16,7 @@ import studioImage from '@assets/images/cozy_studio_apartment.png';
 import houseImage from '@assets/images/family_house_with_garden.png';
 import duplexImage from '@assets/images/duplex_penthouse_terrace.png';
 import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
+import { formaterLoyer } from '@/lib/prix';
 
 const defaultImages: Record<string, string> = {
   villa: villaImage,
@@ -104,15 +105,6 @@ export function MapView({
   const defaultCenter: [number, number] = [5.345317, -4.024429];
   const defaultZoom = singleProperty ? 15 : 12;
 
-  const formatPrice = (price?: string) => {
-    if (!price) return 'N/A';
-    const num = parseFloat(price);
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(num);
-  };
 
   const getValidProperties = (): Array<{ property: BienList | BienDetail; lat: number; lng: number }> => {
     if (singleProperty?.latitude && singleProperty?.longitude) {
@@ -224,7 +216,7 @@ export function MapView({
                   
                   <div className="flex items-center justify-between gap-2 pt-1">
                     <span className="font-bold text-primary">
-                      {formatPrice(property.prix_mensuel)}/mois
+                      {formaterLoyer(property.prix_mensuel, property.devise)}
                     </span>
                     <Button 
                       size="sm" 

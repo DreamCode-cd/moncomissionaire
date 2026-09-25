@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { DEVISES, formaterPrix, type Devise } from '@/lib/prix';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Ville {
@@ -37,6 +38,7 @@ export interface SearchFilters {
   query: string;
   type_bien?: string;
   ville?: string;
+  devise?: Devise;
   min_price?: number;
   max_price?: number;
   min_chambres?: number;
@@ -75,12 +77,33 @@ const amenities = [
   { key: 'gardien' as const, label: 'Gardien', icon: ShieldCheck },
 ];
 
+// Bornes du curseur, par devise. Un loyer de 5 000 $ est un maximum
+// raisonnable à Kinshasa ; 5 000 FC ne paient pas un trajet en taxi.
+const ECHELLE: Record<Devise, { max: number; pas: number }> = {
+  USD: { max: 5000, pas: 100 },
+  CDF: { max: 5000000, pas: 100000 },
+};
+
 export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const devise: Devise = filters.devise ?? 'USD';
+  const echelle = ECHELLE[devise];
   const [priceRange, setPriceRange] = useState<[number, number]>([
     filters.min_price || 0,
-    filters.max_price || 5000,
+    filters.max_price || echelle.max,
   ]);
+
+  // Changer de devise remet l'intervalle à zéro : conserver « 0 à 5 000 »
+  // en passant du dollar au franc produirait un filtre absurde.
+  const changerDevise = (nouvelle: Devise) => {
+    setPriceRange([0, ECHELLE[nouvelle].max]);
+    onFiltersChange({
+      ...filters,
+      devise: nouvelle,
+      min_price: undefined,
+      max_price: undefined,
+    });
+  };
 
   const { data: villesData } = useQuery<VillesResponse | Ville[]>({
     queryKey: ['/api/v1/biens/villes/'],
@@ -104,14 +127,15 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
   const handleApplyFilters = () => {
     onFiltersChange({
       ...filters,
+      devise,
       min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
-      max_price: priceRange[1] < 5000 ? priceRange[1] : undefined,
+      max_price: priceRange[1] < echelle.max ? priceRange[1] : undefined,
     });
     setIsOpen(false);
   };
 
   const handleResetFilters = () => {
-    setPriceRange([0, 5000]);
+    setPriceRange([0, echelle.max]);
     onFiltersChange({ query: filters.query });
     setIsOpen(false);
   };
@@ -198,12 +222,31 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label>Devise</Label>
+                <Select value={devise} onValueChange={(v) => changerDevise(v as Devise)}>
+                  <SelectTrigger data-testid="select-devise-recherche">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEVISES.map((d) => (
+                      <SelectItem key={d.valeur} value={d.valeur}>
+                        {d.libelle} ({d.symbole})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-4">
-                <Label>Prix mensuel: ${priceRange[0]} - ${priceRange[1]}</Label>
+                <Label>
+                  Prix mensuel : {formaterPrix(priceRange[0], devise)} –{' '}
+                  {formaterPrix(priceRange[1], devise)}
+                </Label>
                 <Slider
                   min={0}
-                  max={5000}
-                  step={100}
+                  max={echelle.max}
+                  step={echelle.pas}
                   value={priceRange}
                   onValueChange={(value) => setPriceRange(value as [number, number])}
                   className="py-4"
