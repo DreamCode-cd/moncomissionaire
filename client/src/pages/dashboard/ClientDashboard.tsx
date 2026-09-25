@@ -1,3 +1,5 @@
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
+import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -16,41 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getDjangoImageUrl } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, BienList, RapportVisite, Visite } from '@shared/schema';
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'en_attente':
-      return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
-    case 'acceptee':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Acceptée</Badge>;
-    case 'rejetee':
-      return <Badge variant="destructive"><CircleX className="w-3 h-3 mr-1" />Rejetée</Badge>;
-    case 'annulee':
-      return <Badge variant="outline">Annulée</Badge>;
-    case 'terminee':
-      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><CircleCheck className="w-3 h-3 mr-1" />Terminée</Badge>;
-    case 'planifiee':
-      return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400"><Calendar className="w-3 h-3 mr-1" />Planifiée</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-};
 
-const getEtatBadge = (etat: string) => {
-  switch (etat) {
-    case 'tres_interessant':
-      return <Badge className="bg-green-600 text-white">Très intéressant</Badge>;
-    case 'interessant':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">Intéressant</Badge>;
-    case 'moyen':
-      return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">Moyen</Badge>;
-    case 'peu_interessant':
-      return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400">Peu intéressant</Badge>;
-    case 'non_recommande':
-      return <Badge variant="destructive">Non recommandé</Badge>;
-    default:
-      return <Badge variant="secondary">{etat}</Badge>;
-  }
-};
 
 // Extended interface to handle visite_detail with rapport
 interface DemandeWithVisite extends DemandeVisite {
@@ -72,14 +40,6 @@ export default function ClientDashboard() {
     refetchOnWindowFocus: true,
   });
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
 
   const pendingDemandes = demandes?.results?.filter(d => d.statut === 'en_attente') || [];
   const acceptedDemandes = demandes?.results?.filter(d => d.statut === 'acceptee') || [];
@@ -131,8 +91,8 @@ export default function ClientDashboard() {
           <Card>
             <CardContent className="p-3 md:p-6">
               <div className="flex items-center gap-2 md:gap-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CircleCheck className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-statut-favorable-fond flex items-center justify-center shrink-0">
+                  <CircleCheck className="w-5 h-5 md:w-6 md:h-6 text-statut-favorable" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl md:text-2xl font-bold" data-testid="text-accepted-count">
@@ -146,8 +106,8 @@ export default function ClientDashboard() {
           <Card>
             <CardContent className="p-3 md:p-6">
               <div className="flex items-center gap-2 md:gap-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-statut-information-fond flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 md:w-6 md:h-6 text-statut-information" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl md:text-2xl font-bold" data-testid="text-reports-count">
@@ -239,10 +199,10 @@ export default function ClientDashboard() {
                           {demande.bien_detail?.titre}
                         </h4>
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {formatDate(demande.date_souhaitee)} à {demande.heure_souhaitee}
+                          {formaterDateLongue(demande.date_souhaitee)} à {demande.heure_souhaitee}
                         </p>
                         <div className="mt-2 flex items-center gap-2 flex-wrap">
-                          {demande.visite_detail ? getStatusBadge(demande.visite_detail.statut) : getStatusBadge(demande.statut)}
+                          {demande.visite_detail ? <BadgeStatut valeur={demande.visite_detail.statut} /> : <BadgeStatut valeur={demande.statut} />}
                           {demande.visite_detail?.rapport && (
                             <Button 
                               variant="ghost" 
@@ -335,17 +295,17 @@ export default function ClientDashboard() {
                         {demande.bien_detail?.titre}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        Visite du {formatDate(demande.visite_detail?.date_visite)}
+                        Visite du {formaterDateLongue(demande.visite_detail?.date_visite)}
                       </p>
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
-                        {demande.visite_detail?.rapport && getEtatBadge(demande.visite_detail.rapport.etat_general)}
+                        {demande.visite_detail?.rapport && <BadgeStatut famille="appreciation" valeur={demande.visite_detail.rapport.etat_general} />}
                         {demande.visite_detail?.rapport?.conformite_annonce && (
-                          <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-400">
+                          <Badge variant="outline" className="bg-statut-favorable-fond text-statut-favorable">
                             <CircleCheck className="w-3 h-3 mr-1" />Conforme
                           </Badge>
                         )}
                         {demande.visite_detail?.rapport?.client_interesse && (
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-700 dark:text-blue-400">
+                          <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
                             <User className="w-3 h-3 mr-1" />Intéressé
                           </Badge>
                         )}
@@ -378,7 +338,7 @@ export default function ClientDashboard() {
               Rapport de visite
             </DialogTitle>
             <DialogDescription>
-              Rapport #{selectedReport?.id} - Créé le {formatDate(selectedReport?.created_at)}
+              Rapport #{selectedReport?.id} - Créé le {formaterDateLongue(selectedReport?.created_at)}
             </DialogDescription>
           </DialogHeader>
           {selectedReport && (
@@ -388,19 +348,19 @@ export default function ClientDashboard() {
                 <div>
                   <h4 className="font-semibold mb-3">Résumé</h4>
                   <div className="flex flex-wrap gap-2">
-                    {getEtatBadge(selectedReport.etat_general)}
+                    <BadgeStatut famille="appreciation" valeur={selectedReport.etat_general} />
                     {selectedReport.conformite_annonce && (
-                      <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-400">
+                      <Badge variant="outline" className="bg-statut-favorable-fond text-statut-favorable">
                         <CircleCheck className="w-3 h-3 mr-1" />Conforme à l'annonce
                       </Badge>
                     )}
                     {!selectedReport.conformite_annonce && (
-                      <Badge variant="outline" className="bg-red-500/10 text-red-700 dark:text-red-400">
+                      <Badge variant="outline" className="bg-statut-defavorable-fond text-statut-defavorable">
                         <CircleAlert className="w-3 h-3 mr-1" />Non conforme
                       </Badge>
                     )}
                     {selectedReport.client_interesse && (
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-700 dark:text-blue-400">
+                      <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
                         <User className="w-3 h-3 mr-1" />Client intéressé
                       </Badge>
                     )}
@@ -482,20 +442,20 @@ export default function ClientDashboard() {
                     <h4 className="font-semibold mb-3">Évaluation</h4>
                     <div className="space-y-3">
                       {selectedReport.points_positifs && (
-                        <div className="p-3 bg-green-500/5 rounded-lg">
-                          <Label className="text-green-700 dark:text-green-400">Points positifs</Label>
+                        <div className="p-3 bg-statut-favorable-fond rounded-lg">
+                          <Label className="text-statut-favorable">Points positifs</Label>
                           <p className="text-sm mt-1">{selectedReport.points_positifs}</p>
                         </div>
                       )}
                       {selectedReport.points_negatifs && (
-                        <div className="p-3 bg-red-500/5 rounded-lg">
-                          <Label className="text-red-700 dark:text-red-400">Points négatifs</Label>
+                        <div className="p-3 bg-statut-defavorable-fond rounded-lg">
+                          <Label className="text-statut-defavorable">Points négatifs</Label>
                           <p className="text-sm mt-1">{selectedReport.points_negatifs}</p>
                         </div>
                       )}
                       {selectedReport.recommandations && (
-                        <div className="p-3 bg-blue-500/5 rounded-lg">
-                          <Label className="text-blue-700 dark:text-blue-400">Recommandations</Label>
+                        <div className="p-3 bg-statut-information-fond rounded-lg">
+                          <Label className="text-statut-information">Recommandations</Label>
                           <p className="text-sm mt-1">{selectedReport.recommandations}</p>
                         </div>
                       )}

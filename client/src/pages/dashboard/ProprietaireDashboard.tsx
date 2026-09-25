@@ -1,3 +1,4 @@
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -34,33 +35,7 @@ const locationStatuses = [
   { value: 'indisponible', label: 'Indisponible' },
 ];
 
-const getValidationBadge = (status: string) => {
-  switch (status) {
-    case 'en_attente':
-      return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
-    case 'valide':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Validé</Badge>;
-    case 'rejete':
-      return <Badge variant="destructive"><CircleX className="w-3 h-3 mr-1" />Rejeté</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-};
 
-const getLocationBadge = (status: string) => {
-  switch (status) {
-    case 'disponible':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">Disponible</Badge>;
-    case 'en_visite':
-      return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">En visite</Badge>;
-    case 'loue':
-      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400">Loué</Badge>;
-    case 'indisponible':
-      return <Badge variant="secondary">Indisponible</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-};
 
 export default function ProprietaireDashboard() {
   const { user } = useAuth();
@@ -155,8 +130,8 @@ export default function ProprietaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4 text-yellow-600" />
+                <div className="w-8 h-8 rounded-full bg-statut-attente-fond flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-statut-attente" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-lg md:text-xl font-bold" data-testid="text-pending-count">
@@ -170,8 +145,8 @@ export default function ProprietaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CircleCheck className="w-4 h-4 text-green-600" />
+                <div className="w-8 h-8 rounded-full bg-statut-favorable-fond flex items-center justify-center shrink-0">
+                  <CircleCheck className="w-4 h-4 text-statut-favorable" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-lg md:text-xl font-bold" data-testid="text-validated-count">
@@ -185,8 +160,8 @@ export default function ProprietaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 rounded-full bg-statut-information-fond flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 text-statut-information" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-lg md:text-xl font-bold" data-testid="text-rented-count">
@@ -267,7 +242,7 @@ export default function ProprietaireDashboard() {
                           <House className="w-8 h-8 text-muted-foreground" />
                         </div>
                         <div className="absolute top-2 left-2">
-                          {getValidationBadge(property.statut_validation)}
+                          <BadgeStatut famille="validation" valeur={property.statut_validation} />
                         </div>
                       </div>
                     </Link>

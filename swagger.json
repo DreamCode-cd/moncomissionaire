@@ -7291,6 +7291,50 @@
                 }
             }
         },
+        "Localisation": {
+            "description": "Où se rendre. Absent de bien_detail, qui est un BienList : l'adresse exacte n'est pas publique tant qu'une mise en relation n'a pas eu lieu. L'agent assigné et le commissionnaire, eux, doivent pouvoir trouver la maison.",
+            "required": [
+                "adresse",
+                "quartier",
+                "commune",
+                "ville",
+                "latitude",
+                "longitude"
+            ],
+            "type": "object",
+            "properties": {
+                "adresse": {
+                    "title": "Adresse",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "quartier": {
+                    "title": "Quartier",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "commune": {
+                    "title": "Commune",
+                    "type": "string"
+                },
+                "ville": {
+                    "title": "Ville",
+                    "type": "string"
+                },
+                "latitude": {
+                    "title": "Latitude",
+                    "type": "string",
+                    "minLength": 1,
+                    "x-nullable": true
+                },
+                "longitude": {
+                    "title": "Longitude",
+                    "type": "string",
+                    "minLength": 1,
+                    "x-nullable": true
+                }
+            }
+        },
         "Visite": {
             "required": [
                 "demande",
@@ -7310,6 +7354,9 @@
                 },
                 "demande_detail": {
                     "$ref": "#/definitions/DemandeVisite"
+                },
+                "localisation": {
+                    "$ref": "#/definitions/Localisation"
                 },
                 "agent": {
                     "title": "Agent",

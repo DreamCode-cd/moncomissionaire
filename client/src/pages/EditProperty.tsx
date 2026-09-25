@@ -433,7 +433,7 @@ export default function EditProperty() {
                           size="icon"
                           variant="secondary"
                           onClick={() => setPrincipal(index)}
-                          className={principalIndex === index ? 'bg-yellow-500 text-black' : ''}
+                          className={principalIndex === index ? 'bg-note text-background' : ''}
                           data-testid={`button-principal-${index}`}
                         >
                           <Star className="w-4 h-4" fill={principalIndex === index ? 'currentColor' : 'none'} />
@@ -449,7 +449,7 @@ export default function EditProperty() {
                         </Button>
                       </div>
                       {principalIndex === index && (
-                        <div className="absolute top-1 left-1 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded">
+                        <div className="absolute top-1 left-1 bg-note text-background text-xs px-2 py-0.5 rounded">
                           Principale
                         </div>
                       )}

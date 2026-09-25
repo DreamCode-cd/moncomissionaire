@@ -1,3 +1,4 @@
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useRoute, useLocation, Link } from 'wouter';
@@ -505,7 +506,7 @@ export default function PropertyDetail() {
             size="icon" 
             onClick={handleToggleFavorite}
             disabled={toggleFavoriteMutation.isPending}
-            className={isFavorite?.is_favorite ? 'text-red-500 hover:text-red-600' : ''}
+            className={isFavorite?.is_favorite ? 'text-favori hover:text-favori/80' : ''}
             data-testid="button-favorite"
           >
             {toggleFavoriteMutation.isPending ? (
@@ -514,8 +515,8 @@ export default function PropertyDetail() {
               <Heart 
                 className={`w-5 h-5 transition-all duration-300 ${
                   isFavorite?.is_favorite 
-                    ? 'fill-red-500 text-red-500 scale-110' 
-                    : 'text-foreground hover:text-red-400'
+                    ? 'fill-favori text-favori scale-110' 
+                    : 'text-foreground hover:text-favori/80'
                 }`} 
               />
             )}
@@ -545,20 +546,18 @@ export default function PropertyDetail() {
               {property.type_bien_display}
             </Badge>
             {property.statut_location === 'disponible' && (
-              <Badge 
-                className="bg-green-600 text-white"
-                data-testid="badge-status-available"
-              >
-                {property.statut_location_display}
-              </Badge>
+              <BadgeStatut
+                famille="location"
+                valeur={property.statut_location}
+                libelle={property.statut_location_display}
+              />
             )}
             {property.statut_location === 'loue' && (
-              <Badge 
-                className="bg-red-600 text-white"
-                data-testid="badge-status-rented"
-              >
-                {property.statut_location_display}
-              </Badge>
+              <BadgeStatut
+                famille="location"
+                valeur={property.statut_location}
+                libelle={property.statut_location_display}
+              />
             )}
             {property.statut_location === 'en_visite' && (
               <Badge 
@@ -580,8 +579,8 @@ export default function PropertyDetail() {
 
           <div className="absolute top-4 right-4 pointer-events-none">
             {property.statut_validation === 'valide' && (
-              <Badge 
-                className="bg-green-600/90 text-white backdrop-blur-sm"
+              <Badge
+                className="bg-statut-favorable-fond text-statut-favorable border-transparent backdrop-blur-sm"
                 data-testid="badge-validation-valid"
               >
                 <Shield className="w-3 h-3 mr-1" />
@@ -633,7 +632,7 @@ export default function PropertyDetail() {
               </div>
               {averageRating && (
                 <div className="flex items-center gap-1 bg-muted px-3 py-1 rounded-full">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="w-4 h-4 fill-note text-note" />
                   <span className="font-semibold">{averageRating.toFixed(1)}</span>
                   <span className="text-muted-foreground text-sm">
                     ({reviews?.count})
@@ -807,7 +806,7 @@ export default function PropertyDetail() {
                             key={i}
                             className={`w-4 h-4 ${
                               i < existingUserReview.note
-                                ? 'fill-yellow-400 text-yellow-400'
+                                ? 'fill-note text-note'
                                 : 'text-muted'
                             }`}
                           />
@@ -837,8 +836,8 @@ export default function PropertyDetail() {
                                 <Star
                                   className={`w-6 h-6 transition-colors ${
                                     star <= reviewNote
-                                      ? 'fill-yellow-400 text-yellow-400'
-                                      : 'text-muted-foreground hover:text-yellow-400'
+                                      ? 'fill-note text-note'
+                                      : 'text-muted-foreground hover:text-note'
                                   }`}
                                 />
                               </button>
@@ -924,7 +923,7 @@ export default function PropertyDetail() {
                                 key={i}
                                 className={`w-3 h-3 ${
                                   i < review.note
-                                    ? 'fill-yellow-400 text-yellow-400'
+                                    ? 'fill-note text-note'
                                     : 'text-muted'
                                 }`}
                               />
@@ -1277,7 +1276,7 @@ export default function PropertyDetail() {
                                 key={i}
                                 className={`w-3 h-3 ${
                                   i < review.note
-                                    ? 'fill-yellow-400 text-yellow-400'
+                                    ? 'fill-note text-note'
                                     : 'text-muted'
                                 }`}
                               />

@@ -1,3 +1,4 @@
+import { formaterAnciennete } from '@/lib/dates';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { useEffect, useState } from 'react';
@@ -51,18 +52,6 @@ export default function Messages() {
     );
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-
-    if (hours < 1) return 'À l\'instant';
-    if (hours < 24) return `${hours}h`;
-    if (days < 7) return `${days}j`;
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  };
 
   const getOtherParticipant = (chatroom: ChatRoom) => {
     if (user?.role === 'client') {
@@ -198,7 +187,7 @@ export default function Messages() {
                               )}
                             </div>
                             <span className="text-xs text-muted-foreground flex-shrink-0">
-                              {formatDate(chatroom.updated_at)}
+                              {formaterAnciennete(chatroom.updated_at)}
                             </span>
                           </div>
                           <p className={`text-sm line-clamp-1 ${

@@ -1,3 +1,5 @@
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
+import { formaterDateCourte } from '@/lib/dates';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -436,32 +438,7 @@ export default function CommissionnaireDashboard() {
     setEditAgentDialogOpen(true);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
 
-  const getStatusBadgeVariant = (statut: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    switch (statut) {
-      case 'en_attente':
-        return 'secondary';
-      case 'acceptee':
-      case 'valide':
-      case 'planifiee':
-        return 'default';
-      case 'rejetee':
-      case 'rejete':
-      case 'annulee':
-        return 'destructive';
-      case 'terminee':
-        return 'outline';
-      default:
-        return 'secondary';
-    }
-  };
 
   const pendingCount = pendingProperties?.count || 0;
   const totalPropertiesCount = allProperties?.count || 0;
@@ -522,8 +499,8 @@ export default function CommissionnaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                  <CircleCheck className="w-4 h-4 text-green-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-favorable-fond flex items-center justify-center shrink-0">
+                  <CircleCheck className="w-4 h-4 text-statut-favorable" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-available-properties-count">{availablePropertiesCount}</p>
@@ -535,8 +512,8 @@ export default function CommissionnaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <House className="w-4 h-4 text-blue-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-information-fond flex items-center justify-center shrink-0">
+                  <House className="w-4 h-4 text-statut-information" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-rented-properties-count">{rentedPropertiesCount}</p>
@@ -548,8 +525,8 @@ export default function CommissionnaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4 text-yellow-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-attente-fond flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-statut-attente" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-properties-count">{pendingCount}</p>
@@ -564,8 +541,8 @@ export default function CommissionnaireDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
-                  <CircleAlert className="w-4 h-4 text-orange-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-attente-fond flex items-center justify-center shrink-0">
+                  <CircleAlert className="w-4 h-4 text-statut-attente" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-demandes-count">{pendingDemandesCount}</p>
@@ -654,7 +631,7 @@ export default function CommissionnaireDashboard() {
               </div>
             ) : pendingProperties?.results?.length === 0 ? (
               <div className="text-center py-12">
-                <CircleCheck className="w-16 h-16 mx-auto mb-4 text-green-500" />
+                <CircleCheck className="w-16 h-16 mx-auto mb-4 text-statut-favorable" />
                 <h3 className="text-lg font-semibold mb-2">Aucun bien en attente</h3>
                 <p className="text-muted-foreground">
                   Tous les biens ont ete traites
@@ -714,7 +691,7 @@ export default function CommissionnaireDashboard() {
                               {property.proprietaire.first_name} {property.proprietaire.last_name}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              - {formatDate(property.created_at)}
+                              - {formaterDateCourte(property.created_at)}
                             </span>
                           </div>
                         </div>
@@ -822,9 +799,11 @@ export default function CommissionnaireDashboard() {
                                   {demande.client.email}
                                 </p>
                               </div>
-                              <Badge variant={getStatusBadgeVariant(demande.statut)}>
-                                {demande.statut_display}
-                              </Badge>
+                              <BadgeStatut
+                                famille="demande"
+                                valeur={demande.statut}
+                                libelle={demande.statut_display}
+                              />
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 mb-3">
                               <p className="text-sm font-medium mb-1">
@@ -838,7 +817,7 @@ export default function CommissionnaireDashboard() {
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                                {formatDate(demande.date_souhaitee)}
+                                {formaterDateCourte(demande.date_souhaitee)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="w-4 h-4 text-muted-foreground" />
@@ -947,9 +926,11 @@ export default function CommissionnaireDashboard() {
                             <h4 className="font-medium">
                               {visite.demande_detail?.bien_detail?.titre}
                             </h4>
-                            <Badge variant={getStatusBadgeVariant(visite.statut)}>
-                              {visite.statut_display}
-                            </Badge>
+                            <BadgeStatut
+                              famille="visite"
+                              valeur={visite.statut}
+                              libelle={visite.statut_display}
+                            />
                           </div>
                           <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
@@ -1004,7 +985,7 @@ export default function CommissionnaireDashboard() {
                           <div className="flex flex-wrap gap-4 text-sm mt-3">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4 text-muted-foreground" />
-                              {formatDate(visite.date_visite)}
+                              {formaterDateCourte(visite.date_visite)}
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="w-4 h-4 text-muted-foreground" />
@@ -1101,7 +1082,7 @@ export default function CommissionnaireDashboard() {
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {formatDate(rapport.created_at)}
+                            {formaterDateCourte(rapport.created_at)}
                           </p>
                         </div>
                         <div className="flex flex-row md:flex-col gap-2 justify-end">
@@ -1290,7 +1271,7 @@ export default function CommissionnaireDashboard() {
                     Demande de {selectedDemande.client.first_name} {selectedDemande.client.last_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Pour le {formatDate(selectedDemande.date_souhaitee)} a {selectedDemande.heure_souhaitee}
+                    Pour le {formaterDateCourte(selectedDemande.date_souhaitee)} a {selectedDemande.heure_souhaitee}
                   </p>
                 </div>
               )}
@@ -1426,7 +1407,7 @@ export default function CommissionnaireDashboard() {
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="font-medium">{selectedVisite.demande_detail?.bien_detail?.titre}</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatDate(selectedVisite.date_visite)} a {selectedVisite.heure_visite}
+                    {formaterDateCourte(selectedVisite.date_visite)} a {selectedVisite.heure_visite}
                   </p>
                   {selectedVisite.agent_detail && (
                     <p className="text-sm text-muted-foreground">
@@ -2137,7 +2118,7 @@ export default function CommissionnaireDashboard() {
                       <Calendar className="w-5 h-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Membre depuis</p>
-                        <p className="font-medium">{formatDate(selectedAgentForDetail.date_joined)}</p>
+                        <p className="font-medium">{formaterDateCourte(selectedAgentForDetail.date_joined)}</p>
                       </div>
                     </div>
                   )}

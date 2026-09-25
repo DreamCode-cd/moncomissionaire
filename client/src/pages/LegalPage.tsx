@@ -1,3 +1,4 @@
+import { formaterDateLongue } from '@/lib/dates';
 import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
 import DOMPurify from 'dompurify';
@@ -126,11 +127,7 @@ export default function LegalPage() {
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           {page.updated_at && (
             <span>
-              Dernière mise à jour : {new Date(page.updated_at).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}
+              Dernière mise à jour : {formaterDateLongue(page.updated_at)}
             </span>
           )}
           {page.version && (

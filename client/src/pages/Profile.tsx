@@ -1,3 +1,4 @@
+import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, User, SquarePen, Eye, EyeOff, FileText, CircleCheck } from 'lucide-react';
@@ -150,14 +151,6 @@ export default function Profile() {
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
 
   if (isLoading) {
     return (
@@ -455,7 +448,7 @@ export default function Profile() {
                     <Badge 
                       variant="secondary"
                       className={user.is_available 
-                        ? 'bg-green-500/10 text-green-600' 
+                        ? 'bg-statut-favorable-fond text-statut-favorable' 
                         : 'bg-gray-500/10 text-gray-600'
                       }
                       data-testid="badge-availability"
@@ -471,7 +464,7 @@ export default function Profile() {
               <Calendar className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Membre depuis</p>
-                <p className="font-medium" data-testid="text-user-member-since">{formatDate(user.created_at || user.date_joined)}</p>
+                <p className="font-medium" data-testid="text-user-member-since">{formaterDateLongue(user.created_at || user.date_joined)}</p>
               </div>
             </div>
           </CardContent>
@@ -487,7 +480,7 @@ export default function Profile() {
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {permission === 'granted' ? (
-                    <Bell className="w-5 h-5 text-green-600" />
+                    <Bell className="w-5 h-5 text-statut-favorable" />
                   ) : (
                     <BellOff className="w-5 h-5 text-muted-foreground" />
                   )}
@@ -520,7 +513,7 @@ export default function Profile() {
                   </Button>
                 )}
                 {permission === 'granted' && (
-                  <Badge variant="secondary" className="text-green-600">
+                  <Badge variant="secondary" className="text-statut-favorable">
                     <Bell className="w-3 h-3 mr-1" />
                     Actif
                   </Badge>

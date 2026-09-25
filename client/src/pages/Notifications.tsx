@@ -1,3 +1,6 @@
+import { classesDuTon } from '@/lib/statuts';
+import { apparenceNotification } from '@/lib/notifications';
+import { formaterAnciennete } from '@/lib/dates';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { Bell, Check, CheckCheck, House, Calendar, MessageCircle, FileText, Users } from 'lucide-react';
@@ -11,44 +14,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { Notification, PaginatedResponse } from '@shared/schema';
 
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'bien_valide':
-    case 'bien_rejete':
-      return House;
-    case 'nouvelle_demande':
-    case 'demande_acceptee':
-    case 'demande_rejetee':
-      return Calendar;
-    case 'visite_assignee':
-    case 'visite_terminee':
-      return Users;
-    case 'nouveau_message':
-    case 'agent_ajoute_chat':
-      return MessageCircle;
-    case 'rapport_disponible':
-      return FileText;
-    default:
-      return Bell;
-  }
-};
 
-const getNotificationColor = (type: string) => {
-  switch (type) {
-    case 'bien_valide':
-    case 'demande_acceptee':
-    case 'visite_terminee':
-      return 'bg-green-500/10 text-green-700 dark:text-green-400';
-    case 'bien_rejete':
-    case 'demande_rejetee':
-      return 'bg-red-500/10 text-red-700 dark:text-red-400';
-    case 'nouveau_message':
-    case 'agent_ajoute_chat':
-      return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
-    default:
-      return 'bg-muted text-muted-foreground';
-  }
-};
 
 export default function Notifications() {
   const { toast } = useToast();
@@ -77,18 +43,6 @@ export default function Notifications() {
     },
   });
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-
-    if (hours < 1) return 'À l\'instant';
-    if (hours < 24) return `Il y a ${hours}h`;
-    if (days < 7) return `Il y a ${days}j`;
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  };
 
   const unreadCount = notifications?.results?.filter(n => !n.is_read).length || 0;
 
@@ -148,7 +102,7 @@ export default function Notifications() {
         ) : (
           <div className="space-y-3">
             {notifications?.results?.map((notification) => {
-              const Icon = getNotificationIcon(notification.type_notification);
+              const Icon = apparenceNotification(notification.type_notification).icone;
               return (
                 <Card 
                   key={notification.id}
@@ -157,7 +111,7 @@ export default function Notifications() {
                 >
                   <CardContent className="p-4">
                     <div className="flex gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type_notification)}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${classesDuTon(apparenceNotification(notification.type_notification).ton)}`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -176,7 +130,7 @@ export default function Notifications() {
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-muted-foreground">
-                            {formatDate(notification.created_at)}
+                            {formaterAnciennete(notification.created_at)}
                           </span>
                           {!notification.is_read && (
                             <Button
