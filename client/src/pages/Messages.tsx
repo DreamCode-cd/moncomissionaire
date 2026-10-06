@@ -63,7 +63,7 @@ export default function Messages() {
       }
       return chatroom.commissionnaire_detail;
     }
-    if (user?.role === 'commissionnaire') {
+    if (user?.role === 'commissionnaire' || user?.role === 'moderateur') {
       return chatroom.client_detail;
     }
     if (user?.role === 'agent') {

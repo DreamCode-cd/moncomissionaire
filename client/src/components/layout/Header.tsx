@@ -62,7 +62,13 @@ export function Header() {
         return [
           { href: '/', icon: House, label: 'Accueil' },
           { href: '/search', icon: Search, label: 'Recherche' },
-          { href: '/pending-properties', icon: Building2, label: 'Dashboard' },
+          { href: '/mon-portefeuille', icon: Building2, label: 'Mon portefeuille' },
+        ];
+      case 'moderateur':
+        return [
+          { href: '/', icon: House, label: 'Accueil' },
+          { href: '/search', icon: Search, label: 'Recherche' },
+          { href: '/moderation', icon: Building2, label: 'Modération' },
         ];
       case 'agent':
         return [
@@ -330,9 +336,16 @@ export function Header() {
                       </Link>
                     )}
                     {user?.role === 'commissionnaire' && (
-                      <Link href="/pending-properties">
+                      <Link href="/mon-portefeuille">
                         <DropdownMenuItem data-testid="menu-dashboard">
-                          Dashboard Commissionnaire
+                          Mon portefeuille
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
+                    {user?.role === 'moderateur' && (
+                      <Link href="/moderation">
+                        <DropdownMenuItem data-testid="menu-dashboard">
+                          Modération
                         </DropdownMenuItem>
                       </Link>
                     )}
@@ -350,7 +363,7 @@ export function Header() {
                         </DropdownMenuItem>
                       </Link>
                     )}
-                    {(user?.role === 'commissionnaire' || user?.role === 'proprietaire') && (
+                    {(user?.role === 'commissionnaire' || user?.role === 'moderateur' || user?.role === 'proprietaire') && (
                       <Link href="/">
                         <DropdownMenuItem data-testid="menu-home">
                           <House className="mr-2 h-4 w-4" />

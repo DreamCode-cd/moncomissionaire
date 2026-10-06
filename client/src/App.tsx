@@ -37,6 +37,7 @@ const ClientDashboard = lazyWithRetry(() => import("@/pages/dashboard/ClientDash
 const MyVisits = lazyWithRetry(() => import("@/pages/MyVisits"));
 const ProprietaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/ProprietaireDashboard"));
 const CommissionnaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/CommissionnaireDashboard"));
+const ModerateurDashboard = lazyWithRetry(() => import("@/pages/dashboard/ModerateurDashboard"));
 const AgentDashboard = lazyWithRetry(() => import("@/pages/dashboard/AgentDashboard"));
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const LegalPage = lazyWithRetry(() => import("@/pages/LegalPage"));
@@ -119,10 +120,10 @@ function Router() {
             <ProtectedRoute><ChatRoom /></ProtectedRoute>
           </Route>
           <Route path="/add-property">
-            <ProtectedRoute allowedRoles={['proprietaire']}><AddProperty /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['proprietaire', 'commissionnaire']}><AddProperty /></ProtectedRoute>
           </Route>
           <Route path="/property/:id/edit">
-            <ProtectedRoute allowedRoles={['proprietaire']}><EditProperty /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['proprietaire', 'commissionnaire']}><EditProperty /></ProtectedRoute>
           </Route>
           <Route path="/my-properties">
             <ProtectedRoute allowedRoles={['proprietaire']}><ProprietaireDashboard /></ProtectedRoute>
@@ -136,8 +137,15 @@ function Router() {
           <Route path="/dashboard">
             <ProtectedRoute><DashboardRouter /></ProtectedRoute>
           </Route>
-          <Route path="/pending-properties">
+          <Route path="/mon-portefeuille">
             <ProtectedRoute allowedRoles={['commissionnaire']}><CommissionnaireDashboard /></ProtectedRoute>
+          </Route>
+          <Route path="/moderation">
+            <ProtectedRoute allowedRoles={['moderateur']}><ModerateurDashboard /></ProtectedRoute>
+          </Route>
+          {/* Ancienne adresse du tableau de bord central, gardée pour les favoris. */}
+          <Route path="/pending-properties">
+            <Redirect to="/dashboard" />
           </Route>
           <Route path="/agent-dashboard">
             <ProtectedRoute allowedRoles={['agent']}><AgentDashboard /></ProtectedRoute>
@@ -169,7 +177,9 @@ function DashboardRouter() {
     case 'admin':
       return <Redirect to="/administration" />;
     case 'commissionnaire':
-      return <Redirect to="/pending-properties" />;
+      return <Redirect to="/mon-portefeuille" />;
+    case 'moderateur':
+      return <Redirect to="/moderation" />;
     case 'proprietaire':
       return <Redirect to="/my-properties" />;
     case 'agent':

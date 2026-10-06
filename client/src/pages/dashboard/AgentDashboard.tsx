@@ -815,14 +815,14 @@ export default function AgentDashboard() {
                           <div>
                             <Label className="text-muted-foreground mb-2 block">Équipements</Label>
                             <div className="flex flex-wrap gap-2">
-                              {bien?.eau_courante && (
+                              {bien?.eau_display && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Droplets className="w-3 h-3" /> Eau courante
+                                  <Droplets className="w-3 h-3" /> {bien.eau_display}
                                 </Badge>
                               )}
-                              {bien?.electricite && (
+                              {bien?.electricite_display && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Zap className="w-3 h-3" /> Électricité
+                                  <Zap className="w-3 h-3" /> {bien.electricite_display}
                                 </Badge>
                               )}
                               {bien?.parking && (

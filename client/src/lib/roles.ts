@@ -18,6 +18,7 @@ const LIBELLES: Record<UserRole, string> = {
   commissionnaire: 'Commissionnaire',
   agent: 'Agent',
   admin: 'Administrateur',
+  moderateur: 'Modérateur VillaGo',
 };
 
 export const ROLES = Object.entries(LIBELLES).map(([valeur, libelle]) => ({

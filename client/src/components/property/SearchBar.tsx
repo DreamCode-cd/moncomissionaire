@@ -42,8 +42,10 @@ export interface SearchFilters {
   min_price?: number;
   max_price?: number;
   min_chambres?: number;
-  eau_courante?: boolean;
-  electricite?: boolean;
+  /** REGIDESO tous les jours, ou forage dans la parcelle. */
+  eau_tous_les_jours?: boolean;
+  /** SNEL stable, ou solaire / groupe électrogène. */
+  courant_sans_coupure?: boolean;
   parking?: boolean;
   jardin?: boolean;
   meuble?: boolean;
@@ -68,17 +70,17 @@ const propertyTypes = [
 
 
 const amenities = [
-  { key: 'eau_courante' as const, label: 'Eau courante', icon: Droplet },
-  { key: 'electricite' as const, label: 'Electricite', icon: Zap },
+  { key: 'eau_tous_les_jours' as const, label: 'Eau tous les jours', icon: Droplet },
+  { key: 'courant_sans_coupure' as const, label: 'Courant sans coupure', icon: Zap },
   { key: 'parking' as const, label: 'Parking', icon: Car },
   { key: 'jardin' as const, label: 'Jardin', icon: Trees },
-  { key: 'meuble' as const, label: 'Meuble', icon: Sofa },
+  { key: 'meuble' as const, label: 'Meublé', icon: Sofa },
   { key: 'climatisation' as const, label: 'Climatisation', icon: Snowflake },
   { key: 'gardien' as const, label: 'Gardien', icon: ShieldCheck },
 ];
 
 // Bornes du curseur, par devise. Un loyer de 5 000 $ est un maximum
-// raisonnable à Kinshasa ; 5 000 FC ne paient pas un trajet en taxi.
+// raisonnable à Lubumbashi ; 5 000 FC ne paient pas un trajet en taxi.
 const ECHELLE: Record<Devise, { max: number; pas: number }> = {
   USD: { max: 5000, pas: 100 },
   CDF: { max: 5000000, pas: 100000 },

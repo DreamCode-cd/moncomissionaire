@@ -42,6 +42,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterPrix } from '@/lib/prix';
+import { auteurAnnonce, initiale, libelleGarantie } from '@/lib/annonce';
 
 const villaImage = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80";
 const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
@@ -58,8 +59,6 @@ const defaultImages: Record<string, string> = {
 };
 
 const amenities = [
-  { key: 'eau_courante', icon: Droplets, label: 'Eau courante' },
-  { key: 'electricite', icon: Zap, label: 'Électricité' },
   { key: 'parking', icon: Car, label: 'Parking' },
   { key: 'jardin', icon: Trees, label: 'Jardin' },
   { key: 'meuble', icon: Sofa, label: 'Meublé' },
@@ -585,7 +584,10 @@ export default function PropertyDetail() {
                 data-testid="badge-validation-valid"
               >
                 <Shield className="w-3 h-3 mr-1" />
-                Vérifié
+                {/* « Vérifié » laissait croire à un contrôle du bien ou du
+                    bailleur. Il s'agit seulement de la relecture de
+                    l'annonce par la modération. */}
+                Annonce validée
               </Badge>
             )}
             {property.statut_validation === 'en_attente' && (
@@ -648,11 +650,11 @@ export default function PropertyDetail() {
               </span>
               <span className="text-muted-foreground">/mois</span>
             </div>
-            {property.garantie && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Garantie: {formaterPrix(property.garantie, property.devise)}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground mt-1" data-testid="text-garantie">
+              {property.garantie_mois > 0
+                ? `Garantie : ${libelleGarantie(property.garantie_mois)}, soit ${formaterPrix(property.garantie, property.devise)}`
+                : 'Aucune garantie demandée'}
+            </p>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -673,8 +675,8 @@ export default function PropertyDetail() {
             <Card>
               <CardContent className="p-4 flex flex-col items-center">
                 <Maximize className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.superficie}</span>
-                <span className="text-xs text-muted-foreground">m²</span>
+                <span className="text-xl font-bold">{property.superficie ?? '—'}</span>
+                <span className="text-xs text-muted-foreground">{property.superficie ? 'm²' : 'Surface non précisée'}</span>
               </CardContent>
             </Card>
           </div>
@@ -716,6 +718,31 @@ export default function PropertyDetail() {
             </div>
           </div>
 
+          {(property.eau || property.electricite) && (
+            <>
+              <Separator />
+              <div>
+                {/* La première question d'un locataire à Lubumbashi : l'eau
+                    et le courant sont-ils réguliers ? */}
+                <h2 className="text-lg font-semibold mb-3">Eau et courant</h2>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {property.eau && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-eau">
+                      <Droplets className="w-5 h-5 text-primary" />
+                      <span>{property.eau_display}</span>
+                    </div>
+                  )}
+                  {property.electricite && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-electricite">
+                      <Zap className="w-5 h-5 text-primary" />
+                      <span>{property.electricite_display}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
           {availableAmenities.length > 0 && (
             <>
               <Separator />
@@ -743,34 +770,45 @@ export default function PropertyDetail() {
             <h2 className="text-lg font-semibold mb-3">Localisation</h2>
             <div className="flex items-center gap-2 mb-3 text-muted-foreground">
               <MapPin className="w-4 h-4" />
-              <span>{property.quartier}, {property.commune || getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
+              <span>
+                {[property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]
+                  .filter(Boolean)
+                  .join(', ')}
+              </span>
             </div>
+            <p className="text-sm text-muted-foreground">
+              L’adresse exacte vous est donnée au moment de la visite, une fois votre demande acceptée.
+            </p>
           </div>
 
           <Separator />
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Propriétaire</CardTitle>
+              <CardTitle className="text-lg">{auteurAnnonce(property).libelle}</CardTitle>
             </CardHeader>
             <CardContent>
               {(() => {
-                const owner = property.proprietaire as any;
-                const ownerName = owner?.full_name || owner?.username || 'Propriétaire';
-                const ownerAvatar = owner?.avatar ? getDjangoImageUrl(owner.avatar) || undefined : undefined;
+                const { profil, libelle } = auteurAnnonce(property);
+                const nom = profil?.full_name || libelle;
+                const avatar = profil?.avatar ? getDjangoImageUrl(profil.avatar) || undefined : undefined;
                 return (
                   <div className="flex items-center gap-4">
                     <Avatar className="w-14 h-14">
-                      <AvatarImage src={ownerAvatar} />
+                      <AvatarImage src={avatar} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {ownerName[0]?.toUpperCase() || 'U'}
+                        {initiale(profil)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold" data-testid="text-owner-name">
-                        {ownerName}
+                      <p className="font-semibold" data-testid="text-owner-name">{nom}</p>
+                      {/* Plus de « Propriétaire vérifié » : aucune vérification
+                          d'identité n'existe encore, il ne faut pas l'affirmer. */}
+                      <p className="text-sm text-muted-foreground">
+                        {libelle === 'Commissionnaire'
+                          ? 'C’est lui qui reçoit votre demande et vous fait visiter.'
+                          : 'Votre demande de visite est suivie par l’équipe VillaGo.'}
                       </p>
-                      <p className="text-sm text-muted-foreground">Propriétaire vérifié</p>
                     </div>
                   </div>
                 );

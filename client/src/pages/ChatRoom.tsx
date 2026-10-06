@@ -193,7 +193,7 @@ export default function ChatRoom() {
     if (user?.role === 'client') {
       return chatroom.commissionnaire_detail || chatroom.agent_detail;
     }
-    if (user?.role === 'commissionnaire') {
+    if (user?.role === 'commissionnaire' || user?.role === 'moderateur') {
       return chatroom.client_detail;
     }
     if (user?.role === 'agent') {
@@ -219,6 +219,7 @@ export default function ChatRoom() {
     const typeLabels: Record<string, string> = {
       'client': 'Client',
       'commissionnaire': 'Commissionnaire',
+      'moderateur': 'Modérateur VillaGo',
       'agent': 'Agent',
       'proprietaire': 'Propriétaire',
     };

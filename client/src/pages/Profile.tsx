@@ -145,6 +145,7 @@ export default function Profile() {
       case 'client': return 'Locataire';
       case 'proprietaire': return 'Propriétaire';
       case 'commissionnaire': return 'Commissionnaire';
+      case 'moderateur': return 'Modérateur VillaGo';
       case 'agent': return 'Agent';
       case 'admin': return 'Administrateur';
       default: return 'Utilisateur';

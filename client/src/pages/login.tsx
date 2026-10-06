@@ -22,7 +22,9 @@ import { loginSchema, type LoginInput, type UserRole } from '@shared/schema';
 function getRedirectPath(role: UserRole): string {
   switch (role) {
     case 'commissionnaire':
-      return '/pending-properties';
+      return '/mon-portefeuille';
+    case 'moderateur':
+      return '/moderation';
     case 'proprietaire':
       return '/my-properties';
     case 'agent':

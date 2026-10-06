@@ -16,9 +16,12 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { cn } from '@/lib/utils';
+import { FILTRE_COURANT_SANS_COUPURE, FILTRE_EAU_TOUS_LES_JOURS } from '@/lib/terrain';
 import type { BienList, PaginatedResponse } from '@shared/schema';
 
-const ITEMS_PER_PAGE = 10;
+// Doit rester égal au PAGE_SIZE de Django (20) : le serveur pagine par numéro
+// de page et ignore toute taille demandée par le client.
+const ITEMS_PER_PAGE = 20;
 
 export default function Search() {
   const searchParams = useSearch();
@@ -38,8 +41,8 @@ export default function Search() {
       min_price: params.get('min_price') ? parseInt(params.get('min_price')!) : undefined,
       max_price: params.get('max_price') ? parseInt(params.get('max_price')!) : undefined,
       min_chambres: params.get('chambres') ? parseInt(params.get('chambres')!) : undefined,
-      eau_courante: params.get('eau_courante') === 'true' ? true : undefined,
-      electricite: params.get('electricite') === 'true' ? true : undefined,
+      eau_tous_les_jours: params.get('eau') === 'tous_les_jours' ? true : undefined,
+      courant_sans_coupure: params.get('courant') === 'sans_coupure' ? true : undefined,
       parking: params.get('parking') === 'true' ? true : undefined,
       jardin: params.get('jardin') === 'true' ? true : undefined,
       meuble: params.get('meuble') === 'true' ? true : undefined,
@@ -63,8 +66,8 @@ export default function Search() {
     if (f.min_price) params.set('min_price', f.min_price.toString());
     if (f.max_price) params.set('max_price', f.max_price.toString());
     if (f.min_chambres) params.set('chambres', f.min_chambres.toString());
-    if (f.eau_courante) params.set('eau_courante', 'true');
-    if (f.electricite) params.set('electricite', 'true');
+    if (f.eau_tous_les_jours) params.set('eau', 'tous_les_jours');
+    if (f.courant_sans_coupure) params.set('courant', 'sans_coupure');
     if (f.parking) params.set('parking', 'true');
     if (f.jardin) params.set('jardin', 'true');
     if (f.meuble) params.set('meuble', 'true');
@@ -91,8 +94,9 @@ export default function Search() {
     const params: Record<string, string> = {
       statut_validation: 'valide',
       statut_location: 'disponible',
-      limit: ITEMS_PER_PAGE.toString(),
-      offset: ((currentPage - 1) * ITEMS_PER_PAGE).toString(),
+      // `page`, pas `limit`/`offset` : le serveur ignorait ces deux-là et la
+      // page 2 réaffichait la page 1.
+      page: currentPage.toString(),
     };
     if (filters.query) params.search = filters.query;
     if (filters.type_bien) params.type_bien = filters.type_bien;
@@ -103,9 +107,11 @@ export default function Search() {
     if (filters.devise) params.devise = filters.devise;
     if (filters.min_price) params.prix_min = filters.min_price.toString();
     if (filters.max_price) params.prix_max = filters.max_price.toString();
-    if (filters.min_chambres) params.nombre_chambres_min = filters.min_chambres.toString();
-    if (filters.eau_courante) params.eau_courante = 'true';
-    if (filters.electricite) params.electricite = 'true';
+    // `chambres_min` : c'est le nom que lit le serveur. `nombre_chambres_min`
+    // était ignoré en silence.
+    if (filters.min_chambres) params.chambres_min = filters.min_chambres.toString();
+    if (filters.eau_tous_les_jours) params.eau = FILTRE_EAU_TOUS_LES_JOURS;
+    if (filters.courant_sans_coupure) params.electricite = FILTRE_COURANT_SANS_COUPURE;
     if (filters.parking) params.parking = 'true';
     if (filters.jardin) params.jardin = 'true';
     if (filters.meuble) params.meuble = 'true';

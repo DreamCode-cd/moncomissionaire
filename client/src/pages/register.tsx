@@ -34,9 +34,9 @@ export default function Register() {
   const { register } = useAuth();
   const { toast } = useToast();
 
-  const defaultRole = new URLSearchParams(searchParams).get('role') === 'proprietaire' 
-    ? 'proprietaire' 
-    : 'client';
+  const roleDemande = new URLSearchParams(searchParams).get('role');
+  const defaultRole: 'client' | 'proprietaire' | 'commissionnaire' =
+    roleDemande === 'proprietaire' || roleDemande === 'commissionnaire' ? roleDemande : 'client';
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -61,7 +61,8 @@ export default function Register() {
         title: 'Inscription réussie',
         description: 'Bienvenue sur VillaGo !',
       });
-      setLocation('/');
+      // Le commissionnaire vient pour travailler : droit à son portefeuille.
+      setLocation(data.user_type === 'commissionnaire' ? '/dashboard' : '/');
     } catch (error) {
       toast({
         title: 'Erreur d\'inscription',
@@ -199,6 +200,7 @@ export default function Register() {
                         <SelectContent>
                           <SelectItem value="client">Locataire - Je cherche un bien</SelectItem>
                           <SelectItem value="proprietaire">Propriétaire - J'ai des biens à louer</SelectItem>
+                          <SelectItem value="commissionnaire">Commissionnaire - Des bailleurs me confient leurs maisons</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

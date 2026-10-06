@@ -32,7 +32,8 @@ export default function House() {
     // Features that add to the score
     if (property.nombre_chambres > 0) score += property.nombre_chambres;
     if (property.nombre_salles_bain > 0) score += property.nombre_salles_bain;
-    if (parseFloat(property.superficie) > 0) score += Math.min(parseFloat(property.superficie) / 10, 10);
+    const superficie = parseFloat(property.superficie ?? '');
+    if (superficie > 0) score += Math.min(superficie / 10, 10);
     
     return score;
   };
