@@ -456,6 +456,11 @@ export const registerSchema = z.object({
   terms_accepted: z.boolean().refine((val) => val === true, {
     message: "Vous devez accepter les conditions d'utilisation",
   }),
+  // Distinct de l'acceptation des conditions : le Code du numérique
+  // (article 196) veut un consentement aux données clairement séparé.
+  consentement_donnees: z.boolean().refine((val) => val === true, {
+    message: "Sans cet accord, le compte ne peut pas fonctionner",
+  }),
 }).refine((data) => data.password === data.password2, {
   message: "Les deux mots de passe ne correspondent pas",
   path: ["password2"],

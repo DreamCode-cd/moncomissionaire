@@ -60,6 +60,7 @@ const CHAMPS_DU_FORMULAIRE: (keyof RegisterInput)[] = [
   'password',
   'password2',
   'terms_accepted',
+  'consentement_donnees',
 ];
 
 /**
@@ -118,6 +119,7 @@ export default function Register() {
       password: '',
       password2: '',
       terms_accepted: false,
+      consentement_donnees: false,
     },
   });
   const role = form.watch('user_type');
@@ -354,11 +356,31 @@ export default function Register() {
                           J’accepte les{' '}
                           <a href="/legal/terms" target="_blank" rel="noopener" className="text-primary hover:underline">
                             conditions d’utilisation
-                          </a>{' '}
-                          et la{' '}
+                          </a>
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="consentement_donnees"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-1">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-consentement-donnees" />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        {/* Une case à part, comme l'exige l'article 196 du Code du
+                            numérique : on consent aux données séparément. */}
+                        <FormLabel className="cursor-pointer text-sm font-normal leading-relaxed">
+                          J’accepte que VillaGo traite mes données comme le décrit la{' '}
                           <a href="/legal/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">
                             politique de confidentialité
                           </a>
+                          . Je peux retirer cet accord à tout moment.
                         </FormLabel>
                         <FormMessage />
                       </div>
