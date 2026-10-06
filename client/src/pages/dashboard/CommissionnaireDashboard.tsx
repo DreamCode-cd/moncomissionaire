@@ -275,7 +275,7 @@ function OngletBailleurs({ bailleurs, chargement }: { bailleurs?: Bailleur[]; ch
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Votre carnet. Personne d’autre ne le voit, ni les clients, ni vos confrères, ni VillaGo.
+          Votre carnet. Ni les clients, ni vos confrères, ni la modération VillaGo ne le voient.
         </p>
         <Button size="sm" variant="outline" onClick={() => setCreation(true)} data-testid="button-ajouter-bailleur">
           <Plus className="w-4 h-4 mr-1" /> Bailleur

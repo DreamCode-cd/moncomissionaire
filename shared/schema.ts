@@ -47,6 +47,8 @@ export interface ProfilPublic {
   avatar?: string | null;
   user_type: UserRole;
   user_type_display: string;
+  /** Un membre de l'équipe VillaGo a vu sa pièce d'identité. */
+  identite_verifiee: boolean;
 }
 
 export interface UserProfile extends UserList {

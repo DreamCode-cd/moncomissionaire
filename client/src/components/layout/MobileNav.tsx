@@ -29,6 +29,15 @@ const commissionnaireNavItems = [
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 
+// Trois administrateurs interviennent depuis leur téléphone : l'administration
+// et la modération doivent être à un pouce.
+const adminNavItems = [
+  { href: '/administration', icon: House, label: 'Admin' },
+  { href: '/moderation', icon: Building2, label: 'Modération' },
+  { href: '/messages', icon: MessageCircle, label: 'Messages' },
+  { href: '/profile', icon: User, label: 'Profil' },
+];
+
 const moderateurNavItems = [
   { href: '/', icon: House, label: 'Accueil' },
   { href: '/moderation', icon: Building2, label: 'Modération' },
@@ -56,6 +65,8 @@ export function MobileNav() {
         return commissionnaireNavItems;
       case 'moderateur':
         return moderateurNavItems;
+      case 'admin':
+        return adminNavItems;
       case 'agent':
         return agentNavItems;
       default:
