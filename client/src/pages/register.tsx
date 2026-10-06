@@ -349,14 +349,16 @@ export default function Register() {
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel className="cursor-pointer text-sm font-normal leading-relaxed">
+                          {/* Nouvel onglet : un lien interne quittait la page et
+                              effaçait tout ce qui avait été saisi. */}
                           J’accepte les{' '}
-                          <Link href="/legal/terms">
-                            <span className="text-primary hover:underline">conditions d’utilisation</span>
-                          </Link>{' '}
+                          <a href="/legal/terms" target="_blank" rel="noopener" className="text-primary hover:underline">
+                            conditions d’utilisation
+                          </a>{' '}
                           et la{' '}
-                          <Link href="/legal/privacy">
-                            <span className="text-primary hover:underline">politique de confidentialité</span>
-                          </Link>
+                          <a href="/legal/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">
+                            politique de confidentialité
+                          </a>
                         </FormLabel>
                         <FormMessage />
                       </div>

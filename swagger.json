@@ -248,6 +248,218 @@
             },
             "parameters": []
         },
+        "/administration/pages/": {
+            "get": {
+                "operationId": "administration_pages_list",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/PageLegaleAdministration"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "post": {
+                "operationId": "administration_pages_create",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": []
+        },
+        "/administration/pages/{page_type}/": {
+            "get": {
+                "operationId": "administration_pages_read",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "patch": {
+                "operationId": "administration_pages_partial_update",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "page_type",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/pages/{page_type}/publier/": {
+            "post": {
+                "operationId": "administration_pages_publier",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "page_type",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/pages/{page_type}/retirer/": {
+            "post": {
+                "operationId": "administration_pages_retirer",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PageLegaleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "page_type",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/administration/utilisateurs/": {
             "get": {
                 "operationId": "administration_utilisateurs_list",
@@ -6158,6 +6370,7 @@
                         "verification_identite",
                         "confirmation_refusee",
                         "gestion_villes",
+                        "gestion_pages",
                         "autre"
                     ],
                     "readOnly": true
@@ -6202,6 +6415,104 @@
                 },
                 "created_at": {
                     "title": "Date de création",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "SectionEdition": {
+            "required": [
+                "title"
+            ],
+            "type": "object",
+            "properties": {
+                "section_number": {
+                    "title": "Section number",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "title": {
+                    "title": "Title",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "string"
+                }
+            }
+        },
+        "PageLegaleAdministration": {
+            "required": [
+                "page_type",
+                "title"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "page_type": {
+                    "title": "Type de page",
+                    "type": "string",
+                    "enum": [
+                        "terms",
+                        "privacy",
+                        "cookies",
+                        "legal"
+                    ]
+                },
+                "page_type_display": {
+                    "title": "Page type display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "title": {
+                    "title": "Titre principal",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "introduction": {
+                    "title": "Introduction",
+                    "type": "string"
+                },
+                "sections": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SectionEdition"
+                    }
+                },
+                "is_active": {
+                    "title": "Actif",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "version": {
+                    "title": "Version",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "a_completer": {
+                    "title": "A completer",
+                    "description": "Vrai si le texte contient encore « [à compléter » : publication refusée.",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "modifiee_par": {
+                    "title": "Modifiee par",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "updated_at": {
+                    "title": "Date de modification",
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
