@@ -1,3 +1,4 @@
+import { EtatVide } from '@/components/etats';
 import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -31,7 +32,8 @@ export default function House() {
     // Features that add to the score
     if (property.nombre_chambres > 0) score += property.nombre_chambres;
     if (property.nombre_salles_bain > 0) score += property.nombre_salles_bain;
-    if (parseFloat(property.superficie) > 0) score += Math.min(parseFloat(property.superficie) / 10, 10);
+    const superficie = parseFloat(property.superficie ?? '');
+    if (superficie > 0) score += Math.min(superficie / 10, 10);
     
     return score;
   };
@@ -163,9 +165,12 @@ export default function House() {
                 </Link>
               ))
             ) : (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                Aucune ville disponible pour le moment
-              </div>
+              <EtatVide
+                icone={MapPin}
+                titre="Aucune ville disponible"
+                description="Les villes apparaîtront ici dès que des biens y seront publiés."
+                className="col-span-full py-8"
+              />
             )}
           </div>
         </div>

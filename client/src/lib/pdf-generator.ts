@@ -1,3 +1,9 @@
+import {
+  formaterDateCourte,
+  formaterDateEtHeure,
+  formaterDateLongue,
+  formaterHeure,
+} from './dates';
 import { jsPDF } from 'jspdf';
 import type { Visite, RapportVisite } from '@shared/schema';
 import { formaterPrix } from '@/lib/prix';
@@ -10,23 +16,6 @@ const etatGeneralLabels: Record<string, string> = {
   non_recommande: 'Non recommandé',
 };
 
-function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return 'Non spécifié';
-  try {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  } catch {
-    return 'Date invalide';
-  }
-}
-
-function formatTime(timeString: string | null | undefined): string {
-  if (!timeString) return 'N/A';
-  return timeString.substring(0, 5);
-}
 
 function safeString(
   value: string | number | null | undefined,
@@ -64,8 +53,8 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
   doc.setFont('helvetica', 'normal');
   
   const visiteInfo = [
-    ['Date de visite:', formatDate(visite.date_visite)],
-    ['Heure:', formatTime(visite.heure_visite)],
+    ['Date de visite:', formaterDateLongue(visite.date_visite)],
+    ['Heure:', formaterHeure(visite.heure_visite)],
     ['Statut:', safeString(visite.statut_display, visite.statut ?? 'Non spécifié')],
   ];
 
@@ -239,7 +228,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
   doc.setFontSize(8);
   doc.setTextColor(128, 128, 128);
   doc.text(
-    `Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`,
+    `Généré le ${formaterDateEtHeure(new Date())}`,
     pageWidth / 2,
     pageHeight - 10,
     { align: 'center' }
@@ -268,7 +257,7 @@ export function generateVisiteSummaryPDF(visites: Visite[]): boolean {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(128, 128, 128);
-  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, y, { align: 'center' });
+  doc.text(`Généré le ${formaterDateCourte(new Date())}`, pageWidth / 2, y, { align: 'center' });
   doc.setTextColor(0, 0, 0);
   y += 10;
 
@@ -318,7 +307,7 @@ export function generateVisiteSummaryPDF(visites: Visite[]): boolean {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(`Date: ${formatDate(visite.date_visite)} à ${formatTime(visite.heure_visite)}`, margin + 2, y);
+    doc.text(`Date: ${formaterDateLongue(visite.date_visite)} à ${formaterHeure(visite.heure_visite)}`, margin + 2, y);
     y += 5;
     const quartier = safeString(visite.demande_detail?.bien_detail?.quartier, '');
     const ville = safeString(visite.demande_detail?.bien_detail?.ville, '');

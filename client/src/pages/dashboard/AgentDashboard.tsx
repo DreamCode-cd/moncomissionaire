@@ -1,3 +1,6 @@
+import { EtatVide } from '@/components/etats';
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
+import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -237,18 +240,6 @@ export default function AgentDashboard() {
     }
   };
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Non spécifié';
-    try {
-      return new Date(dateString).toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
-    } catch {
-      return 'Date invalide';
-    }
-  };
 
   const formatTime = (timeString: string | null | undefined) => {
     if (!timeString) return 'N/A';
@@ -263,37 +254,7 @@ export default function AgentDashboard() {
   const completedVisites = allVisites.filter(v => v.statut === 'terminee');
   const cancelledVisites = allVisites.filter(v => v.statut === 'annulee');
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'planifiee':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Planifiée</Badge>;
-      case 'en_cours':
-        return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><Play className="w-3 h-3 mr-1" />En cours</Badge>;
-      case 'terminee':
-        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Terminée</Badge>;
-      case 'annulee':
-        return <Badge className="bg-red-500/10 text-red-700 dark:text-red-400"><CircleX className="w-3 h-3 mr-1" />Annulée</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
-  const getEtatBadge = (etat: string | undefined) => {
-    switch (etat) {
-      case 'tres_interessant':
-        return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">Très intéressant</Badge>;
-      case 'interessant':
-        return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400">Intéressant</Badge>;
-      case 'moyen':
-        return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">Moyen</Badge>;
-      case 'peu_interessant':
-        return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400">Peu intéressant</Badge>;
-      case 'non_recommande':
-        return <Badge className="bg-red-500/10 text-red-700 dark:text-red-400">Non recommandé</Badge>;
-      default:
-        return <Badge variant="outline">{etat}</Badge>;
-    }
-  };
 
   // Check if a visit already has a report
   const hasReport = (visiteId: number) => {
@@ -328,9 +289,9 @@ export default function AgentDashboard() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="font-semibold">
-                  {formatDate(visite.date_visite)} à {formatTime(visite.heure_visite)}
+                  {formaterDateLongue(visite.date_visite)} à {formatTime(visite.heure_visite)}
                 </span>
-                {getStatusBadge(visite.statut)}
+                <BadgeStatut valeur={visite.statut} />
                 {visitHasReport && (
                   <Badge variant="outline" className="bg-purple-500/10 text-purple-700 dark:text-purple-400">
                     <FileText className="w-3 h-3 mr-1" />Rapport
@@ -469,8 +430,8 @@ export default function AgentDashboard() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-full bg-statut-information-fond flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-statut-information" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-today">{todayVisites.length}</p>
@@ -482,8 +443,8 @@ export default function AgentDashboard() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-yellow-600" />
+                <div className="w-10 h-10 rounded-full bg-statut-attente-fond flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-statut-attente" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-planifiees">{planifiedVisites.length}</p>
@@ -495,8 +456,8 @@ export default function AgentDashboard() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <Play className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-full bg-statut-information-fond flex items-center justify-center">
+                  <Play className="w-5 h-5 text-statut-information" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-encours">{enCoursVisites.length}</p>
@@ -508,8 +469,8 @@ export default function AgentDashboard() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <CircleCheck className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 rounded-full bg-statut-favorable-fond flex items-center justify-center">
+                  <CircleCheck className="w-5 h-5 text-statut-favorable" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-terminees">{completedVisites.length}</p>
@@ -603,13 +564,11 @@ export default function AgentDashboard() {
                 ))}
               </div>
             ) : allVisites.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucune visite</h3>
-                <p className="text-muted-foreground">
-                  Vous n'avez pas encore de visite assignée
-                </p>
-              </div>
+              <EtatVide
+                icone={Calendar}
+                titre="Aucune visite"
+                description="Les visites que le commissionnaire vous assignera apparaîtront ici."
+              />
             ) : (
               <div className="space-y-4">
                 {allVisites.map(renderVisiteCard)}
@@ -626,13 +585,11 @@ export default function AgentDashboard() {
                 ))}
               </div>
             ) : !reports?.results?.length ? (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Aucun rapport</h3>
-                <p className="text-muted-foreground">
-                  Vous n'avez pas encore créé de rapport de visite
-                </p>
-              </div>
+              <EtatVide
+                icone={FileText}
+                titre="Aucun rapport"
+                description="Vos rapports apparaîtront ici une fois vos visites terminées."
+              />
             ) : (
               <div className="space-y-4">
                 {reports.results.map((report) => (
@@ -642,26 +599,26 @@ export default function AgentDashboard() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span className="font-semibold">Rapport #{report.id}</span>
-                            {getEtatBadge(report.etat_general)}
+                            <BadgeStatut famille="appreciation" valeur={report.etat_general} />
                             {report.conformite_annonce && (
-                              <Badge variant="outline" className="bg-green-500/10 text-green-700">
+                              <Badge variant="outline" className="bg-statut-favorable-fond text-statut-favorable">
                                 <CircleCheck className="w-3 h-3 mr-1" />Conforme
                               </Badge>
                             )}
                             {report.client_interesse && (
-                              <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
+                              <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
                                 <User className="w-3 h-3 mr-1" />Client intéressé
                               </Badge>
                             )}
                           </div>
 
                           <p className="text-sm text-muted-foreground mb-2">
-                            Visite #{report.visite} - Créé le {formatDate(report.created_at)}
+                            Visite #{report.visite} - Créé le {formaterDateLongue(report.created_at)}
                           </p>
 
                           {report.points_positifs && (
                             <p className="text-sm mb-1">
-                              <span className="font-medium text-green-600">Points positifs:</span>{' '}
+                              <span className="font-medium text-statut-favorable">Points positifs:</span>{' '}
                               {report.points_positifs.substring(0, 100)}
                               {report.points_positifs.length > 100 ? '...' : ''}
                             </p>
@@ -669,7 +626,7 @@ export default function AgentDashboard() {
 
                           {report.points_negatifs && (
                             <p className="text-sm">
-                              <span className="font-medium text-red-600">Points négatifs:</span>{' '}
+                              <span className="font-medium text-statut-defavorable">Points négatifs:</span>{' '}
                               {report.points_negatifs.substring(0, 100)}
                               {report.points_negatifs.length > 100 ? '...' : ''}
                             </p>
@@ -858,14 +815,14 @@ export default function AgentDashboard() {
                           <div>
                             <Label className="text-muted-foreground mb-2 block">Équipements</Label>
                             <div className="flex flex-wrap gap-2">
-                              {bien?.eau_courante && (
+                              {bien?.eau_display && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Droplets className="w-3 h-3" /> Eau courante
+                                  <Droplets className="w-3 h-3" /> {bien.eau_display}
                                 </Badge>
                               )}
-                              {bien?.electricite && (
+                              {bien?.electricite_display && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Zap className="w-3 h-3" /> Électricité
+                                  <Zap className="w-3 h-3" /> {bien.electricite_display}
                                 </Badge>
                               )}
                               {bien?.parking && (
@@ -979,7 +936,7 @@ export default function AgentDashboard() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label className="text-muted-foreground">Date</Label>
-                          <p className="font-medium">{formatDate(selectedVisite.date_visite)}</p>
+                          <p className="font-medium">{formaterDateLongue(selectedVisite.date_visite)}</p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Heure</Label>
@@ -987,7 +944,7 @@ export default function AgentDashboard() {
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Statut</Label>
-                          <div className="mt-1">{getStatusBadge(selectedVisite.statut)}</div>
+                          <div className="mt-1"><BadgeStatut valeur={selectedVisite.statut} /></div>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">ID Visite</Label>
@@ -1313,7 +1270,7 @@ export default function AgentDashboard() {
             <DialogHeader>
               <DialogTitle>Détails du rapport</DialogTitle>
               <DialogDescription>
-                Rapport #{selectedReport?.id} - Créé le {formatDate(selectedReport?.created_at)}
+                Rapport #{selectedReport?.id} - Créé le {formaterDateLongue(selectedReport?.created_at)}
               </DialogDescription>
             </DialogHeader>
             {selectedReport && (
@@ -1323,19 +1280,19 @@ export default function AgentDashboard() {
                   <div>
                     <h4 className="font-semibold mb-3">Résumé</h4>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {getEtatBadge(selectedReport.etat_general)}
+                      <BadgeStatut famille="appreciation" valeur={selectedReport.etat_general} />
                       {selectedReport.conformite_annonce && (
-                        <Badge variant="outline" className="bg-green-500/10 text-green-700">
+                        <Badge variant="outline" className="bg-statut-favorable-fond text-statut-favorable">
                           <CircleCheck className="w-3 h-3 mr-1" />Conforme à l'annonce
                         </Badge>
                       )}
                       {!selectedReport.conformite_annonce && (
-                        <Badge variant="outline" className="bg-red-500/10 text-red-700">
+                        <Badge variant="outline" className="bg-statut-defavorable-fond text-statut-defavorable">
                           <CircleAlert className="w-3 h-3 mr-1" />Non conforme
                         </Badge>
                       )}
                       {selectedReport.client_interesse && (
-                        <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
+                        <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
                           <User className="w-3 h-3 mr-1" />Client intéressé
                         </Badge>
                       )}
@@ -1415,20 +1372,20 @@ export default function AgentDashboard() {
                     <h4 className="font-semibold mb-3">Évaluation</h4>
                     <div className="space-y-4">
                       {selectedReport.points_positifs && (
-                        <div className="p-3 bg-green-500/5 rounded-lg">
-                          <Label className="text-green-700 dark:text-green-400">Points positifs</Label>
+                        <div className="p-3 bg-statut-favorable-fond rounded-lg">
+                          <Label className="text-statut-favorable">Points positifs</Label>
                           <p className="text-sm mt-1">{selectedReport.points_positifs}</p>
                         </div>
                       )}
                       {selectedReport.points_negatifs && (
-                        <div className="p-3 bg-red-500/5 rounded-lg">
-                          <Label className="text-red-700 dark:text-red-400">Points négatifs</Label>
+                        <div className="p-3 bg-statut-defavorable-fond rounded-lg">
+                          <Label className="text-statut-defavorable">Points négatifs</Label>
                           <p className="text-sm mt-1">{selectedReport.points_negatifs}</p>
                         </div>
                       )}
                       {selectedReport.recommandations && (
-                        <div className="p-3 bg-blue-500/5 rounded-lg">
-                          <Label className="text-blue-700 dark:text-blue-400">Recommandations</Label>
+                        <div className="p-3 bg-statut-information-fond rounded-lg">
+                          <Label className="text-statut-information">Recommandations</Label>
                           <p className="text-sm mt-1">{selectedReport.recommandations}</p>
                         </div>
                       )}

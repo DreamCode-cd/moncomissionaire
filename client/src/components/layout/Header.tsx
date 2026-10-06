@@ -1,3 +1,6 @@
+import { classesDuTon } from '@/lib/statuts';
+import { apparenceNotification } from '@/lib/notifications';
+import { formaterAnciennete } from '@/lib/dates';
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Bell, Moon, Sun, Monitor, LogIn, LogOut, Check, MessageCircle, House, ChevronRight, Search, Building2, User } from 'lucide-react';
@@ -31,35 +34,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { PaginatedResponse, Notification, ChatRoom } from '@shared/schema';
 
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'bien_valide':
-    case 'bien_rejete':
-      return House;
-    case 'nouveau_message':
-    case 'agent_ajoute_chat':
-      return MessageCircle;
-    default:
-      return Bell;
-  }
-};
 
-const getNotificationColor = (type: string) => {
-  switch (type) {
-    case 'bien_valide':
-    case 'demande_acceptee':
-    case 'visite_terminee':
-      return 'bg-green-500/10 text-green-700 dark:text-green-400';
-    case 'bien_rejete':
-    case 'demande_rejetee':
-      return 'bg-red-500/10 text-red-700 dark:text-red-400';
-    case 'nouveau_message':
-    case 'agent_ajoute_chat':
-      return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
-    default:
-      return 'bg-muted text-muted-foreground';
-  }
-};
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -87,7 +62,13 @@ export function Header() {
         return [
           { href: '/', icon: House, label: 'Accueil' },
           { href: '/search', icon: Search, label: 'Recherche' },
-          { href: '/pending-properties', icon: Building2, label: 'Dashboard' },
+          { href: '/mon-portefeuille', icon: Building2, label: 'Mon portefeuille' },
+        ];
+      case 'moderateur':
+        return [
+          { href: '/', icon: House, label: 'Accueil' },
+          { href: '/search', icon: Search, label: 'Recherche' },
+          { href: '/moderation', icon: Building2, label: 'Modération' },
         ];
       case 'agent':
         return [
@@ -141,18 +122,6 @@ export function Header() {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-
-    if (hours < 1) return 'À l\'instant';
-    if (hours < 24) return `${hours}h`;
-    if (days < 7) return `${days}j`;
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  };
 
   const displayedNotifications = notifications?.results?.slice(0, 10) || [];
   const hasMoreNotifications = (notifications?.count || 0) > 10;
@@ -272,7 +241,7 @@ export function Header() {
                       ) : (
                         <div className="divide-y">
                           {displayedNotifications.map((notification) => {
-                            const Icon = getNotificationIcon(notification.type_notification);
+                            const Icon = apparenceNotification(notification.type_notification).icone;
                             return (
                               <div 
                                 key={notification.id}
@@ -284,7 +253,7 @@ export function Header() {
                                 }}
                               >
                                 <div className="flex gap-3">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type_notification)}`}>
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${classesDuTon(apparenceNotification(notification.type_notification).ton)}`}>
                                     <Icon className="w-4 h-4" />
                                   </div>
                                   <div className="flex-1 min-w-0">
@@ -300,7 +269,7 @@ export function Header() {
                                       {notification.message}
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      {formatDate(notification.created_at)}
+                                      {formaterAnciennete(notification.created_at)}
                                     </p>
                                   </div>
                                 </div>
@@ -367,9 +336,16 @@ export function Header() {
                       </Link>
                     )}
                     {user?.role === 'commissionnaire' && (
-                      <Link href="/pending-properties">
+                      <Link href="/mon-portefeuille">
                         <DropdownMenuItem data-testid="menu-dashboard">
-                          Dashboard Commissionnaire
+                          Mon portefeuille
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
+                    {user?.role === 'moderateur' && (
+                      <Link href="/moderation">
+                        <DropdownMenuItem data-testid="menu-dashboard">
+                          Modération
                         </DropdownMenuItem>
                       </Link>
                     )}
@@ -387,7 +363,7 @@ export function Header() {
                         </DropdownMenuItem>
                       </Link>
                     )}
-                    {(user?.role === 'commissionnaire' || user?.role === 'proprietaire') && (
+                    {(user?.role === 'commissionnaire' || user?.role === 'moderateur' || user?.role === 'proprietaire') && (
                       <Link href="/">
                         <DropdownMenuItem data-testid="menu-home">
                           <House className="mr-2 h-4 w-4" />
@@ -431,7 +407,7 @@ export function Header() {
           <div className="flex-1 overflow-y-auto min-h-0">
             <div className="space-y-2 p-4">
               {notifications?.results?.map((notification) => {
-                const Icon = getNotificationIcon(notification.type_notification);
+                const Icon = apparenceNotification(notification.type_notification).icone;
                 return (
                   <div 
                     key={notification.id}
@@ -443,7 +419,7 @@ export function Header() {
                     }}
                   >
                     <div className="flex gap-3">
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type_notification)}`}>
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${classesDuTon(apparenceNotification(notification.type_notification).ton)}`}>
                         <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -461,7 +437,7 @@ export function Header() {
                           {notification.message}
                         </p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          {formatDate(notification.created_at)}
+                          {formaterAnciennete(notification.created_at)}
                         </p>
                       </div>
                     </div>

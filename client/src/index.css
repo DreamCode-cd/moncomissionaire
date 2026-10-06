@@ -85,6 +85,40 @@
   /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* --- Jetons métier : statuts -------------------------------------------
+     Second niveau de la hiérarchie : ces jetons disent À QUOI ça sert, pas
+     quelle couleur c'est. Les composants utilisaient jusqu'ici green-500,
+     yellow-500 et red-500 en direct — des primitives qui court-circuitent
+     le thème et rendent tout changement global impossible.
+
+     Quatre tons suffisent à couvrir les quatre familles de statuts du
+     produit : validation d'un bien, disponibilité, visite, demande. */
+  --statut-favorable: 152 62% 30%;
+  --statut-favorable-fond: 152 45% 95%;
+  --statut-attente: 42 95% 30%;
+  --statut-attente-fond: 42 90% 95%;
+  --statut-defavorable: 356 78% 42%;
+  --statut-defavorable-fond: 356 72% 96%;
+  --statut-neutre: 200 8% 38%;
+  --statut-neutre-fond: 200 8% 95%;
+  --statut-information: 214 72% 42%;
+  --statut-information-fond: 214 70% 96%;
+
+  /* Contrastes vérifiés : chaque couleur de texte tient au moins 4,5:1 sur
+     son propre fond teinté (WCAG AA). L'ambre et le rouge restent proches en
+     vision déficiente — c'est pourquoi un badge porte TOUJOURS une icône et
+     un libellé, jamais la couleur seule. Le jour où ces teintes serviront de
+     série dans un graphique, il faudra une palette catégorielle distincte,
+     validée séparément : les deux exigences sont incompatibles sur cette paire.
+
+     Deux rôles qui ne sont pas des statuts mais des distinctions :
+     - la note (étoiles) et la photo mise en avant : convention dorée ;
+     - le favori : le cœur, dont la couleur est attendue rouge.
+     Sans jeton, ces teintes étaient écrites en dur et cassaient en sombre. */
+  --note: 40 92% 48%;
+  --note-fond: 40 92% 94%;
+  --favori: 350 75% 48%;
 }
 
 .dark {
@@ -163,6 +197,24 @@
   /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Mêmes rôles, adaptés au fond sombre : on ne se contente pas d'inverser,
+     les fonds deviennent des teintes profondes et les textes s'éclaircissent
+     pour rester lisibles. */
+  --statut-favorable: 152 55% 62%;
+  --statut-favorable-fond: 152 30% 14%;
+  --statut-attente: 42 88% 62%;
+  --statut-attente-fond: 42 40% 14%;
+  --statut-defavorable: 356 85% 70%;
+  --statut-defavorable-fond: 356 40% 15%;
+  --statut-neutre: 200 10% 68%;
+  --statut-neutre-fond: 200 8% 16%;
+  --statut-information: 214 78% 70%;
+  --statut-information-fond: 214 40% 16%;
+
+  --note: 40 95% 62%;
+  --note-fond: 40 40% 16%;
+  --favori: 350 85% 66%;
 }
 
 @layer base {

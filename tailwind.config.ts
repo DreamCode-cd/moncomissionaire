@@ -11,6 +11,28 @@ export default {
         sm: ".1875rem", /* 3px */
       },
       colors: {
+        // Jetons métier : statuts. Quatre tons couvrent les quatre familles
+        // de statuts du produit (validation, disponibilité, visite, demande).
+        // Utiliser ceux-ci et jamais green-500 / yellow-500 / red-500 : les
+        // primitives court-circuitent le thème et cassent le mode sombre.
+        statut: {
+          favorable: "hsl(var(--statut-favorable) / <alpha-value>)",
+          "favorable-fond": "hsl(var(--statut-favorable-fond) / <alpha-value>)",
+          attente: "hsl(var(--statut-attente) / <alpha-value>)",
+          "attente-fond": "hsl(var(--statut-attente-fond) / <alpha-value>)",
+          defavorable: "hsl(var(--statut-defavorable) / <alpha-value>)",
+          "defavorable-fond": "hsl(var(--statut-defavorable-fond) / <alpha-value>)",
+          neutre: "hsl(var(--statut-neutre) / <alpha-value>)",
+          "neutre-fond": "hsl(var(--statut-neutre-fond) / <alpha-value>)",
+          information: "hsl(var(--statut-information) / <alpha-value>)",
+          "information-fond": "hsl(var(--statut-information-fond) / <alpha-value>)",
+        },
+        // Distinctions : ni bonnes ni mauvaises, mais visuellement conventionnelles.
+        note: {
+          DEFAULT: "hsl(var(--note) / <alpha-value>)",
+          fond: "hsl(var(--note-fond) / <alpha-value>)",
+        },
+        favori: "hsl(var(--favori) / <alpha-value>)",
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",

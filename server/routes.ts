@@ -16,8 +16,8 @@ export async function registerRoutes(
     app.get('/api/v1/biens/', (req: Request, res: Response) => {
       const { 
         statut_validation, statut_location, ville, type_bien, q, search,
-        prix_min, prix_max, nombre_chambres_min,
-        eau_courante, electricite, parking, jardin, meuble, climatisation, gardien
+        prix_min, prix_max, chambres_min,
+        eau, electricite, parking, jardin, meuble, climatisation, gardien
       } = req.query;
       let biens = [...mockData.biens];
       
@@ -51,15 +51,18 @@ export async function registerRoutes(
         const maxPrice = parseInt(String(prix_max));
         biens = biens.filter(b => parseInt(b.prix_mensuel) <= maxPrice);
       }
-      if (nombre_chambres_min) {
-        const minChambres = parseInt(String(nombre_chambres_min));
+      if (chambres_min) {
+        const minChambres = parseInt(String(chambres_min));
         biens = biens.filter(b => b.nombre_chambres >= minChambres);
       }
-      if (eau_courante === 'true') {
-        biens = biens.filter(b => b.eau_courante === true);
+      // Même convention que l'API : plusieurs valeurs séparées par des virgules.
+      if (eau) {
+        const valeurs = String(eau).split(',');
+        biens = biens.filter(b => valeurs.includes(b.eau));
       }
-      if (electricite === 'true') {
-        biens = biens.filter(b => b.electricite === true);
+      if (electricite) {
+        const valeurs = String(electricite).split(',');
+        biens = biens.filter(b => valeurs.includes(b.electricite));
       }
       if (parking === 'true') {
         biens = biens.filter(b => b.parking === true);
@@ -94,7 +97,7 @@ export async function registerRoutes(
     });
 
     app.get('/api/v1/biens/proprietaire/', (req: Request, res: Response) => {
-      res.json(paginateResults(mockData.biens.filter(b => b.proprietaire.id === 2)));
+      res.json(paginateResults(mockData.biens.filter(b => b.proprietaire?.id === 2)));
     });
 
     app.get('/api/v1/biens/commissionnaire/', (req: Request, res: Response) => {

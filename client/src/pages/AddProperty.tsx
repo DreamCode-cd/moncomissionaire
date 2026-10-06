@@ -16,6 +16,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormDescription,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
@@ -30,10 +31,19 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { bienCreateSchema, type BienCreateInput } from '@shared/schema';
 import { DEVISES } from '@/lib/prix';
+import { PHOTOS_MAX } from '@/lib/annonce';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  ChampBailleur,
+  ChampCommune,
+  ChampGarantie,
+  ChampsEauElectricite,
+} from '@/components/property/ChampsTerrain';
 
 interface Ville {
   id: number;
   nom: string;
+  communes?: string[];
 }
 
 interface VillesResponse {
@@ -58,6 +68,12 @@ interface PhotoPreview {
 export default function AddProperty() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
+  // Le commissionnaire publie pour un bailleur de son carnet, dans son
+  // portefeuille ; le propriétaire publie son propre bien.
+  const estCommissionnaire = user?.role === 'commissionnaire';
+  const routeApi = estCommissionnaire ? '/api/v1/biens/commissionnaire/' : '/api/v1/biens/proprietaire/';
+  const pageRetour = estCommissionnaire ? '/mon-portefeuille' : '/my-properties';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [photos, setPhotos] = useState<PhotoPreview[]>([]);
   const [principalIndex, setPrincipalIndex] = useState(0);
@@ -75,9 +91,11 @@ export default function AddProperty() {
       titre: '',
       description: '',
       type_bien: 'appartement',
+      devise: 'USD',
       prix_mensuel: '',
-      garantie: '',
+      garantie_mois: 3,
       superficie: '',
+      bailleur: '',
       nombre_chambres: 1,
       nombre_salles_bain: 1,
       nombre_pieces: 2,
@@ -85,8 +103,8 @@ export default function AddProperty() {
       ville: '',
       quartier: '',
       commune: '',
-      eau_courante: true,
-      electricite: true,
+      eau: '',
+      electricite: '',
       parking: false,
       jardin: false,
       meuble: false,
@@ -94,6 +112,9 @@ export default function AddProperty() {
       gardien: false,
     },
   });
+
+  const villeChoisie = form.watch('ville');
+  const communesDeLaVille = villes.find((v) => String(v.id) === villeChoisie)?.communes ?? [];
 
   const convertHeicToJpg = async (file: File): Promise<File> => {
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
@@ -127,7 +148,7 @@ export default function AddProperty() {
     const files = e.target.files;
     if (!files) return;
 
-    const remainingSlots = 10 - photos.length;
+    const remainingSlots = PHOTOS_MAX - photos.length;
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
     try {
@@ -169,6 +190,10 @@ export default function AddProperty() {
   };
 
   const onSubmit = async (data: BienCreateInput) => {
+    if (estCommissionnaire && !data.bailleur) {
+      form.setError('bailleur', { message: 'Indiquez le bailleur qui vous a confié ce bien.' });
+      return;
+    }
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -185,7 +210,7 @@ export default function AddProperty() {
 
       formData.append('photo_principale_index', String(principalIndex));
 
-      await api.post('/api/v1/biens/proprietaire/', formData, true);
+      await api.post(routeApi, formData, true);
 
       photos.forEach(photo => URL.revokeObjectURL(photo.preview));
 
@@ -193,7 +218,7 @@ export default function AddProperty() {
         title: 'Bien ajouté',
         description: 'Votre bien a été soumis pour validation.',
       });
-      setLocation('/my-properties');
+      setLocation(pageRetour);
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -212,7 +237,7 @@ export default function AddProperty() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => setLocation('/my-properties')}
+            onClick={() => setLocation(pageRetour)}
             data-testid="button-back"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -222,13 +247,23 @@ export default function AddProperty() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {estCommissionnaire && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Bailleur</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChampBailleur control={form.control} />
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Photos du bien</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Ajoutez jusqu'à 10 photos. Cliquez sur l'étoile pour définir la photo principale.
+                  Ajoutez jusqu'à {PHOTOS_MAX} photos. Cliquez sur l'étoile pour définir la photo principale.
                 </p>
                 
                 <div className="grid grid-cols-3 gap-3">
@@ -248,7 +283,7 @@ export default function AddProperty() {
                           size="icon"
                           variant="secondary"
                           onClick={() => setPrincipal(index)}
-                          className={principalIndex === index ? 'bg-yellow-500 text-black' : ''}
+                          className={principalIndex === index ? 'bg-note text-background' : ''}
                           data-testid={`button-principal-${index}`}
                         >
                           <Star className="w-4 h-4" fill={principalIndex === index ? 'currentColor' : 'none'} />
@@ -264,14 +299,14 @@ export default function AddProperty() {
                         </Button>
                       </div>
                       {principalIndex === index && (
-                        <div className="absolute top-1 left-1 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded">
+                        <div className="absolute top-1 left-1 bg-note text-background text-xs px-2 py-0.5 rounded">
                           Principale
                         </div>
                       )}
                     </div>
                   ))}
                   
-                  {photos.length < 10 && (
+                  {photos.length < PHOTOS_MAX && (
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -296,7 +331,7 @@ export default function AddProperty() {
 
                 {photos.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucune photo ajoutée. Les biens avec photos attirent plus de visiteurs.
+                    Aucune photo pour l'instant. Les annonces avec photos reçoivent nettement plus de demandes de visite.
                   </p>
                 )}
               </CardContent>
@@ -421,24 +456,7 @@ export default function AddProperty() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="garantie"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Garantie</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number"
-                            placeholder="Ex: 1000"
-                            {...field}
-                            data-testid="input-garantie"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <ChampGarantie control={form.control} />
                 </div>
 
                 <FormField
@@ -446,7 +464,7 @@ export default function AddProperty() {
                   name="superficie"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Superficie (m²)</FormLabel>
+                      <FormLabel>Superficie (m², facultatif)</FormLabel>
                       <FormControl>
                         <Input 
                           type="number"
@@ -531,62 +549,6 @@ export default function AddProperty() {
               <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="adresse"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Adresse</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Numéro et nom de rue"
-                          {...field}
-                          data-testid="input-adresse"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="quartier"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quartier</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Ex: Gombe"
-                            {...field}
-                            data-testid="input-quartier"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="commune"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Commune</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Ex: Ngaliema"
-                            {...field}
-                            data-testid="input-commune"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
                   name="ville"
                   render={({ field }) => (
                     <FormItem>
@@ -609,6 +571,50 @@ export default function AddProperty() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="adresse"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Adresse</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Avenue, numéro et point de repère"
+                          {...field}
+                          data-testid="input-adresse"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Jamais affichée sur l’annonce publique : seuls le quartier et la commune le sont. L’adresse est donnée au moment de la visite.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="quartier"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quartier</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Ex : Bel-Air"
+                            {...field}
+                            data-testid="input-quartier"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <ChampCommune control={form.control} communes={communesDeLaVille} />
+                </div>
+
               </CardContent>
             </Card>
 
@@ -617,39 +623,7 @@ export default function AddProperty() {
                 <CardTitle className="text-lg">Équipements</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="eau_courante"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel>Eau courante</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="switch-eau"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="electricite"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel>Électricité</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="switch-electricite"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <ChampsEauElectricite control={form.control} />
 
                 <FormField
                   control={form.control}

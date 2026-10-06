@@ -1,7 +1,9 @@
+import { EtatVide } from '@/components/etats';
+import { formaterHeure, formaterSeparateurDeJour } from '@/lib/dates';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Send, Phone, EllipsisVertical, Wifi, WifiOff } from 'lucide-react';
+import { ChevronLeft, EllipsisVertical, MessageCircle, Phone, Send, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -191,7 +193,7 @@ export default function ChatRoom() {
     if (user?.role === 'client') {
       return chatroom.commissionnaire_detail || chatroom.agent_detail;
     }
-    if (user?.role === 'commissionnaire') {
+    if (user?.role === 'commissionnaire' || user?.role === 'moderateur') {
       return chatroom.client_detail;
     }
     if (user?.role === 'agent') {
@@ -217,33 +219,14 @@ export default function ChatRoom() {
     const typeLabels: Record<string, string> = {
       'client': 'Client',
       'commissionnaire': 'Commissionnaire',
+      'moderateur': 'Modérateur VillaGo',
       'agent': 'Agent',
       'proprietaire': 'Propriétaire',
     };
     return typeLabels[participant.user_type] || participant.role_display || '';
   };
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Aujourd\'hui';
-    }
-    if (date.toDateString() === yesterday.toDateString()) {
-      return 'Hier';
-    }
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-  };
 
   const groupMessagesByDate = (messages: Message[]) => {
     const groups: { date: string; messages: Message[] }[] = [];
@@ -320,7 +303,7 @@ export default function ChatRoom() {
               {getParticipantName(otherParticipant)}
             </h1>
             {wsConnected ? (
-              <Wifi className="w-3 h-3 text-green-500" />
+              <Wifi className="w-3 h-3 text-statut-favorable" />
             ) : (
               <WifiOff className="w-3 h-3 text-muted-foreground" />
             )}
@@ -347,16 +330,17 @@ export default function ChatRoom() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {localMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-muted-foreground">Aucun message pour le moment</p>
-            <p className="text-sm text-muted-foreground mt-1">Envoyez le premier message!</p>
-          </div>
+          <EtatVide
+            icone={MessageCircle}
+            titre="Aucun message"
+            description="Écrivez le premier message pour démarrer la discussion."
+          />
         ) : (
           messageGroups.map((group, groupIndex) => (
             <div key={groupIndex}>
               <div className="flex justify-center mb-4">
                 <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                  {formatDate(group.date)}
+                  {formaterSeparateurDeJour(group.date)}
                 </span>
               </div>
               {group.messages.map((message) => {
@@ -394,7 +378,7 @@ export default function ChatRoom() {
                           'text-[10px] mt-1 flex items-center gap-1',
                           isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
                         )}>
-                          {formatTime(message.created_at)}
+                          {formaterHeure(message.created_at)}
                           {!isOwn && getUserTypeLabel(message.sender_detail) && (
                             <span>• {getUserTypeLabel(message.sender_detail)}</span>
                           )}

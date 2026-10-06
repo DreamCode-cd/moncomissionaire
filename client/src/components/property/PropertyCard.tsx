@@ -1,3 +1,4 @@
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { Link } from 'wouter';
 import { MapPin, Bed, Bath, Maximize, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,19 +34,6 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
   const imageUrl = photoUrl || defaultImages[property.type_bien] || houseImage;
   
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'disponible':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400';
-      case 'en_visite':
-        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400';
-      case 'loue':
-        return 'bg-red-500/10 text-red-700 dark:text-red-400';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
-
   if (variant === 'horizontal') {
     return (
       <Link href={`/property/${property.id}`}>
@@ -67,12 +55,12 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                   <div className="flex items-start justify-between gap-3 mb-1">
                     <h3 className="font-semibold text-sm line-clamp-1">{property.titre}</h3>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <Badge 
-                        variant="secondary" 
-                        className={cn("text-[10px] px-1.5 py-0.5 leading-none", getStatusColor(property.statut_location))}
-                      >
-                        {property.statut_location_display}
-                      </Badge>
+                      <BadgeStatut
+                          famille="location"
+                          valeur={property.statut_location}
+                          libelle={property.statut_location_display}
+                          compact
+                        />
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 leading-none">
                         {property.type_bien_display}
                       </Badge>
@@ -108,7 +96,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                   </span>
                   {rating && (
                     <span className="flex items-center gap-0.5 text-xs">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <Star className="w-3 h-3 fill-note text-note" />
                       {rating.toFixed(1)}
                     </span>
                   )}
@@ -135,12 +123,12 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
           <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-1">
-            <Badge 
-              variant="secondary" 
-              className={cn("text-[10px] px-1.5 py-0.5", getStatusColor(property.statut_location))}
-            >
-              {property.statut_location_display}
-            </Badge>
+            <BadgeStatut
+              famille="location"
+              valeur={property.statut_location}
+              libelle={property.statut_location_display}
+              compact
+            />
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 bg-background/80 backdrop-blur-sm">
               {property.type_bien_display}
             </Badge>
@@ -180,7 +168,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
             </span>
             {rating && (
               <span className="flex items-center gap-1 text-xs">
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                <Star className="w-3 h-3 fill-note text-note" />
                 {rating.toFixed(1)}
               </span>
             )}

@@ -1,3 +1,5 @@
+import { EtatVide } from '@/components/etats';
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useRoute, useLocation, Link } from 'wouter';
@@ -40,6 +42,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterPrix } from '@/lib/prix';
+import { auteurAnnonce, initiale, libelleGarantie } from '@/lib/annonce';
 
 const villaImage = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80";
 const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
@@ -56,8 +59,6 @@ const defaultImages: Record<string, string> = {
 };
 
 const amenities = [
-  { key: 'eau_courante', icon: Droplets, label: 'Eau courante' },
-  { key: 'electricite', icon: Zap, label: 'Électricité' },
   { key: 'parking', icon: Car, label: 'Parking' },
   { key: 'jardin', icon: Trees, label: 'Jardin' },
   { key: 'meuble', icon: Sofa, label: 'Meublé' },
@@ -505,7 +506,7 @@ export default function PropertyDetail() {
             size="icon" 
             onClick={handleToggleFavorite}
             disabled={toggleFavoriteMutation.isPending}
-            className={isFavorite?.is_favorite ? 'text-red-500 hover:text-red-600' : ''}
+            className={isFavorite?.is_favorite ? 'text-favori hover:text-favori/80' : ''}
             data-testid="button-favorite"
           >
             {toggleFavoriteMutation.isPending ? (
@@ -514,8 +515,8 @@ export default function PropertyDetail() {
               <Heart 
                 className={`w-5 h-5 transition-all duration-300 ${
                   isFavorite?.is_favorite 
-                    ? 'fill-red-500 text-red-500 scale-110' 
-                    : 'text-foreground hover:text-red-400'
+                    ? 'fill-favori text-favori scale-110' 
+                    : 'text-foreground hover:text-favori/80'
                 }`} 
               />
             )}
@@ -545,20 +546,18 @@ export default function PropertyDetail() {
               {property.type_bien_display}
             </Badge>
             {property.statut_location === 'disponible' && (
-              <Badge 
-                className="bg-green-600 text-white"
-                data-testid="badge-status-available"
-              >
-                {property.statut_location_display}
-              </Badge>
+              <BadgeStatut
+                famille="location"
+                valeur={property.statut_location}
+                libelle={property.statut_location_display}
+              />
             )}
             {property.statut_location === 'loue' && (
-              <Badge 
-                className="bg-red-600 text-white"
-                data-testid="badge-status-rented"
-              >
-                {property.statut_location_display}
-              </Badge>
+              <BadgeStatut
+                famille="location"
+                valeur={property.statut_location}
+                libelle={property.statut_location_display}
+              />
             )}
             {property.statut_location === 'en_visite' && (
               <Badge 
@@ -580,12 +579,15 @@ export default function PropertyDetail() {
 
           <div className="absolute top-4 right-4 pointer-events-none">
             {property.statut_validation === 'valide' && (
-              <Badge 
-                className="bg-green-600/90 text-white backdrop-blur-sm"
+              <Badge
+                className="bg-statut-favorable-fond text-statut-favorable border-transparent backdrop-blur-sm"
                 data-testid="badge-validation-valid"
               >
                 <Shield className="w-3 h-3 mr-1" />
-                Vérifié
+                {/* « Vérifié » laissait croire à un contrôle du bien ou du
+                    bailleur. Il s'agit seulement de la relecture de
+                    l'annonce par la modération. */}
+                Annonce validée
               </Badge>
             )}
             {property.statut_validation === 'en_attente' && (
@@ -633,7 +635,7 @@ export default function PropertyDetail() {
               </div>
               {averageRating && (
                 <div className="flex items-center gap-1 bg-muted px-3 py-1 rounded-full">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="w-4 h-4 fill-note text-note" />
                   <span className="font-semibold">{averageRating.toFixed(1)}</span>
                   <span className="text-muted-foreground text-sm">
                     ({reviews?.count})
@@ -648,11 +650,11 @@ export default function PropertyDetail() {
               </span>
               <span className="text-muted-foreground">/mois</span>
             </div>
-            {property.garantie && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Garantie: {formaterPrix(property.garantie, property.devise)}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground mt-1" data-testid="text-garantie">
+              {property.garantie_mois > 0
+                ? `Garantie : ${libelleGarantie(property.garantie_mois)}, soit ${formaterPrix(property.garantie, property.devise)}`
+                : 'Aucune garantie demandée'}
+            </p>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -673,8 +675,8 @@ export default function PropertyDetail() {
             <Card>
               <CardContent className="p-4 flex flex-col items-center">
                 <Maximize className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.superficie}</span>
-                <span className="text-xs text-muted-foreground">m²</span>
+                <span className="text-xl font-bold">{property.superficie ?? '—'}</span>
+                <span className="text-xs text-muted-foreground">{property.superficie ? 'm²' : 'Surface non précisée'}</span>
               </CardContent>
             </Card>
           </div>
@@ -716,6 +718,31 @@ export default function PropertyDetail() {
             </div>
           </div>
 
+          {(property.eau || property.electricite) && (
+            <>
+              <Separator />
+              <div>
+                {/* La première question d'un locataire à Lubumbashi : l'eau
+                    et le courant sont-ils réguliers ? */}
+                <h2 className="text-lg font-semibold mb-3">Eau et courant</h2>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {property.eau && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-eau">
+                      <Droplets className="w-5 h-5 text-primary" />
+                      <span>{property.eau_display}</span>
+                    </div>
+                  )}
+                  {property.electricite && (
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-electricite">
+                      <Zap className="w-5 h-5 text-primary" />
+                      <span>{property.electricite_display}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
           {availableAmenities.length > 0 && (
             <>
               <Separator />
@@ -743,34 +770,45 @@ export default function PropertyDetail() {
             <h2 className="text-lg font-semibold mb-3">Localisation</h2>
             <div className="flex items-center gap-2 mb-3 text-muted-foreground">
               <MapPin className="w-4 h-4" />
-              <span>{property.quartier}, {property.commune || getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
+              <span>
+                {[property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]
+                  .filter(Boolean)
+                  .join(', ')}
+              </span>
             </div>
+            <p className="text-sm text-muted-foreground">
+              L’adresse exacte vous est donnée au moment de la visite, une fois votre demande acceptée.
+            </p>
           </div>
 
           <Separator />
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Propriétaire</CardTitle>
+              <CardTitle className="text-lg">{auteurAnnonce(property).libelle}</CardTitle>
             </CardHeader>
             <CardContent>
               {(() => {
-                const owner = property.proprietaire as any;
-                const ownerName = owner?.full_name || owner?.username || 'Propriétaire';
-                const ownerAvatar = owner?.avatar ? getDjangoImageUrl(owner.avatar) || undefined : undefined;
+                const { profil, libelle } = auteurAnnonce(property);
+                const nom = profil?.full_name || libelle;
+                const avatar = profil?.avatar ? getDjangoImageUrl(profil.avatar) || undefined : undefined;
                 return (
                   <div className="flex items-center gap-4">
                     <Avatar className="w-14 h-14">
-                      <AvatarImage src={ownerAvatar} />
+                      <AvatarImage src={avatar} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {ownerName[0]?.toUpperCase() || 'U'}
+                        {initiale(profil)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold" data-testid="text-owner-name">
-                        {ownerName}
+                      <p className="font-semibold" data-testid="text-owner-name">{nom}</p>
+                      {/* Plus de « Propriétaire vérifié » : aucune vérification
+                          d'identité n'existe encore, il ne faut pas l'affirmer. */}
+                      <p className="text-sm text-muted-foreground">
+                        {libelle === 'Commissionnaire'
+                          ? 'C’est lui qui reçoit votre demande et vous fait visiter.'
+                          : 'Votre demande de visite est suivie par l’équipe VillaGo.'}
                       </p>
-                      <p className="text-sm text-muted-foreground">Propriétaire vérifié</p>
                     </div>
                   </div>
                 );
@@ -807,7 +845,7 @@ export default function PropertyDetail() {
                             key={i}
                             className={`w-4 h-4 ${
                               i < existingUserReview.note
-                                ? 'fill-yellow-400 text-yellow-400'
+                                ? 'fill-note text-note'
                                 : 'text-muted'
                             }`}
                           />
@@ -837,8 +875,8 @@ export default function PropertyDetail() {
                                 <Star
                                   className={`w-6 h-6 transition-colors ${
                                     star <= reviewNote
-                                      ? 'fill-yellow-400 text-yellow-400'
-                                      : 'text-muted-foreground hover:text-yellow-400'
+                                      ? 'fill-note text-note'
+                                      : 'text-muted-foreground hover:text-note'
                                   }`}
                                 />
                               </button>
@@ -924,7 +962,7 @@ export default function PropertyDetail() {
                                 key={i}
                                 className={`w-3 h-3 ${
                                   i < review.note
-                                    ? 'fill-yellow-400 text-yellow-400'
+                                    ? 'fill-note text-note'
                                     : 'text-muted'
                                 }`}
                               />
@@ -949,15 +987,21 @@ export default function PropertyDetail() {
                   </Button>
                 )}
                 {reviews.results.filter(review => review.client.id !== user?.id).length === 0 && !existingUserReview && (
-                  <p className="text-muted-foreground text-center py-4">
-                    Aucun avis pour le moment. Soyez le premier à donner votre avis !
-                  </p>
+                  <EtatVide
+                    icone={Star}
+                    titre="Aucun avis"
+                    description="Soyez la première personne à donner son avis sur ce bien."
+                    className="py-6"
+                  />
                 )}
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-4">
-                Aucun avis pour le moment. Soyez le premier à donner votre avis !
-              </p>
+              <EtatVide
+                icone={Star}
+                titre="Aucun avis"
+                description="Soyez la première personne à donner son avis sur ce bien."
+                className="py-6"
+              />
             )}
           </div>
 
@@ -1277,7 +1321,7 @@ export default function PropertyDetail() {
                                 key={i}
                                 className={`w-3 h-3 ${
                                   i < review.note
-                                    ? 'fill-yellow-400 text-yellow-400'
+                                    ? 'fill-note text-note'
                                     : 'text-muted'
                                 }`}
                               />

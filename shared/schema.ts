@@ -4,7 +4,18 @@ import { z } from "zod";
  *  Kinshasa et Lubumbashi ; le franc sert les montants plus petits. */
 export type Devise = 'USD' | 'CDF';
 
-export type UserRole = 'client' | 'proprietaire' | 'commissionnaire' | 'agent';
+/** Rôles du produit. `agence` et `admin` existaient côté Django sans être
+ *  déclarés ici : un administrateur voyait « admin » brut à l'écran. */
+export type UserRole =
+  | 'client'
+  | 'proprietaire'
+  | 'agence'
+  | 'commissionnaire'
+  | 'agent'
+  | 'admin'
+  /** L'équipe VillaGo : valide les annonces, traite les demandes des biens
+   *  publiés par leur propriétaire. Ce rôle s'appelait « commissionnaire ». */
+  | 'moderateur';
 
 export interface UserList {
   id: number;
@@ -13,11 +24,29 @@ export interface UserList {
   first_name: string;
   last_name: string;
   full_name?: string;
+  /** Champ normalisé par le front. L'API, elle, envoie `user_type`. */
   role: UserRole;
   role_display: string;
+  /** Tel que renvoyé par l'API. Voir lib/roles.ts pour la traduction. */
+  user_type?: UserRole;
+  user_type_display?: string;
+  is_active?: boolean;
+  is_available?: boolean;
+  /** Présent sur la liste d'administration uniquement. */
+  created_at?: string;
   phone: string;
   photo?: string;
   avatar?: string | null;
+}
+
+/** Ce que l'API publie d'un compte : ni téléphone ni e-mail. La mise en
+ *  relation passe par une demande de visite, jamais par un appel direct. */
+export interface ProfilPublic {
+  id: number;
+  full_name: string;
+  avatar?: string | null;
+  user_type: UserRole;
+  user_type_display: string;
 }
 
 export interface UserProfile extends UserList {
@@ -55,7 +84,7 @@ export interface UserRegistration {
   first_name: string;
   last_name: string;
   phone: string;
-  role: 'client' | 'proprietaire';
+  role: 'client' | 'proprietaire' | 'commissionnaire';
 }
 
 export type TypeBien = 'maison' | 'appartement' | 'studio' | 'villa' | 'duplex' | 'terrain';
@@ -73,9 +102,30 @@ export interface Photo {
 export interface VilleDetail {
   id: number;
   nom: string;
-  code_postal?: string;
   pays?: string;
+  /** Présentes sur /biens/villes/ uniquement, pas sur une ville imbriquée
+   *  dans une annonce. */
+  communes?: string[];
   nombre_biens?: number;
+}
+
+/** Régularité de l'eau. Une chaîne vide veut dire « non précisé ». */
+export type Eau = '' | 'permanente' | 'intermittente' | 'forage' | 'aucune';
+/** Régularité du courant. Une chaîne vide veut dire « non précisé ». */
+export type Electricite = '' | 'stable' | 'delestage' | 'autonome' | 'aucune';
+
+/** Loi n° 15/025 du 31 décembre 2015, article 18. */
+export const GARANTIE_MOIS_MAX = 3;
+
+/** Bailleur sans compte, du carnet d'un commissionnaire. Visible de lui seul. */
+export interface Bailleur {
+  id: number;
+  nom: string;
+  telephone: string;
+  notes: string;
+  nombre_biens: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BienList {
@@ -87,41 +137,52 @@ export interface BienList {
   devise_display?: string;
   devise_symbole?: string;
   prix_mensuel: string;
+  /** Nombre de mois de loyer, trois au plus. */
+  garantie_mois: number;
+  /** Calculée par le serveur : loyer × garantie_mois. */
   garantie: string;
-  superficie: string;
+  superficie: string | null;
   nombre_chambres: number;
   nombre_salles_bain: number;
   ville: number | string;
   ville_nom?: string;
   ville_detail?: VilleDetail;
+  commune: string;
   quartier: string;
+  eau: Eau;
+  eau_display: string;
+  electricite: Electricite;
+  electricite_display: string;
   statut_validation: StatutValidation;
   statut_validation_display: string;
   statut_location: StatutLocation;
   statut_location_display: string;
-  proprietaire: UserList;
+  /** Nul quand le bien est confié par un bailleur sans compte. */
+  proprietaire: ProfilPublic | null;
+  commissionnaire: number | null;
+  commissionnaire_detail: ProfilPublic | null;
   photo_principale?: Photo | null;
-  latitude?: string;
-  longitude?: string;
   created_at: string;
 }
 
 export interface BienDetail extends BienList {
   description: string;
   nombre_pieces: number;
-  adresse: string;
-  commune: string;
-  latitude?: string;
-  longitude?: string;
-  eau_courante: boolean;
-  electricite: boolean;
+  /** Absents de la fiche publique : l'adresse exacte et le GPS ne sont
+   *  donnés qu'à l'auteur de l'annonce, à la modération et à la visite. */
+  adresse?: string;
+  latitude?: string | null;
+  longitude?: string | null;
+  /** Renseignés pour le seul commissionnaire du bien. */
+  bailleur?: number | null;
+  bailleur_detail?: Bailleur | null;
   parking: boolean;
   jardin: boolean;
   meuble: boolean;
   climatisation: boolean;
   gardien: boolean;
   photos: Photo[];
-  valide_par?: UserList;
+  valide_par?: ProfilPublic | null;
   motif_rejet?: string;
   date_validation?: string;
   updated_at: string;
@@ -135,8 +196,9 @@ export interface BienCreate {
   devise_display?: string;
   devise_symbole?: string;
   prix_mensuel: string;
-  garantie?: string;
-  superficie: string;
+  garantie_mois?: number;
+  superficie?: string;
+  bailleur?: number;
   nombre_chambres?: number;
   nombre_salles_bain?: number;
   nombre_pieces?: number;
@@ -146,8 +208,8 @@ export interface BienCreate {
   commune?: string;
   latitude?: string;
   longitude?: string;
-  eau_courante?: boolean;
-  electricite?: boolean;
+  eau?: Eau;
+  electricite?: Electricite;
   parking?: boolean;
   jardin?: boolean;
   meuble?: boolean;
@@ -382,7 +444,7 @@ export const registerSchema = z.object({
   last_name: z.string().min(1, "Nom requis"),
   phone: z.string().min(8, "Numéro de téléphone invalide"),
   address: z.string().min(3, "Adresse requise"),
-  user_type: z.enum(['client', 'proprietaire']),
+  user_type: z.enum(['client', 'proprietaire', 'commissionnaire']),
   terms_accepted: z.boolean().refine((val) => val === true, {
     message: "Vous devez accepter les conditions d'utilisation",
   }),
@@ -397,8 +459,11 @@ export const bienCreateSchema = z.object({
   type_bien: z.enum(['maison', 'appartement', 'studio', 'villa', 'duplex', 'terrain']),
   devise: z.enum(['USD', 'CDF']).default('USD'),
   prix_mensuel: z.string().min(1, "Prix requis"),
-  garantie: z.string().optional(),
-  superficie: z.string().min(1, "Superficie requise"),
+  garantie_mois: z.coerce.number().int().min(0).max(GARANTIE_MOIS_MAX,
+    "Trois mois de loyer au plus (loi n° 15/025, article 18)").default(3),
+  // Facultative : un bailleur ne connaît presque jamais la surface de sa maison.
+  superficie: z.string().optional(),
+  bailleur: z.string().optional(),
   nombre_chambres: z.number().min(0).optional(),
   nombre_salles_bain: z.number().min(0).optional(),
   nombre_pieces: z.number().min(0).optional(),
@@ -406,8 +471,8 @@ export const bienCreateSchema = z.object({
   ville: z.string().min(1, "Ville requise"),
   quartier: z.string().min(2, "Quartier requis"),
   commune: z.string().optional(),
-  eau_courante: z.boolean().optional(),
-  electricite: z.boolean().optional(),
+  eau: z.enum(['', 'permanente', 'intermittente', 'forage', 'aucune']).default(''),
+  electricite: z.enum(['', 'stable', 'delestage', 'autonome', 'aucune']).default(''),
   parking: z.boolean().optional(),
   jardin: z.boolean().optional(),
   meuble: z.boolean().optional(),

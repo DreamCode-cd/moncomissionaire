@@ -6,7 +6,13 @@ import { MapPin, Bed, Bath, Maximize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
-import type { BienList, BienDetail } from '@shared/schema';
+import type { BienList as BienListApi, BienDetail } from '@shared/schema';
+
+/* Les listes de l'API ne portent pas de coordonnées : la position exacte
+ * d'une maison n'est pas publique. Une carte de plusieurs biens n'a donc de
+ * sens que pour des biens dont on connaît la position (portefeuille,
+ * modération) ; ce composant n'est utilisé nulle part aujourd'hui. */
+type BienList = BienListApi & { latitude?: string | null; longitude?: string | null };
 
 import 'leaflet/dist/leaflet.css';
 

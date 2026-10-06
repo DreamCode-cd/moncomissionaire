@@ -24,7 +24,14 @@ const proprietaireNavItems = [
 
 const commissionnaireNavItems = [
   { href: '/', icon: House, label: 'Accueil' },
-  { href: '/pending-properties', icon: Building2, label: 'Biens' },
+  { href: '/mon-portefeuille', icon: Building2, label: 'Portefeuille' },
+  { href: '/messages', icon: MessageCircle, label: 'Messages' },
+  { href: '/profile', icon: User, label: 'Profil' },
+];
+
+const moderateurNavItems = [
+  { href: '/', icon: House, label: 'Accueil' },
+  { href: '/moderation', icon: Building2, label: 'Modération' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
@@ -47,6 +54,8 @@ export function MobileNav() {
         return proprietaireNavItems;
       case 'commissionnaire':
         return commissionnaireNavItems;
+      case 'moderateur':
+        return moderateurNavItems;
       case 'agent':
         return agentNavItems;
       default:

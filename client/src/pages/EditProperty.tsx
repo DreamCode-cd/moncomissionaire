@@ -8,6 +8,7 @@ import { ChevronLeft, X, Star, ImagePlus, Trash2, LoaderCircle } from 'lucide-re
 interface Ville {
   id: number;
   nom: string;
+  communes?: string[];
 }
 
 interface VillesResponse {
@@ -53,6 +54,14 @@ import { queryClient } from '@/lib/queryClient';
 import { getDjangoImageUrl, getVilleId } from '@/lib/utils';
 import { bienCreateSchema, type BienCreateInput, type BienDetail } from '@shared/schema';
 import { DEVISES } from '@/lib/prix';
+import { PHOTOS_MAX } from '@/lib/annonce';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  ChampBailleur,
+  ChampCommune,
+  ChampGarantie,
+  ChampsEauElectricite,
+} from '@/components/property/ChampsTerrain';
 
 const propertyTypes = [
   { value: 'maison', label: 'Maison' },
@@ -78,10 +87,20 @@ interface PhotoPreview {
   isPrincipal: boolean;
 }
 
+/** Champs pour lesquels une chaîne vide est une vraie valeur (« non précisé »)
+ *  et doit partir au serveur, au lieu d'être ignorée comme un champ non rempli. */
+const CHAMPS_VIDES_PERMIS = new Set(['eau', 'electricite', 'commune', 'superficie']);
+
 export default function EditProperty() {
   const params = useParams<{ id: string }>();
   const propertyId = params.id;
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  // Même formulaire pour le propriétaire et le commissionnaire : seule la
+  // route change, et le commissionnaire désigne en plus le bailleur.
+  const estCommissionnaire = user?.role === 'commissionnaire';
+  const routeApi = estCommissionnaire ? '/api/v1/biens/commissionnaire/' : '/api/v1/biens/proprietaire/';
+  const pageRetour = estCommissionnaire ? '/mon-portefeuille' : '/my-properties';
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -93,7 +112,7 @@ export default function EditProperty() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: property, isLoading } = useQuery<BienDetail>({
-    queryKey: ['/api/v1/biens/proprietaire/', propertyId],
+    queryKey: [routeApi, propertyId],
     enabled: !!propertyId,
   });
 
@@ -110,8 +129,9 @@ export default function EditProperty() {
       description: '',
       type_bien: 'appartement',
       prix_mensuel: '',
-      garantie: '',
+      garantie_mois: 3,
       superficie: '',
+      bailleur: '',
       nombre_chambres: 1,
       nombre_salles_bain: 1,
       nombre_pieces: 2,
@@ -119,8 +139,8 @@ export default function EditProperty() {
       ville: '',
       quartier: '',
       commune: '',
-      eau_courante: true,
-      electricite: true,
+      eau: '',
+      electricite: '',
       parking: false,
       jardin: false,
       meuble: false,
@@ -129,6 +149,9 @@ export default function EditProperty() {
     },
   });
 
+  const villeChoisie = form.watch('ville');
+  const communesDeLaVille = villes.find((v) => String(v.id) === villeChoisie)?.communes ?? [];
+
   useEffect(() => {
     if (property) {
       form.reset({
@@ -136,8 +159,9 @@ export default function EditProperty() {
         description: property.description || '',
         type_bien: property.type_bien || 'appartement',
         prix_mensuel: property.prix_mensuel || '',
-        garantie: property.garantie || '',
+        garantie_mois: property.garantie_mois ?? 0,
         superficie: property.superficie || '',
+        bailleur: property.bailleur ? String(property.bailleur) : '',
         nombre_chambres: property.nombre_chambres || 1,
         nombre_salles_bain: property.nombre_salles_bain || 1,
         nombre_pieces: property.nombre_pieces || 2,
@@ -145,8 +169,8 @@ export default function EditProperty() {
         ville: typeof property.ville === 'number' ? String(property.ville) : (getVilleId(property.ville) || ''),
         quartier: property.quartier || '',
         commune: property.commune || '',
-        eau_courante: property.eau_courante ?? true,
-        electricite: property.electricite ?? true,
+        eau: property.eau ?? '',
+        electricite: property.electricite ?? '',
         parking: property.parking ?? false,
         jardin: property.jardin ?? false,
         meuble: property.meuble ?? false,
@@ -176,7 +200,7 @@ export default function EditProperty() {
     const files = e.target.files;
     if (!files) return;
 
-    const remainingSlots = 10 - photos.length;
+    const remainingSlots = PHOTOS_MAX - photos.length;
     const filesToAdd = Array.from(files).slice(0, remainingSlots);
 
     const newPhotosPreviews: PhotoPreview[] = filesToAdd.map(file => ({
@@ -220,15 +244,15 @@ export default function EditProperty() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await api.delete(`/api/v1/biens/proprietaire/${propertyId}/`);
+      await api.delete(`${routeApi}${propertyId}/`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
+      queryClient.invalidateQueries({ queryKey: [routeApi] });
       toast({
         title: 'Bien supprimé',
         description: 'Votre bien a été supprimé avec succès.',
       });
-      setLocation('/my-properties');
+      setLocation(pageRetour);
     },
     onError: (error) => {
       toast({
@@ -246,7 +270,7 @@ export default function EditProperty() {
         try {
           // « photo » au singulier : c'est ce qu'expose le backend et ce que
           // déclare swagger.json. Le pluriel renvoyait 404 en silence.
-          await api.delete(`/api/v1/biens/proprietaire/${propertyId}/photo/${photoId}/`);
+          await api.delete(`${routeApi}${propertyId}/photo/${photoId}/`);
         } catch (err) {
           console.error('Error deleting photo:', err);
         }
@@ -256,7 +280,7 @@ export default function EditProperty() {
         const formData = new FormData();
         
         Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
+          if (value !== undefined && value !== null && (value !== '' || CHAMPS_VIDES_PERMIS.has(key))) {
             formData.append(key, String(value));
           }
         });
@@ -277,7 +301,7 @@ export default function EditProperty() {
           }
         }
 
-        await api.request(`/api/v1/biens/proprietaire/${propertyId}/`, {
+        await api.request(`${routeApi}${propertyId}/`, {
           method: 'PATCH',
           body: formData,
           isFormData: true,
@@ -285,7 +309,7 @@ export default function EditProperty() {
       } else {
         const jsonData: Record<string, unknown> = {};
         Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
+          if (value !== undefined && value !== null && (value !== '' || CHAMPS_VIDES_PERMIS.has(key))) {
             jsonData[key] = value;
           }
         });
@@ -296,7 +320,7 @@ export default function EditProperty() {
           jsonData.photo_principale_id = currentPrincipalPhoto.id;
         }
 
-        await api.patch(`/api/v1/biens/proprietaire/${propertyId}/`, jsonData);
+        await api.patch(`${routeApi}${propertyId}/`, jsonData);
       }
 
       newPhotos.forEach(file => {
@@ -304,14 +328,14 @@ export default function EditProperty() {
         if (photo) URL.revokeObjectURL(photo.preview);
       });
 
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/', propertyId] });
+      queryClient.invalidateQueries({ queryKey: [routeApi] });
+      queryClient.invalidateQueries({ queryKey: [routeApi, propertyId] });
 
       toast({
         title: 'Bien modifié',
         description: 'Vos modifications ont été enregistrées.',
       });
-      setLocation('/my-properties');
+      setLocation(pageRetour);
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -345,7 +369,7 @@ export default function EditProperty() {
       <Layout>
         <div className="max-w-2xl mx-auto px-4 py-6 text-center">
           <h1 className="text-xl font-bold mb-4">Bien non trouvé</h1>
-          <Button onClick={() => setLocation('/my-properties')}>
+          <Button onClick={() => setLocation(pageRetour)}>
             Retour à mes biens
           </Button>
         </div>
@@ -361,7 +385,7 @@ export default function EditProperty() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => setLocation('/my-properties')}
+              onClick={() => setLocation(pageRetour)}
               data-testid="button-back"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -407,6 +431,16 @@ export default function EditProperty() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {estCommissionnaire && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Bailleur</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChampBailleur control={form.control} />
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Photos du bien</CardTitle>
@@ -433,7 +467,7 @@ export default function EditProperty() {
                           size="icon"
                           variant="secondary"
                           onClick={() => setPrincipal(index)}
-                          className={principalIndex === index ? 'bg-yellow-500 text-black' : ''}
+                          className={principalIndex === index ? 'bg-note text-background' : ''}
                           data-testid={`button-principal-${index}`}
                         >
                           <Star className="w-4 h-4" fill={principalIndex === index ? 'currentColor' : 'none'} />
@@ -449,14 +483,14 @@ export default function EditProperty() {
                         </Button>
                       </div>
                       {principalIndex === index && (
-                        <div className="absolute top-1 left-1 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded">
+                        <div className="absolute top-1 left-1 bg-note text-background text-xs px-2 py-0.5 rounded">
                           Principale
                         </div>
                       )}
                     </div>
                   ))}
                   
-                  {photos.length < 10 && (
+                  {photos.length < PHOTOS_MAX && (
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -628,24 +662,7 @@ export default function EditProperty() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="garantie"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Garantie</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number"
-                            placeholder="Ex: 1000"
-                            {...field}
-                            data-testid="input-garantie"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <ChampGarantie control={form.control} />
                 </div>
 
                 <FormField
@@ -653,7 +670,7 @@ export default function EditProperty() {
                   name="superficie"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Superficie (m²)</FormLabel>
+                      <FormLabel>Superficie (m², facultatif)</FormLabel>
                       <FormControl>
                         <Input 
                           type="number"
@@ -744,7 +761,7 @@ export default function EditProperty() {
                       <FormLabel>Adresse</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Numéro et nom de rue"
+                          placeholder="Avenue, numéro et point de repère"
                           {...field}
                           data-testid="input-adresse"
                         />
@@ -763,7 +780,7 @@ export default function EditProperty() {
                         <FormLabel>Quartier</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Ex: Gombe"
+                            placeholder="Ex : Bel-Air"
                             {...field}
                             data-testid="input-quartier"
                           />
@@ -773,23 +790,7 @@ export default function EditProperty() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="commune"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Commune</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Ex: Ngaliema"
-                            {...field}
-                            data-testid="input-commune"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <ChampCommune control={form.control} communes={communesDeLaVille} />
                 </div>
 
                 <FormField
@@ -824,39 +825,8 @@ export default function EditProperty() {
                 <CardTitle className="text-lg">Équipements</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="eau_courante"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel>Eau courante</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="switch-eau"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="electricite"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel>Électricité</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="switch-electricite"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <ChampsEauElectricite control={form.control} />
+                
 
                 <FormField
                   control={form.control}

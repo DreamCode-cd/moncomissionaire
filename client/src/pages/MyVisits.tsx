@@ -1,3 +1,6 @@
+import { EtatVide } from '@/components/etats';
+import { BadgeStatut } from '@/components/statut/BadgeStatut';
+import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -15,41 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getDjangoImageUrl } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, RapportVisite, Visite } from '@shared/schema';
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'en_attente':
-      return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
-    case 'acceptee':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400"><CircleCheck className="w-3 h-3 mr-1" />Acceptée</Badge>;
-    case 'rejetee':
-      return <Badge variant="destructive"><CircleX className="w-3 h-3 mr-1" />Rejetée</Badge>;
-    case 'annulee':
-      return <Badge variant="outline">Annulée</Badge>;
-    case 'terminee':
-      return <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400"><CircleCheck className="w-3 h-3 mr-1" />Terminée</Badge>;
-    case 'planifiee':
-      return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400"><Calendar className="w-3 h-3 mr-1" />Planifiée</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
-};
 
-const getEtatBadge = (etat: string) => {
-  switch (etat) {
-    case 'tres_interessant':
-      return <Badge className="bg-green-600 text-white">Très intéressant</Badge>;
-    case 'interessant':
-      return <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">Intéressant</Badge>;
-    case 'moyen':
-      return <Badge className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">Moyen</Badge>;
-    case 'peu_interessant':
-      return <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400">Peu intéressant</Badge>;
-    case 'non_recommande':
-      return <Badge variant="destructive">Non recommandé</Badge>;
-    default:
-      return <Badge variant="secondary">{etat}</Badge>;
-  }
-};
 
 interface DemandeWithVisite extends DemandeVisite {
   visite_detail?: Visite & { rapport?: RapportVisite };
@@ -63,14 +32,6 @@ export default function MyVisits() {
     refetchOnWindowFocus: true,
   });
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
 
   const formatTime = (timeString: string | undefined) => {
     if (!timeString) return '';
@@ -115,23 +76,23 @@ export default function MyVisits() {
               {demande.bien_detail?.quartier}
             </p>
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              {getStatusBadge(demande.visite_detail?.statut || demande.statut)}
+              <BadgeStatut valeur={demande.visite_detail?.statut || demande.statut} />
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>Demandée le {formatDate(demande.created_at)}</span>
+                <span>Demandée le {formaterDateLongue(demande.created_at)}</span>
               </div>
               {demande.date_souhaitee && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Souhaitée: {formatDate(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
+                  <span>Souhaitée: {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
                 </div>
               )}
               {demande.visite_detail?.date_visite && (
                 <div className="flex items-center gap-2 text-primary">
                   <CircleCheck className="w-4 h-4" />
-                  <span>Planifiée: {formatDate(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}</span>
+                  <span>Planifiée: {formaterDateLongue(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}</span>
                 </div>
               )}
             </div>
@@ -168,12 +129,6 @@ export default function MyVisits() {
     </Card>
   );
 
-  const renderEmptyState = (message: string) => (
-    <div className="text-center py-12">
-      <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-      <p className="text-muted-foreground">{message}</p>
-    </div>
-  );
 
   const renderLoadingSkeleton = () => (
     <div className="space-y-4">
@@ -235,35 +190,35 @@ export default function MyVisits() {
 
           <TabsContent value="all">
             {isLoading ? renderLoadingSkeleton() : 
-              allDemandes.length === 0 ? renderEmptyState("Vous n'avez pas encore fait de demande de visite") :
+              allDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Vous n'avez pas encore fait de demande de visite" /> :
               <div className="space-y-4">{allDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="pending">
             {isLoading ? renderLoadingSkeleton() :
-              pendingDemandes.length === 0 ? renderEmptyState("Aucune demande en attente") :
+              pendingDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande en attente" /> :
               <div className="space-y-4">{pendingDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="accepted">
             {isLoading ? renderLoadingSkeleton() :
-              acceptedDemandes.length === 0 ? renderEmptyState("Aucune demande acceptée") :
+              acceptedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande acceptée" /> :
               <div className="space-y-4">{acceptedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="completed">
             {isLoading ? renderLoadingSkeleton() :
-              completedDemandes.length === 0 ? renderEmptyState("Aucune visite terminée") :
+              completedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune visite terminée" /> :
               <div className="space-y-4">{completedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="rejected">
             {isLoading ? renderLoadingSkeleton() :
-              rejectedDemandes.length === 0 ? renderEmptyState("Aucune demande rejetée") :
+              rejectedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande rejetée" /> :
               <div className="space-y-4">{rejectedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
@@ -277,7 +232,7 @@ export default function MyVisits() {
                 Rapport de visite
               </DialogTitle>
               <DialogDescription>
-                {selectedReport && `Visite du ${formatDate(selectedReport.created_at)}`}
+                {selectedReport && `Visite du ${formaterDateLongue(selectedReport.created_at)}`}
               </DialogDescription>
             </DialogHeader>
             {selectedReport && (
@@ -286,7 +241,7 @@ export default function MyVisits() {
                   <div>
                     <Label className="text-muted-foreground">État général du bien</Label>
                     <div className="mt-1">
-                      {getEtatBadge(selectedReport.etat_general)}
+                      <BadgeStatut famille="appreciation" valeur={selectedReport.etat_general} />
                     </div>
                   </div>
                   
