@@ -1,3 +1,20 @@
+/* Identité VillaGo — le vert de l'application mobile, désormais commun.
+
+   « Vert profond : la couleur des toitures et de la végétation urbaine
+   congolaise » (villagomobile, src/theme/jetons.ts). Le web était en bleu,
+   le mobile en vert : un commissionnaire qui passait de l'un à l'autre
+   croyait changer d'application. Ces valeurs doivent rester identiques à
+   celles du mobile.
+
+   Contrastes vérifiés (WCAG) :
+     blanc sur primaire #2F6F4E ............ 5,99:1
+     primaire sur fond blanc ............... 5,99:1
+     texte #0F1F17 sur primaire sombre ..... 7,78:1
+     primaire sombre #6FBF95 sur fond ...... 8,39:1
+
+   Typographie : la police du système (Roboto sur Android). Plus de
+   Google Fonts — environ 100 Ko facturés en 3G avant la première maison, et
+   le duo Playfair + Inter qui faisait « modèle généré ». */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -18,33 +35,33 @@
   --sidebar: 0 0% 96%;
   --sidebar-foreground: 0 0% 9%;
   --sidebar-border: 0 0% 92%;
-  --sidebar-primary: 210 85% 45%;
+  --sidebar-primary: 149 41% 31%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 210 12% 88%;
+  --sidebar-accent: 149 14% 88%;
   --sidebar-accent-foreground: 0 0% 15%;
-  --sidebar-ring: 210 85% 45%;
+  --sidebar-ring: 149 41% 31%;
   --popover: 0 0% 95%;
   --popover-foreground: 0 0% 9%;
   --popover-border: 0 0% 91%;
-  --primary: 210 85% 45%;
+  --primary: 149 41% 31%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 92%;
   --secondary-foreground: 0 0% 9%;
   --muted: 0 0% 94%;
   --muted-foreground: 0 0% 40%;
-  --accent: 210 8% 93%;
+  --accent: 149 10% 93%;
   --accent-foreground: 0 0% 9%;
   --destructive: 0 84% 40%;
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 75%;
-  --ring: 210 85% 45%;
-  --chart-1: 210 85% 35%;
+  --ring: 149 41% 31%;
+  --chart-1: 149 41% 31%;
   --chart-2: 180 70% 35%;
   --chart-3: 30 80% 40%;
   --chart-4: 280 65% 40%;
   --chart-5: 150 60% 35%;
-  --font-sans: Open Sans, sans-serif;
-  --font-serif: Georgia, serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --font-serif: var(--font-sans);
   --font-mono: Menlo, monospace;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
@@ -94,7 +111,7 @@
 
      Quatre tons suffisent à couvrir les quatre familles de statuts du
      produit : validation d'un bien, disponibilité, visite, demande. */
-  --statut-favorable: 152 62% 30%;
+  --statut-favorable: 154 44% 29%;
   --statut-favorable-fond: 152 45% 95%;
   --statut-attente: 42 95% 30%;
   --statut-attente-fond: 42 90% 95%;
@@ -136,27 +153,28 @@
   --sidebar: 0 0% 12%;
   --sidebar-foreground: 0 0% 95%;
   --sidebar-border: 0 0% 16%;
-  --sidebar-primary: 210 85% 50%;
+  --sidebar-primary: 148 38% 59%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 210 12% 18%;
+  --sidebar-accent: 149 12% 18%;
   --sidebar-accent-foreground: 0 0% 85%;
-  --sidebar-ring: 210 85% 50%;
+  --sidebar-ring: 148 38% 59%;
   --popover: 0 0% 14%;
   --popover-foreground: 0 0% 95%;
   --popover-border: 0 0% 18%;
-  --primary: 210 85% 45%;
-  --primary-foreground: 0 0% 98%;
+  --primary: 148 38% 59%;
+  /* Texte foncé sur le vert clair du mode sombre : 7,8:1. */
+  --primary-foreground: 150 35% 9%;
   --secondary: 0 0% 16%;
   --secondary-foreground: 0 0% 95%;
   --muted: 0 0% 15%;
   --muted-foreground: 0 0% 60%;
-  --accent: 210 8% 16%;
+  --accent: 149 8% 16%;
   --accent-foreground: 0 0% 95%;
   --destructive: 0 84% 35%;
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 30%;
-  --ring: 210 85% 50%;
-  --chart-1: 210 85% 65%;
+  --ring: 148 38% 59%;
+  --chart-1: 148 38% 59%;
   --chart-2: 180 70% 65%;
   --chart-3: 30 80% 60%;
   --chart-4: 280 65% 65%;

@@ -105,8 +105,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "var(--font-sans)", "system-ui", "sans-serif"],
-        serif: ["Playfair Display", "var(--font-serif)", "Georgia", "serif"],
+        // Police du système : rien à télécharger, et Roboto sur Android.
+        sans: ["var(--font-sans)"],
+        serif: ["var(--font-sans)"],
         mono: ["var(--font-mono)", "monospace"],
       },
       keyframes: {
