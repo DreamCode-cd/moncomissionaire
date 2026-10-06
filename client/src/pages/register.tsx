@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useSearch } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Briefcase, Eye, EyeOff, House, Search, UserPlus } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,82 +11,182 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 import { registerSchema, type RegisterInput } from '@shared/schema';
+
+type Role = RegisterInput['user_type'];
+
+/**
+ * Le rôle vient en premier : c'est lui qui dit à quoi servira le compte. Il
+ * était au milieu du formulaire, dans une liste dont le libellé était coupé
+ * sur téléphone (« Commissionnaire - Des bailleurs me… »).
+ */
+const ROLES: { valeur: Role; titre: string; detail: string; icone: typeof House }[] = [
+  {
+    valeur: 'client',
+    titre: 'Je cherche un logement',
+    detail: 'Trouver une maison et demander une visite.',
+    icone: Search,
+  },
+  {
+    valeur: 'commissionnaire',
+    titre: 'Je suis commissionnaire',
+    detail: 'Des bailleurs me confient leurs maisons ; je trouve les locataires.',
+    icone: Briefcase,
+  },
+  {
+    valeur: 'proprietaire',
+    titre: 'Je suis propriétaire',
+    detail: 'Je publie moi-même la maison que je mets en location.',
+    icone: House,
+  },
+];
+
+const CHAMPS_DU_FORMULAIRE: (keyof RegisterInput)[] = [
+  'user_type',
+  'first_name',
+  'last_name',
+  'phone',
+  'email',
+  'username',
+  'password',
+  'password2',
+  'terms_accepted',
+];
+
+/**
+ * Le serveur répond {"password": ["Ce mot de passe est trop courant."]} : ces
+ * messages s'affichaient en JSON brut dans une bulle. On les remet sous le
+ * champ concerné ; ce qui ne correspond à aucun champ est renvoyé tel quel.
+ */
+function repartirErreurs(
+  erreur: unknown,
+  poser: (champ: keyof RegisterInput, message: string) => void,
+): string | null {
+  const brut = erreur instanceof Error ? erreur.message : '';
+  let donnees: unknown;
+  try {
+    donnees = JSON.parse(brut);
+  } catch {
+    return brut || 'Une erreur est survenue';
+  }
+  // Une phrase seule ou une liste de phrases : rien à placer sous un champ.
+  if (typeof donnees === 'string') return donnees;
+  if (Array.isArray(donnees)) return donnees.join(' ');
+  if (!donnees || typeof donnees !== 'object') return 'Une erreur est survenue';
+
+  const restes: string[] = [];
+  for (const [champ, messages] of Object.entries(donnees as Record<string, unknown>)) {
+    const message = Array.isArray(messages) ? messages.join(' ') : String(messages);
+    if ((CHAMPS_DU_FORMULAIRE as string[]).includes(champ)) {
+      poser(champ as keyof RegisterInput, message);
+    } else {
+      restes.push(message);
+    }
+  }
+  return restes.length ? restes.join(' ') : null;
+}
 
 export default function Register() {
   const [, setLocation] = useLocation();
   const searchParams = useSearch();
-  const [showPassword, setShowPassword] = useState(false);
+  const [motDePasseVisible, setMotDePasseVisible] = useState(false);
   const { register } = useAuth();
   const { toast } = useToast();
 
   const roleDemande = new URLSearchParams(searchParams).get('role');
-  const defaultRole: 'client' | 'proprietaire' | 'commissionnaire' =
+  const roleParDefaut: Role =
     roleDemande === 'proprietaire' || roleDemande === 'commissionnaire' ? roleDemande : 'client';
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: '',
-      email: '',
-      password: '',
-      password2: '',
+      user_type: roleParDefaut,
       first_name: '',
       last_name: '',
       phone: '',
-      address: '',
-      user_type: defaultRole,
+      email: '',
+      username: '',
+      password: '',
+      password2: '',
       terms_accepted: false,
     },
   });
+  const role = form.watch('user_type');
 
   const onSubmit = async (data: RegisterInput) => {
     try {
       await register(data);
-      toast({
-        title: 'Inscription réussie',
-        description: 'Bienvenue sur VillaGo !',
-      });
+      toast({ title: 'Compte créé', description: 'Bienvenue sur VillaGo.' });
       // Le commissionnaire vient pour travailler : droit à son portefeuille.
       setLocation(data.user_type === 'commissionnaire' ? '/dashboard' : '/');
-    } catch (error) {
-      toast({
-        title: 'Erreur d\'inscription',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
-        variant: 'destructive',
-      });
+    } catch (erreur) {
+      const reste = repartirErreurs(erreur, (champ, message) => form.setError(champ, { message }));
+      if (reste) {
+        toast({ title: 'Inscription impossible', description: reste, variant: 'destructive' });
+      }
     }
   };
 
   return (
     <Layout hideNav>
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-8">
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 py-8">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <img src="/logo.png" alt="VillaGo" className="w-12 h-12 rounded-xl mx-auto mb-4 object-cover" />
+            <img src="/logo.png" alt="" className="mx-auto mb-4 h-12 w-12 rounded-xl object-cover" />
             <CardTitle className="text-2xl">Créer un compte</CardTitle>
-            <CardDescription>
-              Inscrivez-vous pour accéder à toutes les fonctionnalités
-            </CardDescription>
+            <CardDescription>Quelques informations, et vous pourrez commencer.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
+                <FormField
+                  control={form.control}
+                  name="user_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vous êtes…</FormLabel>
+                      <div role="radiogroup" className="grid gap-2">
+                        {ROLES.map(({ valeur, titre, detail, icone: Icone }) => {
+                          const choisi = field.value === valeur;
+                          return (
+                            <button
+                              key={valeur}
+                              type="button"
+                              role="radio"
+                              aria-checked={choisi}
+                              onClick={() => field.onChange(valeur)}
+                              className={cn(
+                                'flex min-h-[44px] items-start gap-3 rounded-lg border p-3 text-left transition-colors',
+                                choisi
+                                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                  : 'border-border bg-background hover:bg-muted/50',
+                              )}
+                              data-testid={`role-${valeur}`}
+                            >
+                              <Icone className={cn('mt-0.5 h-5 w-5 shrink-0', choisi ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
+                              <span>
+                                <span className="block font-medium text-foreground">{titre}</span>
+                                <span className="block text-sm text-muted-foreground">{detail}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="first_name"
@@ -94,7 +194,7 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>Prénom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Jean" {...field} data-testid="input-firstname" />
+                          <Input placeholder="Grâce" autoComplete="given-name" {...field} data-testid="input-firstname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -107,7 +207,7 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>Nom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Dupont" {...field} data-testid="input-lastname" />
+                          <Input placeholder="Mbuyi" autoComplete="family-name" {...field} data-testid="input-lastname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -117,13 +217,27 @@ export default function Register() {
 
                 <FormField
                   control={form.control}
-                  name="username"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom d'utilisateur</FormLabel>
+                      <FormLabel>Téléphone</FormLabel>
                       <FormControl>
-                        <Input placeholder="jeandupont" {...field} data-testid="input-username" />
+                        <Input
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
+                          placeholder="+243 99 123 4567"
+                          {...field}
+                          data-testid="input-phone"
+                        />
                       </FormControl>
+                      <FormDescription>
+                        {role === 'commissionnaire'
+                          ? 'C’est par ce numéro que bailleurs et clients vous joindront.'
+                          : role === 'client'
+                            ? 'Communiqué au commissionnaire seulement quand il accepte votre demande de visite.'
+                            : 'Pour que l’équipe VillaGo puisse vous joindre au sujet de vos annonces.'}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -134,12 +248,14 @@ export default function Register() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="email" 
-                          placeholder="jean@example.com" 
-                          {...field} 
+                        <Input
+                          type="email"
+                          inputMode="email"
+                          autoComplete="email"
+                          placeholder="grace.mbuyi@exemple.cd"
+                          {...field}
                           data-testid="input-email"
                         />
                       </FormControl>
@@ -150,59 +266,20 @@ export default function Register() {
 
                 <FormField
                   control={form.control}
-                  name="phone"
+                  name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
+                      <FormLabel>Nom d’utilisateur</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="tel" 
-                          placeholder="+243 812 345 678" 
-                          {...field} 
-                          data-testid="input-phone"
+                        <Input
+                          autoCapitalize="none"
+                          autoComplete="username"
+                          placeholder="grace.mbuyi"
+                          {...field}
+                          data-testid="input-username"
                         />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Adresse</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Dakar, Sénégal" 
-                          {...field} 
-                          data-testid="input-address"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="user_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Je suis</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-user-type">
-                            <SelectValue placeholder="Sélectionnez votre rôle" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="client">Locataire - Je cherche un bien</SelectItem>
-                          <SelectItem value="proprietaire">Propriétaire - J'ai des biens à louer</SelectItem>
-                          <SelectItem value="commissionnaire">Commissionnaire - Des bailleurs me confient leurs maisons</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormDescription>Pour vous connecter, avec votre e-mail. 5 caractères au moins.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -214,25 +291,30 @@ export default function Register() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mot de passe</FormLabel>
-                      <FormControl>
-                        <div className="relative">
+                      <div className="relative">
+                        <FormControl>
                           <Input
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="Minimum 6 caractères"
+                            type={motDePasseVisible ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            className="pr-12"
                             {...field}
                             data-testid="input-password"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-0 top-0"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </FormControl>
+                        </FormControl>
+                        {/* Un simple <button> : le composant Button porte la classe
+                            hover-elevate, qui impose une position relative et
+                            renvoyait l'œil sous le champ au lieu de dedans. */}
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
+                          onClick={() => setMotDePasseVisible((v) => !v)}
+                          aria-label={motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          data-testid="bouton-voir-mot-de-passe"
+                        >
+                          {motDePasseVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <FormDescription>8 caractères au moins, pas uniquement des chiffres.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -243,11 +325,11 @@ export default function Register() {
                   name="password2"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirmer le mot de passe</FormLabel>
+                      <FormLabel>Confirmez le mot de passe</FormLabel>
                       <FormControl>
                         <Input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Répétez le mot de passe"
+                          type={motDePasseVisible ? 'text' : 'password'}
+                          autoComplete="new-password"
                           {...field}
                           data-testid="input-password2"
                         />
@@ -261,21 +343,17 @@ export default function Register() {
                   control={form.control}
                   name="terms_accepted"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2">
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-1">
                       <FormControl>
-                        <Checkbox 
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-accept-terms"
-                        />
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} data-testid="checkbox-accept-terms" />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-normal leading-relaxed cursor-pointer">
-                          J'accepte les{' '}
+                        <FormLabel className="cursor-pointer text-sm font-normal leading-relaxed">
+                          J’accepte les{' '}
                           <Link href="/legal/terms">
-                            <span className="text-primary hover:underline">conditions d'utilisation</span>
-                          </Link>
-                          {' '}et la{' '}
+                            <span className="text-primary hover:underline">conditions d’utilisation</span>
+                          </Link>{' '}
+                          et la{' '}
                           <Link href="/legal/privacy">
                             <span className="text-primary hover:underline">politique de confidentialité</span>
                           </Link>
@@ -286,18 +364,18 @@ export default function Register() {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={form.formState.isSubmitting || !form.watch('terms_accepted')}
+                <Button
+                  type="submit"
+                  className="h-11 w-full"
+                  disabled={form.formState.isSubmitting}
                   data-testid="button-submit-register"
                 >
                   {form.formState.isSubmitting ? (
-                    'Inscription...'
+                    'Création du compte…'
                   ) : (
                     <>
                       <UserPlus className="mr-2 h-4 w-4" />
-                      S'inscrire
+                      Créer mon compte
                     </>
                   )}
                 </Button>
@@ -307,7 +385,7 @@ export default function Register() {
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Déjà un compte ? </span>
               <Link href="/login">
-                <span className="text-primary font-medium cursor-pointer" data-testid="link-login">
+                <span className="cursor-pointer font-medium text-primary" data-testid="link-login">
                   Se connecter
                 </span>
               </Link>

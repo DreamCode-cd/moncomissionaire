@@ -139,29 +139,29 @@ export default function Login() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mot de passe</FormLabel>
-                      <FormControl>
-                        <div className="relative">
+                      <div className="relative">
+                        <FormControl>
                           <Input
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Votre mot de passe"
+                            autoComplete="current-password"
+                            className="pr-12"
                             {...field}
                             data-testid="input-password"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-0 top-0"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
+                        </FormControl>
+                        {/* Un simple <button> : Button porte hover-elevate, qui
+                            impose une position relative et renvoyait l'œil
+                            sous le champ. */}
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
