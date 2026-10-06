@@ -6,22 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/ui/lazy-image';
 import type { BienList } from '@shared/schema';
 import { cn, getDjangoImageUrl, getVilleName } from '@/lib/utils';
-
-import villaImage from '@assets/images/luxury_villa_hero_image.png';
 import { formaterPrix } from '@/lib/prix';
-const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
-const studioImage = "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&q=80";
-const houseImage = "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80";
-const duplexImage = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80";
-
-const defaultImages: Record<string, string> = {
-  villa: villaImage,
-  appartement: apartmentImage,
-  studio: studioImage,
-  maison: houseImage,
-  duplex: duplexImage,
-  terrain: houseImage,
-};
+import { formaterSurface, lieuAnnonce } from '@/lib/annonce';
+import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 
 interface PropertyCardProps {
   property: BienList;
@@ -31,8 +18,12 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, variant = 'default', rating }: PropertyCardProps) {
   const photoUrl = getDjangoImageUrl(property.photo_principale?.image);
-  const imageUrl = photoUrl || defaultImages[property.type_bien] || houseImage;
-  
+  const surface = formaterSurface(property.superficie);
+  const lieu = lieuAnnonce([
+    property.quartier,
+    property.commune,
+    getVilleName(property.ville, property.ville_nom, property.ville_detail),
+  ]);
 
   if (variant === 'horizontal') {
     return (
@@ -43,11 +34,11 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
         >
           <div className="flex h-24">
             <div className="relative w-28 h-full flex-shrink-0">
-              <LazyImage
-                src={imageUrl}
-                alt={property.titre}
-                className="w-full h-full"
-              />
+              {photoUrl ? (
+                <LazyImage src={photoUrl} alt={property.titre} className="w-full h-full" />
+              ) : (
+                <VignetteSansPhoto compacte />
+              )}
             </div>
             <CardContent className="flex-1 p-2 min-w-0">
               <div className="flex flex-col h-full justify-between">
@@ -68,7 +59,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                   </div>
                   <div className="flex items-center text-muted-foreground text-xs mb-1">
                     <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="line-clamp-1">{property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
+                    <span className="line-clamp-1">{lieu}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -84,10 +75,12 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                       {property.nombre_salles_bain}
                     </span>
                   )}
-                  <span className="flex items-center gap-0.5">
-                    <Maximize className="w-3 h-3" />
-                    {property.superficie}m²
-                  </span>
+                  {surface && (
+                    <span className="flex items-center gap-0.5">
+                      <Maximize className="w-3 h-3" />
+                      {surface}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-sm">
@@ -116,12 +109,18 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
         data-testid={`card-property-${property.id}`}
       >
         <div className="relative aspect-square">
-          <LazyImage
-            src={imageUrl}
-            alt={property.titre}
-            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+          {photoUrl ? (
+            <>
+              <LazyImage
+                src={photoUrl}
+                alt={property.titre}
+                className="w-full h-full transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+            </>
+          ) : (
+            <VignetteSansPhoto />
+          )}
           <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-1">
             <BadgeStatut
               famille="location"
@@ -138,7 +137,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
           <h3 className="font-semibold text-xs line-clamp-1 mb-1">{property.titre}</h3>
           <div className="flex items-center text-muted-foreground text-xs mb-2">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="line-clamp-1">{property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}</span>
+            <span className="line-clamp-1">{lieu}</span>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
             {property.nombre_chambres > 0 && (
@@ -155,11 +154,12 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                 <span className="hidden md:inline">{property.nombre_salles_bain} sdb.</span>
               </span>
             )}
-            <span className="flex items-center gap-1">
-              <Maximize className="w-3 h-3" />
-              <span className="md:hidden">{property.superficie}</span>
-              <span className="hidden md:inline">{property.superficie}m²</span>
-            </span>
+            {surface && (
+              <span className="flex items-center gap-1">
+                <Maximize className="w-3 h-3" />
+                {surface}
+              </span>
+            )}
           </div>
           <div className="flex items-center justify-between gap-2">
             <span className="font-bold text-base">

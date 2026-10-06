@@ -140,7 +140,7 @@ export function Header() {
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer" data-testid="link-home">
                 <img src="/logo.png" alt="VillaGo" className="w-8 h-8 rounded-lg object-cover" />
-                <span className="font-serif font-bold text-xl hidden sm:inline">VillaGo</span>
+                <span className="font-bold text-xl tracking-tight hidden sm:inline">VillaGo</span>
               </div>
             </Link>
 

@@ -42,22 +42,11 @@ import type { BienDetail, BienList, AvisBien, PaginatedResponse } from '@shared/
 import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
-import { formaterPrix } from '@/lib/prix';
-import { auteurAnnonce, initiale, libelleGarantie } from '@/lib/annonce';
+import { formaterLoyer, formaterPrix } from '@/lib/prix';
+import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, lieuAnnonce } from '@/lib/annonce';
+import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 
-const villaImage = "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80";
-const apartmentImage = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80";
-const studioImage = "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&q=80";
-const houseImage = "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80";
-
-
-const defaultImages: Record<string, string> = {
-  villa: villaImage,
-  appartement: apartmentImage,
-  studio: studioImage,
-  maison: houseImage,
-  terrain: houseImage,
-};
+// Plus de photo d'illustration à la place d'une vraie : voir VignetteSansPhoto.
 
 const amenities = [
   { key: 'parking', icon: Car, label: 'Parking' },
@@ -231,14 +220,16 @@ export default function PropertyDetail() {
     const mainPhoto = property.photos?.find(p => p.is_principale) || property.photos?.[0] || property.photo_principale;
     const imageUrl = mainPhoto?.image || '';
     const propertyType = property.type_bien_display || property.type_bien || 'Propriété';
-    const locationParts = [property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)].filter(Boolean);
-    const location = locationParts.join(', ') || 'Non spécifié';
-    const priceNum = property.prix_mensuel ? parseFloat(property.prix_mensuel) : NaN;
-    const price = !isNaN(priceNum) ? `${priceNum.toLocaleString('fr-FR')} USD/mois` : '';
+    const location = lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]) || 'Non spécifié';
+    // La devise de l'annonce, pas le dollar d'office : une annonce en francs
+    // se partageait comme « 450 000 USD/mois ».
+    const prixFormate = formaterLoyer(property.prix_mensuel, property.devise);
+    const price = prixFormate === '—' ? '' : prixFormate;
     const descParts = [`${propertyType} à louer à ${location}`];
     if (price) descParts.push(price);
     if (property.nombre_chambres) descParts.push(`${property.nombre_chambres} chambre(s)`);
-    if (property.superficie) descParts.push(`${property.superficie} m²`);
+    const surfaceMeta = formaterSurface(property.superficie);
+    if (surfaceMeta) descParts.push(surfaceMeta);
     const description = descParts.join(' - ') + '.';
     
     const previousTitle = document.title;
@@ -339,10 +330,9 @@ export default function PropertyDetail() {
     if (!property) return;
     
     const propertyType = property.type_bien_display || property.type_bien || 'Propriété';
-    const locationParts = [property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)].filter(Boolean);
-    const location = locationParts.join(', ') || 'Non spécifié';
-    const priceNum = property.prix_mensuel ? parseFloat(property.prix_mensuel) : NaN;
-    const priceText = !isNaN(priceNum) ? ` - ${priceNum.toLocaleString('fr-FR')} USD/mois` : '';
+    const location = lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]) || 'Non spécifié';
+    const loyerPartage = formaterLoyer(property.prix_mensuel, property.devise);
+    const priceText = loyerPartage === '—' ? '' : ` - ${loyerPartage}`;
     
     const shareText = `${propertyType} à louer à ${location}${priceText}. Découvrez cette propriété sur VillaGo !`;
     
@@ -473,10 +463,11 @@ export default function PropertyDetail() {
     );
   }
 
-  const mainImage = getDjangoImageUrl(property.photo_principale?.image) || 
-    getDjangoImageUrl(property.photos?.[0]?.image) || 
-    defaultImages[property.type_bien] || 
-    houseImage;
+  const mainImage =
+    getDjangoImageUrl(property.photo_principale?.image) ||
+    getDjangoImageUrl(property.photos?.[0]?.image) ||
+    null;
+  const surface = formaterSurface(property.superficie);
 
   const availableAmenities = amenities.filter(
     a => property[a.key as keyof BienDetail]
@@ -525,18 +516,26 @@ export default function PropertyDetail() {
         </div>
 
         <div 
-          className="relative aspect-[4/3] md:aspect-[16/9] cursor-pointer group"
-          onClick={() => openGalleryAt(0)}
+          // Sans photo, un bandeau suffit : un grand bloc gris repoussait le
+          // loyer et les informations utiles sous la ligne de flottaison.
+          className={`relative group ${mainImage ? 'aspect-[4/3] md:aspect-[16/9] cursor-pointer' : 'h-36 md:h-44'}`}
+          onClick={() => mainImage && openGalleryAt(0)}
           data-testid="container-main-image"
         >
-          <img
-            src={mainImage}
-            alt={property.titre}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            loading="eager"
-            decoding="async"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none" />
+          {mainImage ? (
+            <>
+              <img
+                src={mainImage}
+                alt={property.titre}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                loading="eager"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none" />
+            </>
+          ) : (
+            <VignetteSansPhoto />
+          )}
           
           <div className="absolute top-4 left-4 flex flex-wrap gap-2 pointer-events-none">
             <Badge 
@@ -630,7 +629,7 @@ export default function PropertyDetail() {
                 <div className="flex items-center text-muted-foreground">
                   <MapPin className="w-4 h-4 mr-1" />
                   <span data-testid="text-property-location">
-                    {property.quartier}, {property.commune || getVilleName(property.ville, property.ville_nom, property.ville_detail)}
+                    {lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)])}
                   </span>
                 </div>
               </div>
@@ -676,8 +675,8 @@ export default function PropertyDetail() {
             <Card>
               <CardContent className="p-4 flex flex-col items-center">
                 <Maximize className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.superficie ?? '—'}</span>
-                <span className="text-xs text-muted-foreground">{property.superficie ? 'm²' : 'Surface non précisée'}</span>
+                <span className="text-xl font-bold">{surface ?? '—'}</span>
+                <span className="text-xs text-muted-foreground">{surface ? 'Surface' : 'Surface non précisée'}</span>
               </CardContent>
             </Card>
           </div>
@@ -772,9 +771,7 @@ export default function PropertyDetail() {
             <div className="flex items-center gap-2 mb-3 text-muted-foreground">
               <MapPin className="w-4 h-4" />
               <span>
-                {[property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]
-                  .filter(Boolean)
-                  .join(', ')}
+                {lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)])}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -1018,19 +1015,19 @@ export default function PropertyDetail() {
                 <h2 className="text-lg font-semibold mb-4">Biens similaires</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {suggestions.results.slice(0, 4).map((bien) => {
-                    const image = getDjangoImageUrl(bien.photo_principale?.image) || 
-                      defaultImages[bien.type_bien] || houseImage;
+                    const image = getDjangoImageUrl(bien.photo_principale?.image);
                     return (
                       <Link key={bien.id} href={`/property/${bien.id}`}>
                         <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                           <div className="aspect-video relative">
-                            <LazyImage 
-                              src={image} 
-                              alt={bien.titre}
-                              className="w-full h-full"
-                            />
-                            <Badge 
-                              className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm text-xs"
+                            {image ? (
+                              <LazyImage src={image} alt={bien.titre} className="w-full h-full" />
+                            ) : (
+                              <VignetteSansPhoto compacte />
+                            )}
+                            <Badge
+                              variant="secondary"
+                              className="absolute top-2 left-2 bg-background/90 text-foreground backdrop-blur-sm text-xs"
                             >
                               {bien.type_bien_display}
                             </Badge>
@@ -1039,14 +1036,10 @@ export default function PropertyDetail() {
                             <h3 className="font-medium text-sm line-clamp-1">{bien.titre}</h3>
                             <div className="flex items-center text-muted-foreground text-xs mt-1">
                               <MapPin className="w-3 h-3 mr-1" />
-                              <span className="line-clamp-1">{bien.quartier}, {getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)}</span>
+                              <span className="line-clamp-1">{lieuAnnonce([bien.quartier, bien.commune, getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)])}</span>
                             </div>
                             <p className="text-primary font-semibold text-sm mt-2">
-                              {new Intl.NumberFormat('fr-FR', {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 0,
-                              }).format(parseFloat(bien.prix_mensuel))}/mois
+                              {formaterLoyer(bien.prix_mensuel, bien.devise)}
                             </p>
                           </CardContent>
                         </Card>
@@ -1184,7 +1177,7 @@ export default function PropertyDetail() {
                             contentClass="flex items-center justify-center"
                           >
                             <img
-                              src={getDjangoImageUrl(photo.image) || mainImage}
+                              src={getDjangoImageUrl(photo.image) || mainImage || ''}
                               alt={`Photo ${index + 1}`}
                               className="max-w-[90vw] max-h-[calc(90vh-140px)] object-contain select-none mx-auto"
                               draggable={false}
@@ -1211,7 +1204,7 @@ export default function PropertyDetail() {
                           contentClass="flex items-center justify-center"
                         >
                           <img
-                            src={mainImage}
+                            src={mainImage || ''}
                             alt="Photo principale"
                             className="max-w-[90vw] max-h-[calc(90vh-140px)] object-contain select-none mx-auto"
                             draggable={false}
@@ -1266,7 +1259,7 @@ export default function PropertyDetail() {
                       data-testid={`button-gallery-thumb-${index}`}
                     >
                       <img
-                        src={getDjangoImageUrl(photo.image) || defaultImages[property.type_bien] || houseImage}
+                        src={getDjangoImageUrl(photo.image) || ''}
                         alt={`Miniature ${index + 1}`}
                         className="w-full h-full object-cover"
                       />

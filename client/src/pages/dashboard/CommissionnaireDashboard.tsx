@@ -43,6 +43,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { formaterLoyer } from '@/lib/prix';
+import { lieuAnnonce } from '@/lib/annonce';
 import { formaterDateCourte } from '@/lib/dates';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import type {
@@ -225,9 +226,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
               </div>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
-                {[bien.quartier, bien.commune, getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)]
-                  .filter(Boolean)
-                  .join(', ')}
+                {lieuAnnonce([bien.quartier, bien.commune, getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)])}
               </p>
               <p className="text-sm font-semibold text-primary">
                 {formaterLoyer(bien.prix_mensuel, bien.devise)}

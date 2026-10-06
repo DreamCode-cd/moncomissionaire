@@ -2,7 +2,7 @@ import { EtatVide } from '@/components/etats';
 import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, MapPin, Search } from 'lucide-react';
+import { ChevronRight, Droplets, MapPin, Search, ShieldCheck, Wallet } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
@@ -13,7 +13,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getVilleName } from '@/lib/utils';
 import type { BienList, PaginatedResponse, AvisBien } from '@shared/schema';
 
-import heroImage from '@assets/images/luxury_villa_hero_image.png';
 
 export default function House() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,45 +87,64 @@ export default function House() {
 
   return (
     <Layout>
-      <section className="relative min-h-[400px] md:min-h-[500px] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20" />
-        
-        <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
-          <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6">
-            Trouvez votre maison idéale
-          </h1>
-          <p className="text-white/90 text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto">
-            Découvrez des milliers de propriétés à louer dans les meilleures villes du pays
+      {/* Pas de photo d'accueil tant qu'on n'a pas de vraies photos de
+          Lubumbashi : la précédente montrait une villa face à la mer, dans
+          une ville qui n'en a pas. Le premier écran doit dire où l'on est. */}
+      <section className="border-b border-border bg-card px-4 py-10 md:py-16">
+        <div className="mx-auto max-w-3xl">
+          <p className="mb-3 flex items-center gap-1.5 text-sm font-medium text-primary">
+            <MapPin className="h-4 w-4" aria-hidden /> Lubumbashi
           </p>
-          
-          <div className="bg-white/10 backdrop-blur-md rounded-lg p-2 md:p-3 max-w-xl mx-auto">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
-                <Input
-                  type="text"
-                  placeholder="Ville, quartier ou type de bien..."
-                  className="pl-10 h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:bg-white/30"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  data-testid="input-hero-search"
-                />
-              </div>
-              <Button 
-                size="lg" 
-                onClick={handleSearch}
-                className="h-12"
-                data-testid="button-hero-search"
-              >
-                Rechercher
-              </Button>
+          <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground md:text-5xl">
+            Trouvez une maison à louer, et sachez à quoi vous attendre avant de vous déplacer.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base text-muted-foreground md:text-lg">
+            Les annonces sont publiées par des commissionnaires et des propriétaires de la ville.
+            Chacune dit le loyer, la garantie, l’eau et le courant.
+          </p>
+
+          <div className="mt-6 flex max-w-xl gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Input
+                type="text"
+                placeholder="Quartier, commune ou type de bien…"
+                className="h-12 pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                data-testid="input-hero-search"
+              />
             </div>
+            <Button size="lg" onClick={handleSearch} className="h-12" data-testid="button-hero-search">
+              Rechercher
+            </Button>
           </div>
+
+          {/* Le vrai nombre, lu depuis l'API — l'ancien texte promettait « des
+              milliers de propriétés » quand il y en avait quatre. */}
+          {!isLoading && allProperties ? (
+            <p className="mt-3 text-sm text-muted-foreground" data-testid="text-nombre-annonces">
+              {allProperties.count === 0
+                ? 'Les premières annonces arrivent.'
+                : `${allProperties.count} annonce${allProperties.count > 1 ? 's' : ''} disponible${allProperties.count > 1 ? 's' : ''} aujourd’hui.`}
+            </p>
+          ) : null}
+
+          <ul className="mt-8 grid gap-3 text-sm sm:grid-cols-3">
+            <li className="flex items-start gap-2">
+              <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <span>Loyer et garantie affichés, trois mois au plus comme le veut la loi.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <span>L’eau et le courant dits clairement : REGIDESO, forage, délestages.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <span>Un badge signale les commissionnaires dont l’équipe VillaGo a vérifié l’identité.</span>
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -179,7 +197,9 @@ export default function House() {
       <section className="py-8 md:py-12 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl md:text-2xl font-bold">Biens en vedette</h2>
+            {/* Ce n'est pas une sélection éditoriale : un tri sur le nombre de
+                pièces et la surface. Le titre dit ce qu'il fait. */}
+            <h2 className="text-xl md:text-2xl font-bold">Les annonces les plus détaillées</h2>
             <Link href="/search">
               <Button variant="ghost" className="gap-1" data-testid="link-view-all">
                 Voir tout
@@ -216,23 +236,32 @@ export default function House() {
       </section>
 
       {!isAuthenticated && (
-        <section className="py-12 md:py-20 px-4 bg-primary text-primary-foreground">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-serif text-2xl md:text-4xl font-bold mb-4">
-              Vous êtes propriétaire ?
-            </h2>
-            <p className="text-primary-foreground/90 mb-8 max-w-xl mx-auto">
-              Publiez votre bien gratuitement et trouvez des locataires qualifiés rapidement.
-            </p>
-            <Link href="/register?role=proprietaire">
-              <Button 
-                variant="secondary" 
-                size="lg"
-                data-testid="button-become-owner"
-              >
-                Devenir propriétaire
-              </Button>
-            </Link>
+        <section className="bg-muted/40 px-4 py-12 md:py-16">
+          {/* La plateforme repose sur les commissionnaires : l'ancien appel ne
+              s'adressait qu'aux propriétaires. */}
+          <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2">
+            <div className="rounded-lg border border-border bg-card p-6">
+              <h2 className="text-xl font-bold">Vous êtes commissionnaire ?</h2>
+              <p className="mt-2 text-muted-foreground">
+                Gérez vos maisons, vos bailleurs et vos visites depuis votre téléphone. Votre carnet reste à vous : aucun confrère ne le voit.
+              </p>
+              <Link href="/register?role=commissionnaire">
+                <Button className="mt-5" data-testid="button-devenir-commissionnaire">
+                  Créer mon compte commissionnaire
+                </Button>
+              </Link>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-6">
+              <h2 className="text-xl font-bold">Vous êtes propriétaire ?</h2>
+              <p className="mt-2 text-muted-foreground">
+                Publiez votre bien vous-même. Les demandes de visite sont suivies par l’équipe VillaGo.
+              </p>
+              <Link href="/register?role=proprietaire">
+                <Button variant="outline" className="mt-5" data-testid="button-become-owner">
+                  Publier mon bien
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       )}

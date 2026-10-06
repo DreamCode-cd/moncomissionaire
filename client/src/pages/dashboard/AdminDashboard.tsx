@@ -19,6 +19,7 @@ import {
 import { useState } from 'react';
 
 import { Layout } from '@/components/layout/Layout';
+import { PagesLegales } from '@/components/admin/PagesLegales';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { EtatChargement, EtatErreur, EtatVide } from '@/components/etats';
 import { Badge } from '@/components/ui/badge';
@@ -147,6 +148,7 @@ const FILTRES_JOURNAL = [
   { valeur: 'comptes', libelle: 'Activations et désactivations', actions: 'modification_profil' },
   { valeur: 'securite', libelle: 'Mots de passe refusés', actions: 'confirmation_refusee' },
   { valeur: 'villes', libelle: 'Villes et communes', actions: 'gestion_villes' },
+  { valeur: 'pages', libelle: 'Pages légales', actions: 'gestion_pages' },
 ];
 
 function invaliderAdministration() {
@@ -177,10 +179,11 @@ export default function AdminDashboard() {
         <h1 className="text-xl font-semibold text-foreground md:text-2xl">Administration</h1>
 
         <Tabs value={onglet} onValueChange={setOnglet} className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="apercu" data-testid="onglet-apercu">À traiter</TabsTrigger>
             <TabsTrigger value="comptes" data-testid="onglet-comptes">Comptes</TabsTrigger>
             <TabsTrigger value="villes" data-testid="onglet-villes">Villes</TabsTrigger>
+            <TabsTrigger value="pages" data-testid="onglet-pages">Pages</TabsTrigger>
             <TabsTrigger value="journal" data-testid="onglet-journal">Journal</TabsTrigger>
           </TabsList>
 
@@ -199,6 +202,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="villes" className="mt-4">
             <GestionDesVilles />
+          </TabsContent>
+
+          <TabsContent value="pages" className="mt-4">
+            <PagesLegales />
           </TabsContent>
 
           <TabsContent value="journal" className="mt-4">
