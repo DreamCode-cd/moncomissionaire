@@ -181,11 +181,78 @@
             },
             "parameters": []
         },
+        "/administration/journal/": {
+            "get": {
+                "operationId": "administration_journal_list",
+                "summary": "Le journal d'activité, lisible depuis l'espace d'administration.",
+                "description": "Il était réservé aux comptes `is_staff` de Django, que les\nadministrateurs de la plateforme n'ont pas : à trois, chacun doit pouvoir\nretrouver qui a validé, désactivé ou nommé qui.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/ActivityLog"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": []
+        },
         "/administration/utilisateurs/": {
             "get": {
                 "operationId": "administration_utilisateurs_list",
-                "summary": "Consultation et activation des comptes.",
-                "description": "En lecture seule par construction : les modifications passent par des\nactions nommées, qui journalisent. Un PATCH générique ouvrirait la porte\nà des changements de champ non tracés.",
+                "summary": "Consultation, création et gestion des comptes.",
+                "description": "Pas de PATCH générique : les modifications passent par des actions\nnommées, qui journalisent. Un PATCH ouvrirait la porte à des changements\nde champ non tracés. La création est réservée aux rôles d'équipe.",
                 "parameters": [
                     {
                         "name": "search",
@@ -246,13 +313,39 @@
                     "administration"
                 ]
             },
+            "post": {
+                "operationId": "administration_utilisateurs_create",
+                "summary": "Consultation, création et gestion des comptes.",
+                "description": "Pas de PATCH générique : les modifications passent par des actions\nnommées, qui journalisent. Un PATCH ouvrirait la porte à des changements\nde champ non tracés. La création est réservée aux rôles d'équipe.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CompteEquipe"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/CompteEquipe"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
             "parameters": []
         },
         "/administration/utilisateurs/{id}/": {
             "get": {
                 "operationId": "administration_utilisateurs_read",
-                "summary": "Consultation et activation des comptes.",
-                "description": "En lecture seule par construction : les modifications passent par des\nactions nommées, qui journalisent. Un PATCH générique ouvrirait la porte\nà des changements de champ non tracés.",
+                "summary": "Consultation, création et gestion des comptes.",
+                "description": "Pas de PATCH générique : les modifications passent par des actions\nnommées, qui journalisent. Un PATCH ouvrirait la porte à des changements\nde champ non tracés. La création est réservée aux rôles d'équipe.",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -278,8 +371,8 @@
         "/administration/utilisateurs/{id}/activer/": {
             "post": {
                 "operationId": "administration_utilisateurs_activer",
-                "summary": "Consultation et activation des comptes.",
-                "description": "En lecture seule par construction : les modifications passent par des\nactions nommées, qui journalisent. Un PATCH générique ouvrirait la porte\nà des changements de champ non tracés.",
+                "summary": "Consultation, création et gestion des comptes.",
+                "description": "Pas de PATCH générique : les modifications passent par des actions\nnommées, qui journalisent. Un PATCH ouvrirait la porte à des changements\nde champ non tracés. La création est réservée aux rôles d'équipe.",
                 "parameters": [
                     {
                         "name": "data",
@@ -295,6 +388,41 @@
                         "description": "",
                         "schema": {
                             "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/utilisateurs/{id}/changer-role/": {
+            "post": {
+                "operationId": "administration_utilisateurs_changer_role",
+                "description": "Change le rôle d'un compte. Mot de passe ressaisi obligatoire.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ChangementRole"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/ChangementRole"
                         }
                     }
                 },
@@ -341,6 +469,330 @@
             "parameters": [
                 {
                     "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/utilisateurs/{id}/retirer-verification/": {
+            "post": {
+                "operationId": "administration_utilisateurs_retirer_verification",
+                "summary": "Consultation, création et gestion des comptes.",
+                "description": "Pas de PATCH générique : les modifications passent par des actions\nnommées, qui journalisent. Un PATCH ouvrirait la porte à des changements\nde champ non tracés. La création est réservée aux rôles d'équipe.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/UtilisateurAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/utilisateurs/{id}/verifier-identite/": {
+            "post": {
+                "operationId": "administration_utilisateurs_verifier_identite",
+                "summary": "Consultation, création et gestion des comptes.",
+                "description": "Pas de PATCH générique : les modifications passent par des actions\nnommées, qui journalisent. Un PATCH ouvrirait la porte à des changements\nde champ non tracés. La création est réservée aux rôles d'équipe.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/VerificationIdentite"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/VerificationIdentite"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/villes/": {
+            "get": {
+                "operationId": "administration_villes_list",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/VilleAdministration"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "post": {
+                "operationId": "administration_villes_create",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/VilleAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/VilleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": []
+        },
+        "/administration/villes/{id}/": {
+            "get": {
+                "operationId": "administration_villes_read",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/VilleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "patch": {
+                "operationId": "administration_villes_partial_update",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/VilleAdministration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/VilleAdministration"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "delete": {
+                "operationId": "administration_villes_delete",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/villes/{id}/communes/": {
+            "post": {
+                "operationId": "administration_villes_communes",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/NomCommune"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/NomCommune"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/administration/villes/{id}/communes/{commune_id}/": {
+            "patch": {
+                "operationId": "administration_villes_communes_partial_update",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/NomCommune"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/NomCommune"
+                        }
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "delete": {
+                "operationId": "administration_villes_communes_delete",
+                "summary": "Les villes et leurs communes, gérées sans développeur.",
+                "description": "Ouvrir Likasi ou Kolwezi ne doit pas attendre une migration. Trois règles :\n\n- une ville ne se supprime pas, elle se **désactive** : on ne peut plus y\n  publier, mais les annonces existantes ne disparaissent pas ;\n- corriger le nom d'une commune corrige aussi les annonces qui le\n  portaient — sinon la recherche par commune les perdrait ;\n- retirer une commune de la liste ne touche pas aux annonces : elle cesse\n  seulement d'être proposée à la saisie.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "administration"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "commune_id",
                     "in": "path",
                     "required": true,
                     "type": "string"
@@ -2150,10 +2602,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -2163,206 +2611,12 @@
                 "description": "Le portefeuille du commissionnaire : les biens que des bailleurs lui\nont confiés. Il n'y voit que les siens, jamais ceux d'un confrère.",
                 "parameters": [
                     {
-                        "name": "titre",
-                        "in": "formData",
+                        "name": "data",
+                        "in": "body",
                         "required": true,
-                        "type": "string",
-                        "maxLength": 200,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "description",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "type_bien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "maison",
-                            "appartement",
-                            "studio",
-                            "villa",
-                            "duplex",
-                            "terrain"
-                        ]
-                    },
-                    {
-                        "name": "bailleur",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "devise",
-                        "in": "formData",
-                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "USD",
-                            "CDF"
-                        ]
-                    },
-                    {
-                        "name": "prix_mensuel",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "format": "decimal"
-                    },
-                    {
-                        "name": "garantie_mois",
-                        "in": "formData",
-                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 3,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "superficie",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "nombre_chambres",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_salles_bain",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_pieces",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "adresse",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "ville",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer"
-                    },
-                    {
-                        "name": "quartier",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "maxLength": 100,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "commune",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    {
-                        "name": "latitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "eau",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "permanente",
-                            "intermittente",
-                            "forage",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "electricite",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "stable",
-                            "delestage",
-                            "autonome",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "parking",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "jardin",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "meuble",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "climatisation",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "gardien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "photo_principale_index",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "default": 0
+                        "schema": {
+                            "$ref": "#/definitions/BienCreate"
+                        }
                     }
                 ],
                 "responses": {
@@ -2373,10 +2627,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -2396,10 +2646,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -2409,211 +2655,12 @@
                 "description": "Le portefeuille du commissionnaire : les biens que des bailleurs lui\nont confiés. Il n'y voit que les siens, jamais ceux d'un confrère.",
                 "parameters": [
                     {
-                        "name": "titre",
-                        "in": "formData",
+                        "name": "data",
+                        "in": "body",
                         "required": true,
-                        "type": "string",
-                        "maxLength": 200,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "description",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "type_bien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "maison",
-                            "appartement",
-                            "studio",
-                            "villa",
-                            "duplex",
-                            "terrain"
-                        ]
-                    },
-                    {
-                        "name": "devise",
-                        "in": "formData",
-                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "USD",
-                            "CDF"
-                        ]
-                    },
-                    {
-                        "name": "prix_mensuel",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "format": "decimal"
-                    },
-                    {
-                        "name": "garantie_mois",
-                        "in": "formData",
-                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 3,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "superficie",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "nombre_chambres",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_salles_bain",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_pieces",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "adresse",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "quartier",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "maxLength": 100,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "commune",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    {
-                        "name": "latitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "eau",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "permanente",
-                            "intermittente",
-                            "forage",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "electricite",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "stable",
-                            "delestage",
-                            "autonome",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "parking",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "jardin",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "meuble",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "climatisation",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "gardien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "statut_location",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "disponible",
-                            "en_visite",
-                            "loue",
-                            "indisponible"
-                        ]
-                    },
-                    {
-                        "name": "bailleur",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "ville",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer"
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
                     }
                 ],
                 "responses": {
@@ -2624,10 +2671,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -2637,211 +2680,12 @@
                 "description": "Le portefeuille du commissionnaire : les biens que des bailleurs lui\nont confiés. Il n'y voit que les siens, jamais ceux d'un confrère.",
                 "parameters": [
                     {
-                        "name": "titre",
-                        "in": "formData",
+                        "name": "data",
+                        "in": "body",
                         "required": true,
-                        "type": "string",
-                        "maxLength": 200,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "description",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "type_bien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "maison",
-                            "appartement",
-                            "studio",
-                            "villa",
-                            "duplex",
-                            "terrain"
-                        ]
-                    },
-                    {
-                        "name": "devise",
-                        "in": "formData",
-                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "USD",
-                            "CDF"
-                        ]
-                    },
-                    {
-                        "name": "prix_mensuel",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "format": "decimal"
-                    },
-                    {
-                        "name": "garantie_mois",
-                        "in": "formData",
-                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 3,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "superficie",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "nombre_chambres",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_salles_bain",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_pieces",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "adresse",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "quartier",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "maxLength": 100,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "commune",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    {
-                        "name": "latitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "eau",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "permanente",
-                            "intermittente",
-                            "forage",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "electricite",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "stable",
-                            "delestage",
-                            "autonome",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "parking",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "jardin",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "meuble",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "climatisation",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "gardien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "statut_location",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "disponible",
-                            "en_visite",
-                            "loue",
-                            "indisponible"
-                        ]
-                    },
-                    {
-                        "name": "bailleur",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "ville",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer"
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
                     }
                 ],
                 "responses": {
@@ -2852,10 +2696,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -2869,10 +2709,6 @@
                         "description": ""
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -3134,10 +2970,6 @@
                         "description": ""
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -3571,10 +3403,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -3584,206 +3412,12 @@
                 "description": "",
                 "parameters": [
                     {
-                        "name": "titre",
-                        "in": "formData",
+                        "name": "data",
+                        "in": "body",
                         "required": true,
-                        "type": "string",
-                        "maxLength": 200,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "description",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "type_bien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "maison",
-                            "appartement",
-                            "studio",
-                            "villa",
-                            "duplex",
-                            "terrain"
-                        ]
-                    },
-                    {
-                        "name": "bailleur",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "devise",
-                        "in": "formData",
-                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "USD",
-                            "CDF"
-                        ]
-                    },
-                    {
-                        "name": "prix_mensuel",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "format": "decimal"
-                    },
-                    {
-                        "name": "garantie_mois",
-                        "in": "formData",
-                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 3,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "superficie",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "nombre_chambres",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_salles_bain",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_pieces",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "adresse",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "ville",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer"
-                    },
-                    {
-                        "name": "quartier",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "maxLength": 100,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "commune",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    {
-                        "name": "latitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "eau",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "permanente",
-                            "intermittente",
-                            "forage",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "electricite",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "stable",
-                            "delestage",
-                            "autonome",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "parking",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "jardin",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "meuble",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "climatisation",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "gardien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "photo_principale_index",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "default": 0
+                        "schema": {
+                            "$ref": "#/definitions/BienCreate"
+                        }
                     }
                 ],
                 "responses": {
@@ -3794,10 +3428,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -3817,10 +3447,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -3830,211 +3456,12 @@
                 "description": "",
                 "parameters": [
                     {
-                        "name": "titre",
-                        "in": "formData",
+                        "name": "data",
+                        "in": "body",
                         "required": true,
-                        "type": "string",
-                        "maxLength": 200,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "description",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "type_bien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "maison",
-                            "appartement",
-                            "studio",
-                            "villa",
-                            "duplex",
-                            "terrain"
-                        ]
-                    },
-                    {
-                        "name": "devise",
-                        "in": "formData",
-                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "USD",
-                            "CDF"
-                        ]
-                    },
-                    {
-                        "name": "prix_mensuel",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "format": "decimal"
-                    },
-                    {
-                        "name": "garantie_mois",
-                        "in": "formData",
-                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 3,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "superficie",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "nombre_chambres",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_salles_bain",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_pieces",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "adresse",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "quartier",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "maxLength": 100,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "commune",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    {
-                        "name": "latitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "eau",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "permanente",
-                            "intermittente",
-                            "forage",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "electricite",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "stable",
-                            "delestage",
-                            "autonome",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "parking",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "jardin",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "meuble",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "climatisation",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "gardien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "statut_location",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "disponible",
-                            "en_visite",
-                            "loue",
-                            "indisponible"
-                        ]
-                    },
-                    {
-                        "name": "bailleur",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "ville",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer"
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
                     }
                 ],
                 "responses": {
@@ -4045,10 +3472,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -4058,211 +3481,12 @@
                 "description": "",
                 "parameters": [
                     {
-                        "name": "titre",
-                        "in": "formData",
+                        "name": "data",
+                        "in": "body",
                         "required": true,
-                        "type": "string",
-                        "maxLength": 200,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "description",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "type_bien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "maison",
-                            "appartement",
-                            "studio",
-                            "villa",
-                            "duplex",
-                            "terrain"
-                        ]
-                    },
-                    {
-                        "name": "devise",
-                        "in": "formData",
-                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "USD",
-                            "CDF"
-                        ]
-                    },
-                    {
-                        "name": "prix_mensuel",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "format": "decimal"
-                    },
-                    {
-                        "name": "garantie_mois",
-                        "in": "formData",
-                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 3,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "superficie",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "nombre_chambres",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_salles_bain",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "nombre_pieces",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": 0
-                    },
-                    {
-                        "name": "adresse",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    {
-                        "name": "quartier",
-                        "in": "formData",
-                        "required": true,
-                        "type": "string",
-                        "maxLength": 100,
-                        "minLength": 1
-                    },
-                    {
-                        "name": "commune",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "maxLength": 100
-                    },
-                    {
-                        "name": "latitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "format": "decimal",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "eau",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "permanente",
-                            "intermittente",
-                            "forage",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "electricite",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "",
-                            "stable",
-                            "delestage",
-                            "autonome",
-                            "aucune"
-                        ]
-                    },
-                    {
-                        "name": "parking",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "jardin",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "meuble",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "climatisation",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "gardien",
-                        "in": "formData",
-                        "required": false,
-                        "type": "boolean"
-                    },
-                    {
-                        "name": "statut_location",
-                        "in": "formData",
-                        "required": false,
-                        "type": "string",
-                        "enum": [
-                            "disponible",
-                            "en_visite",
-                            "loue",
-                            "indisponible"
-                        ]
-                    },
-                    {
-                        "name": "bailleur",
-                        "in": "formData",
-                        "required": false,
-                        "type": "integer",
-                        "x-nullable": true
-                    },
-                    {
-                        "name": "ville",
-                        "in": "formData",
-                        "required": true,
-                        "type": "integer"
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
                     }
                 ],
                 "responses": {
@@ -4273,10 +3497,6 @@
                         }
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -4290,10 +3510,6 @@
                         "description": ""
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -4555,10 +3771,6 @@
                         "description": ""
                     }
                 },
-                "consumes": [
-                    "multipart/form-data",
-                    "application/x-www-form-urlencoded"
-                ],
                 "tags": [
                     "biens"
                 ]
@@ -6831,6 +6043,171 @@
                 }
             }
         },
+        "UserList": {
+            "required": [
+                "username"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "username": {
+                    "title": "Nom d’utilisateur",
+                    "description": "Requis. 150 caractères maximum. Uniquement des lettres, nombres et les caractères « @ », « . », « + », « - » et « _ ».",
+                    "type": "string",
+                    "pattern": "^[\\w.@+-]+$",
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "email": {
+                    "title": "Adresse électronique",
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254
+                },
+                "full_name": {
+                    "title": "Full name",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "phone": {
+                    "title": "Téléphone",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "avatar": {
+                    "title": "Photo de profil",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "user_type": {
+                    "title": "Type d'utilisateur",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "client",
+                        "proprietaire",
+                        "agent",
+                        "commissionnaire",
+                        "agence",
+                        "moderateur"
+                    ]
+                },
+                "user_type_display": {
+                    "title": "User type display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "is_available": {
+                    "title": "Disponible",
+                    "type": "boolean"
+                },
+                "is_active": {
+                    "title": "Actif",
+                    "description": "Précise si l’utilisateur doit être considéré comme actif. Décochez ceci plutôt que de supprimer le compte.",
+                    "type": "boolean"
+                }
+            }
+        },
+        "ActivityLog": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "user": {
+                    "title": "Utilisateur",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "user_detail": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "action": {
+                    "title": "Action",
+                    "type": "string",
+                    "enum": [
+                        "connexion",
+                        "deconnexion",
+                        "inscription",
+                        "creation_bien",
+                        "modification_bien",
+                        "suppression_bien",
+                        "validation_bien",
+                        "rejet_bien",
+                        "demande_visite",
+                        "acceptation_visite",
+                        "rejet_visite",
+                        "assignation_agent",
+                        "rapport_visite",
+                        "envoi_message",
+                        "ajout_favori",
+                        "retrait_favori",
+                        "modification_profil",
+                        "changement_role",
+                        "creation_compte",
+                        "verification_identite",
+                        "confirmation_refusee",
+                        "gestion_villes",
+                        "autre"
+                    ],
+                    "readOnly": true
+                },
+                "action_display": {
+                    "title": "Action display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "model_type": {
+                    "title": "Type d'objet",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1,
+                    "x-nullable": true
+                },
+                "object_id": {
+                    "title": "ID de l'objet",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "ip_address": {
+                    "title": "Adresse IP",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1,
+                    "x-nullable": true
+                },
+                "extra_data": {
+                    "title": "Données supplémentaires",
+                    "type": "object",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "created_at": {
+                    "title": "Date de création",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
         "UtilisateurAdministration": {
             "required": [
                 "username"
@@ -6906,53 +6283,108 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
+                },
+                "identite_verifiee_le": {
+                    "title": "Identité vérifiée le",
+                    "type": "string",
+                    "format": "date-time",
+                    "x-nullable": true
+                },
+                "identite_verifiee_par_nom": {
+                    "title": "Identite verifiee par nom",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "identite_verification_note": {
+                    "title": "Comment l'identité a été vérifiée",
+                    "description": "Ex : carte d'électeur vue en personne. Jamais le numéro.",
+                    "type": "string",
+                    "maxLength": 200
                 }
             }
         },
-        "UserList": {
+        "CompteEquipe": {
             "required": [
-                "username"
+                "mot_de_passe",
+                "username",
+                "email",
+                "first_name",
+                "last_name",
+                "phone",
+                "user_type",
+                "password"
             ],
             "type": "object",
             "properties": {
-                "id": {
-                    "title": "ID",
-                    "type": "integer",
-                    "readOnly": true
+                "mot_de_passe": {
+                    "title": "Mot de passe",
+                    "description": "Le mot de passe de l'administrateur qui agit, ressaisi.",
+                    "type": "string",
+                    "minLength": 1
                 },
                 "username": {
-                    "title": "Nom d’utilisateur",
-                    "description": "Requis. 150 caractères maximum. Uniquement des lettres, nombres et les caractères « @ », « . », « + », « - » et « _ ».",
+                    "title": "Username",
                     "type": "string",
-                    "pattern": "^[\\w.@+-]+$",
                     "maxLength": 150,
                     "minLength": 1
                 },
                 "email": {
-                    "title": "Adresse électronique",
+                    "title": "Email",
                     "type": "string",
                     "format": "email",
-                    "maxLength": 254
+                    "minLength": 1
                 },
-                "full_name": {
-                    "title": "Full name",
+                "first_name": {
+                    "title": "First name",
                     "type": "string",
-                    "readOnly": true
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "last_name": {
+                    "title": "Last name",
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 1
                 },
                 "phone": {
-                    "title": "Téléphone",
+                    "title": "Phone",
                     "type": "string",
-                    "maxLength": 20
-                },
-                "avatar": {
-                    "title": "Photo de profil",
-                    "type": "string",
-                    "readOnly": true,
-                    "x-nullable": true,
-                    "format": "uri"
+                    "maxLength": 20,
+                    "minLength": 1
                 },
                 "user_type": {
-                    "title": "Type d'utilisateur",
+                    "title": "User type",
+                    "type": "string",
+                    "enum": [
+                        "moderateur",
+                        "agent",
+                        "admin"
+                    ]
+                },
+                "password": {
+                    "title": "Password",
+                    "description": "Mot de passe initial du nouveau compte.",
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "ChangementRole": {
+            "required": [
+                "mot_de_passe",
+                "user_type"
+            ],
+            "type": "object",
+            "properties": {
+                "mot_de_passe": {
+                    "title": "Mot de passe",
+                    "description": "Le mot de passe de l'administrateur qui agit, ressaisi.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "user_type": {
+                    "title": "User type",
                     "type": "string",
                     "enum": [
                         "admin",
@@ -6963,21 +6395,100 @@
                         "agence",
                         "moderateur"
                     ]
-                },
-                "user_type_display": {
-                    "title": "User type display",
+                }
+            }
+        },
+        "VerificationIdentite": {
+            "required": [
+                "note"
+            ],
+            "type": "object",
+            "properties": {
+                "note": {
+                    "title": "Note",
+                    "description": "Comment l'identité a été vérifiée. Jamais le numéro de la pièce.",
                     "type": "string",
-                    "readOnly": true,
+                    "maxLength": 200,
+                    "minLength": 1
+                }
+            }
+        },
+        "CommuneAdministration": {
+            "required": [
+                "nom"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "nom": {
+                    "title": "Nom de la commune",
+                    "type": "string",
+                    "maxLength": 100,
                     "minLength": 1
                 },
-                "is_available": {
-                    "title": "Disponible",
-                    "type": "boolean"
+                "nombre_biens": {
+                    "title": "Nombre biens",
+                    "type": "integer",
+                    "readOnly": true
+                }
+            }
+        },
+        "VilleAdministration": {
+            "required": [
+                "nom"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "nom": {
+                    "title": "Nom de la ville",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "pays": {
+                    "title": "Pays",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
                 },
                 "is_active": {
-                    "title": "Actif",
-                    "description": "Précise si l’utilisateur doit être considéré comme actif. Décochez ceci plutôt que de supprimer le compte.",
+                    "title": "Active",
                     "type": "boolean"
+                },
+                "communes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CommuneAdministration"
+                    },
+                    "readOnly": true
+                },
+                "nombre_biens": {
+                    "title": "Nombre biens",
+                    "type": "integer",
+                    "readOnly": true
+                }
+            }
+        },
+        "NomCommune": {
+            "required": [
+                "nom"
+            ],
+            "type": "object",
+            "properties": {
+                "nom": {
+                    "title": "Nom",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
                 }
             }
         },
@@ -7020,6 +6531,12 @@
                     "type": "string",
                     "readOnly": true,
                     "minLength": 1
+                },
+                "identite_verifiee": {
+                    "title": "Identite verifiee",
+                    "description": "Un membre de l'équipe VillaGo a vu sa pièce d'identité.",
+                    "type": "boolean",
+                    "readOnly": true
                 }
             }
         },
@@ -8768,94 +8285,6 @@
                 },
                 "updated_at": {
                     "title": "Date de modification",
-                    "type": "string",
-                    "format": "date-time",
-                    "readOnly": true
-                }
-            }
-        },
-        "ActivityLog": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "title": "ID",
-                    "type": "integer",
-                    "readOnly": true
-                },
-                "user": {
-                    "title": "Utilisateur",
-                    "type": "integer",
-                    "readOnly": true,
-                    "x-nullable": true
-                },
-                "user_detail": {
-                    "$ref": "#/definitions/UserList"
-                },
-                "action": {
-                    "title": "Action",
-                    "type": "string",
-                    "enum": [
-                        "connexion",
-                        "deconnexion",
-                        "inscription",
-                        "creation_bien",
-                        "modification_bien",
-                        "suppression_bien",
-                        "validation_bien",
-                        "rejet_bien",
-                        "demande_visite",
-                        "acceptation_visite",
-                        "rejet_visite",
-                        "assignation_agent",
-                        "rapport_visite",
-                        "envoi_message",
-                        "ajout_favori",
-                        "retrait_favori",
-                        "modification_profil",
-                        "autre"
-                    ],
-                    "readOnly": true
-                },
-                "action_display": {
-                    "title": "Action display",
-                    "type": "string",
-                    "readOnly": true,
-                    "minLength": 1
-                },
-                "description": {
-                    "title": "Description",
-                    "type": "string",
-                    "readOnly": true,
-                    "minLength": 1
-                },
-                "model_type": {
-                    "title": "Type d'objet",
-                    "type": "string",
-                    "readOnly": true,
-                    "minLength": 1,
-                    "x-nullable": true
-                },
-                "object_id": {
-                    "title": "ID de l'objet",
-                    "type": "integer",
-                    "readOnly": true,
-                    "x-nullable": true
-                },
-                "ip_address": {
-                    "title": "Adresse IP",
-                    "type": "string",
-                    "readOnly": true,
-                    "minLength": 1,
-                    "x-nullable": true
-                },
-                "extra_data": {
-                    "title": "Données supplémentaires",
-                    "type": "object",
-                    "readOnly": true,
-                    "x-nullable": true
-                },
-                "created_at": {
-                    "title": "Date de création",
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true

@@ -83,7 +83,10 @@ export function ChampBailleur({ control }: { control: Controle }) {
             </Button>
           </div>
           <FormDescription>
-            Visible de vous seul. Ni les clients, ni les autres commissionnaires, ni VillaGo ne voient cette fiche.
+            {/* Pas « ni VillaGo » : l'application cache bien cette fiche à la
+                modération, mais un administrateur technique peut toujours
+                lire la base. Promettre davantage serait mentir. */}
+            Ni les clients, ni les autres commissionnaires, ni l’équipe de modération ne voient cette fiche.
           </FormDescription>
           <FormMessage />
           <DialogueNouveauBailleur

@@ -25,6 +25,8 @@ function getRedirectPath(role: UserRole): string {
       return '/mon-portefeuille';
     case 'moderateur':
       return '/moderation';
+    case 'admin':
+      return '/administration';
     case 'proprietaire':
       return '/my-properties';
     case 'agent':

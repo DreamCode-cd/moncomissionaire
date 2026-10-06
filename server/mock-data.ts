@@ -84,6 +84,7 @@ function profilPublic(u: UserProfile): ProfilPublic {
     avatar: u.avatar ?? null,
     user_type: u.role,
     user_type_display: u.role_display,
+    identite_verifiee: false,
   };
 }
 

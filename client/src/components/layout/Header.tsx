@@ -64,6 +64,12 @@ export function Header() {
           { href: '/search', icon: Search, label: 'Recherche' },
           { href: '/mon-portefeuille', icon: Building2, label: 'Mon portefeuille' },
         ];
+      case 'admin':
+        return [
+          { href: '/administration', icon: House, label: 'Administration' },
+          { href: '/moderation', icon: Building2, label: 'Modération' },
+          { href: '/search', icon: Search, label: 'Recherche' },
+        ];
       case 'moderateur':
         return [
           { href: '/', icon: House, label: 'Accueil' },
@@ -342,7 +348,14 @@ export function Header() {
                         </DropdownMenuItem>
                       </Link>
                     )}
-                    {user?.role === 'moderateur' && (
+                    {user?.role === 'admin' && (
+                      <Link href="/administration">
+                        <DropdownMenuItem data-testid="menu-administration">
+                          Administration
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
+                    {(user?.role === 'moderateur' || user?.role === 'admin') && (
                       <Link href="/moderation">
                         <DropdownMenuItem data-testid="menu-dashboard">
                           Modération

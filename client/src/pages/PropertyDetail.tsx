@@ -7,7 +7,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   MapPin, Bed, Bath, Maximize, Calendar, User, ChevronLeft, ChevronRight, X,
   Droplets, Zap, Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
-  Images, SquarePen, Send, ChevronDown, ChevronUp, LoaderCircle
+  Images, SquarePen, Send, ChevronDown, ChevronUp, LoaderCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -802,6 +803,11 @@ export default function PropertyDetail() {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-semibold" data-testid="text-owner-name">{nom}</p>
+                      {profil?.identite_verifiee && (
+                        <p className="flex items-center gap-1 text-sm font-medium text-statut-favorable" data-testid="badge-identite-verifiee">
+                          <ShieldCheck className="h-4 w-4" /> Identité vérifiée par l’équipe VillaGo
+                        </p>
+                      )}
                       {/* Plus de « Propriétaire vérifié » : aucune vérification
                           d'identité n'existe encore, il ne faut pas l'affirmer. */}
                       <p className="text-sm text-muted-foreground">

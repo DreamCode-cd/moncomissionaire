@@ -141,7 +141,7 @@ function Router() {
             <ProtectedRoute allowedRoles={['commissionnaire']}><CommissionnaireDashboard /></ProtectedRoute>
           </Route>
           <Route path="/moderation">
-            <ProtectedRoute allowedRoles={['moderateur']}><ModerateurDashboard /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['moderateur', 'admin']}><ModerateurDashboard /></ProtectedRoute>
           </Route>
           {/* Ancienne adresse du tableau de bord central, gardée pour les favoris. */}
           <Route path="/pending-properties">
