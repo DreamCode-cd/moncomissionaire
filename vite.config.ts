@@ -32,48 +32,15 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     chunkSizeWarningLimit: 1700,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            // React core
-            if (id.includes("react") || id.includes("react-dom") || id.includes("wouter")) {
-              return "react-vendor";
-            }
-            // UI components
-            if (id.includes("@radix-ui") || id.includes("lucide-react") || id.includes("framer-motion")) {
-              return "ui-vendor";
-            }
-            // Charting
-            if (id.includes("recharts") || id.includes("d3")) {
-              return "chart-vendor";
-            }
-            // Maps
-            if (id.includes("leaflet")) {
-              return "map-vendor";
-            }
-            // Form and validation
-            if (id.includes("react-hook-form") || id.includes("zod") || id.includes("@hookform")) {
-              return "form-vendor";
-            }
-            // Utilities
-            if (id.includes("date-fns") || id.includes("clsx") || id.includes("tailwind-merge")) {
-              return "utils-vendor";
-            }
-            // Tanstack
-            if (id.includes("@tanstack")) {
-              return "tanstack-vendor";
-            }
-            // PDF
-            if (id.includes("jspdf") || id.includes("html2canvas")) {
-              return "pdf-vendor";
-            }
-            // Other node_modules
-            return "vendor";
-          }
-        },
-      },
-    },
+    // Pas de manualChunks. Le découpage par paquet mettait React dans un
+    // morceau et ses propres dépendances (scheduler…) dans un autre, tandis
+    // que tout chemin contenant « react » (@radix-ui/react-*, lucide-react,
+    // react-hook-form…) rejoignait React : les morceaux s'importaient l'un
+    // l'autre, et selon l'ordre de chargement React était encore indéfini —
+    // « Cannot read properties of undefined (reading 'useState') », page
+    // blanche en production. Le serveur de développement ne découpe rien,
+    // d'où l'absence du défaut en local. Le découpage par page, lui, vient
+    // des imports différés (lazy) et reste sûr.
   },
   server: {
     fs: {
