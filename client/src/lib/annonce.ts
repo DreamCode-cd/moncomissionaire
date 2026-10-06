@@ -31,3 +31,30 @@ export function libelleGarantie(mois: number): string {
 /** Plafond fixé par le serveur (biens/serializers.py). Le formulaire en
  *  acceptait 10 : l'annonce échouait à l'envoi, après le téléversement. */
 export const PHOTOS_MAX = 6;
+
+/**
+ * « Bel-Air · Kampemba · Lubumbashi », sans répétition.
+ *
+ * Quartier, commune et ville portent souvent le même nom (le quartier Kenya
+ * est dans la commune de Kenya ; la commune de Lubumbashi est dans la ville
+ * de Lubumbashi) : les juxtaposer donnait « Kenya, Kenya ».
+ */
+export function lieuAnnonce(morceaux: (string | null | undefined)[]): string {
+  const vus = new Set<string>();
+  return morceaux
+    .map((m) => (m ?? '').trim())
+    .filter((m) => {
+      const cle = m.toLowerCase();
+      if (!m || vus.has(cle)) return false;
+      vus.add(cle);
+      return true;
+    })
+    .join(', ');
+}
+
+/** « 400 m² » — ou null quand la surface est inconnue, au lieu de « m² » seul. */
+export function formaterSurface(superficie?: string | null): string | null {
+  const valeur = parseFloat(superficie ?? '');
+  if (!Number.isFinite(valeur) || valeur <= 0) return null;
+  return `${Math.round(valeur).toLocaleString('fr-FR')} m²`;
+}

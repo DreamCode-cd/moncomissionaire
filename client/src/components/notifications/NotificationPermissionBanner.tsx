@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function NotificationPermissionBanner() {
   const { permission, isSupported, requestPermission } = usePushNotifications();
+  // Demander une permission à un visiteur qui n'a encore rien fait sur le
+  // site, c'est demander avant d'avoir rendu service : la bannière s'affichait
+  // en haut de chaque page, connexion comprise. Elle attend désormais qu'on
+  // ait un compte — c'est là qu'une alerte de visite a un sens.
+  const { isAuthenticated } = useAuth();
   const [isDismissed, setIsDismissed] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
 
@@ -29,7 +35,7 @@ export function NotificationPermissionBanner() {
     localStorage.setItem('notification-banner-dismissed', 'true');
   };
 
-  if (!isSupported || permission === 'granted' || permission === 'denied' || isDismissed) {
+  if (!isAuthenticated || !isSupported || permission === 'granted' || permission === 'denied' || isDismissed) {
     return null;
   }
 
