@@ -7,7 +7,10 @@ import {
   Clock,
   EllipsisVertical,
   House,
+  MapPin,
   Phone,
+  Plus,
+  X,
   ScrollText,
   UserCheck,
   UserPlus,
@@ -38,6 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -106,6 +110,22 @@ interface EntreeJournal {
 const CHEMIN_COMPTES = '/api/v1/administration/utilisateurs/';
 const CHEMIN_APERCU = '/api/v1/administration/apercu/';
 const CHEMIN_JOURNAL = '/api/v1/administration/journal/';
+const CHEMIN_VILLES = '/api/v1/administration/villes/';
+
+interface CommuneAdmin {
+  id: number;
+  nom: string;
+  nombre_biens: number;
+}
+
+interface VilleAdmin {
+  id: number;
+  nom: string;
+  pays: string;
+  is_active: boolean;
+  communes: CommuneAdmin[];
+  nombre_biens: number;
+}
 
 const ROLES_D_EQUIPE: { valeur: UserRole; libelle: string }[] = [
   { valeur: 'moderateur', libelle: 'Modérateur VillaGo' },
@@ -126,6 +146,7 @@ const FILTRES_JOURNAL = [
   { valeur: 'annonces', libelle: 'Validations d’annonces', actions: 'validation_bien,rejet_bien' },
   { valeur: 'comptes', libelle: 'Activations et désactivations', actions: 'modification_profil' },
   { valeur: 'securite', libelle: 'Mots de passe refusés', actions: 'confirmation_refusee' },
+  { valeur: 'villes', libelle: 'Villes et communes', actions: 'gestion_villes' },
 ];
 
 function invaliderAdministration() {
@@ -156,9 +177,10 @@ export default function AdminDashboard() {
         <h1 className="text-xl font-semibold text-foreground md:text-2xl">Administration</h1>
 
         <Tabs value={onglet} onValueChange={setOnglet} className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="apercu" data-testid="onglet-apercu">À traiter</TabsTrigger>
             <TabsTrigger value="comptes" data-testid="onglet-comptes">Comptes</TabsTrigger>
+            <TabsTrigger value="villes" data-testid="onglet-villes">Villes</TabsTrigger>
             <TabsTrigger value="journal" data-testid="onglet-journal">Journal</TabsTrigger>
           </TabsList>
 
@@ -173,6 +195,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="comptes" className="mt-4">
             <GestionDesComptes filtre={filtreComptes} onFiltre={setFiltreComptes} />
+          </TabsContent>
+
+          <TabsContent value="villes" className="mt-4">
+            <GestionDesVilles />
           </TabsContent>
 
           <TabsContent value="journal" className="mt-4">
@@ -668,6 +694,245 @@ function DialogueNouveauCompte({ ouvert, onFermer }: { ouvert: boolean; onFermer
           <Button variant="outline" onClick={onFermer}>Annuler</Button>
           <Button onClick={() => creer.mutate()} disabled={!complet || creer.isPending} data-testid="bouton-creer-compte">
             Créer le compte
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GestionDesVilles() {
+  const { toast } = useToast();
+  const [nouvelleVille, setNouvelleVille] = useState('');
+  const { data, isPending, error, refetch } = useQuery<PaginatedResponse<VilleAdmin>>({
+    queryKey: [CHEMIN_VILLES],
+  });
+
+  const rafraichir = () => {
+    void queryClient.invalidateQueries({ queryKey: [CHEMIN_VILLES] });
+    // Les formulaires d'annonce lisent la liste publique : elle doit suivre.
+    void queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/villes/'] });
+    void queryClient.invalidateQueries({ queryKey: [CHEMIN_JOURNAL] });
+  };
+  const surErreur = (erreur: Error) =>
+    toast({ title: 'Modification refusée', description: messageLisible(erreur), variant: 'destructive' });
+
+  const creer = useMutation({
+    mutationFn: () => api.post(CHEMIN_VILLES, { nom: nouvelleVille }),
+    onSuccess: () => {
+      toast({ title: `${nouvelleVille.trim()} ajoutée`, description: 'Ajoutez maintenant ses communes.' });
+      setNouvelleVille('');
+      rafraichir();
+    },
+    onError: surErreur,
+  });
+
+  if (isPending) return <EtatChargement texte="Chargement des villes…" />;
+  if (error) return <EtatErreur description={(error as Error).message} onReessayer={() => void refetch()} />;
+
+  return (
+    <div className="space-y-3">
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (nouvelleVille.trim()) creer.mutate();
+        }}
+      >
+        <Input
+          value={nouvelleVille}
+          onChange={(e) => setNouvelleVille(e.target.value)}
+          placeholder="Ouvrir une ville (ex : Likasi)"
+          data-testid="input-nouvelle-ville"
+        />
+        <Button type="submit" disabled={!nouvelleVille.trim() || creer.isPending} className="shrink-0" data-testid="bouton-ajouter-ville">
+          <Plus className="mr-1 h-4 w-4" /> Ajouter
+        </Button>
+      </form>
+
+      {(data?.results ?? []).map((ville) => (
+        <CarteVille key={ville.id} ville={ville} onChange={rafraichir} onErreur={surErreur} />
+      ))}
+    </div>
+  );
+}
+
+function CarteVille({
+  ville,
+  onChange,
+  onErreur,
+}: {
+  ville: VilleAdmin;
+  onChange: () => void;
+  onErreur: (e: Error) => void;
+}) {
+  const [nouvelleCommune, setNouvelleCommune] = useState('');
+  const [aRenommer, setARenommer] = useState<CommuneAdmin | null>(null);
+  const [aDesactiver, setADesactiver] = useState(false);
+  const chemin = `${CHEMIN_VILLES}${ville.id}/`;
+
+  const basculer = useMutation({
+    mutationFn: (actif: boolean) => api.patch(chemin, { is_active: actif }),
+    onSuccess: () => {
+      setADesactiver(false);
+      onChange();
+    },
+    onError: onErreur,
+  });
+  const ajouter = useMutation({
+    mutationFn: () => api.post(`${chemin}communes/`, { nom: nouvelleCommune }),
+    onSuccess: () => {
+      setNouvelleCommune('');
+      onChange();
+    },
+    onError: onErreur,
+  });
+  const retirer = useMutation({
+    mutationFn: (id: number) => api.delete(`${chemin}communes/${id}/`),
+    onSuccess: onChange,
+    onError: onErreur,
+  });
+
+  return (
+    <Card data-testid={`carte-ville-${ville.nom}`}>
+      <CardContent className="space-y-3 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1 font-medium text-foreground">
+              <MapPin className="h-4 w-4 text-muted-foreground" /> {ville.nom}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {ville.nombre_biens} annonce(s) · {ville.communes.length} commune(s)
+              {ville.is_active ? '' : ' · fermée aux nouvelles annonces'}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Label htmlFor={`ville-active-${ville.id}`} className="text-xs text-muted-foreground">
+              {ville.is_active ? 'Ouverte' : 'Fermée'}
+            </Label>
+            <Switch
+              id={`ville-active-${ville.id}`}
+              checked={ville.is_active}
+              onCheckedChange={(actif) => (actif ? basculer.mutate(true) : setADesactiver(true))}
+              data-testid={`interrupteur-ville-${ville.nom}`}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {ville.communes.map((commune) => (
+            <span
+              key={commune.id}
+              className="inline-flex items-center gap-1 rounded-full bg-muted py-1 pl-3 pr-1 text-sm"
+              data-testid={`commune-${commune.nom}`}
+            >
+              <button type="button" onClick={() => setARenommer(commune)} className="hover:underline" title="Corriger le nom">
+                {commune.nom}
+              </button>
+              <button
+                type="button"
+                onClick={() => retirer.mutate(commune.id)}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-background"
+                aria-label={`Retirer ${commune.nom} de la liste`}
+                title={commune.nombre_biens ? `${commune.nombre_biens} annonce(s) la gardent` : 'Retirer de la liste'}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (nouvelleCommune.trim()) ajouter.mutate();
+          }}
+        >
+          <Input
+            value={nouvelleCommune}
+            onChange={(e) => setNouvelleCommune(e.target.value)}
+            placeholder="Ajouter une commune"
+            className="h-9"
+            data-testid={`input-commune-${ville.nom}`}
+          />
+          <Button type="submit" size="sm" variant="outline" disabled={!nouvelleCommune.trim() || ajouter.isPending}>
+            Ajouter
+          </Button>
+        </form>
+      </CardContent>
+
+      <Dialog open={aDesactiver} onOpenChange={setADesactiver}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Fermer {ville.nom} ?</DialogTitle>
+            <DialogDescription>
+              Plus aucune annonce ne pourra y être publiée, et la ville disparaîtra de la recherche. Les {ville.nombre_biens} annonce(s) existante(s) restent en ligne et modifiables.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setADesactiver(false)}>Annuler</Button>
+            <Button variant="destructive" onClick={() => basculer.mutate(false)} disabled={basculer.isPending}>
+              Fermer la ville
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {aRenommer && (
+        <DialogueRenommerCommune
+          chemin={`${chemin}communes/${aRenommer.id}/`}
+          commune={aRenommer}
+          onFermer={() => setARenommer(null)}
+          onChange={onChange}
+          onErreur={onErreur}
+        />
+      )}
+    </Card>
+  );
+}
+
+function DialogueRenommerCommune({
+  chemin,
+  commune,
+  onFermer,
+  onChange,
+  onErreur,
+}: {
+  chemin: string;
+  commune: CommuneAdmin;
+  onFermer: () => void;
+  onChange: () => void;
+  onErreur: (e: Error) => void;
+}) {
+  const { toast } = useToast();
+  const [nom, setNom] = useState(commune.nom);
+  const renommer = useMutation({
+    mutationFn: () => api.patch(chemin, { nom }),
+    onSuccess: () => {
+      toast({ title: 'Commune corrigée', description: `${commune.nombre_biens} annonce(s) mise(s) à jour.` });
+      onChange();
+      onFermer();
+    },
+    onError: onErreur,
+  });
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onFermer()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Corriger « {commune.nom} »</DialogTitle>
+          <DialogDescription>
+            {commune.nombre_biens
+              ? `Les ${commune.nombre_biens} annonce(s) qui portent ce nom seront corrigées aussi.`
+              : 'Aucune annonce ne porte encore ce nom.'}
+          </DialogDescription>
+        </DialogHeader>
+        <Input value={nom} onChange={(e) => setNom(e.target.value)} data-testid="input-renommer-commune" />
+        <DialogFooter>
+          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button onClick={() => renommer.mutate()} disabled={!nom.trim() || nom.trim() === commune.nom || renommer.isPending}>
+            Corriger
           </Button>
         </DialogFooter>
       </DialogContent>
