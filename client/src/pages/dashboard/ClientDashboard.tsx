@@ -26,12 +26,26 @@ interface DemandeWithVisite extends DemandeVisite {
   visite_detail?: Visite & { rapport?: RapportVisite };
 }
 
+/** L'API renvoie la visite sous `visite` ; ces pages lisaient un champ
+ *  `visite_detail` que personne n'envoie : les visites planifiées et faites
+ *  n'apparaissaient jamais côté client. */
+function avecVisite(page: PaginatedResponse<DemandeWithVisite>): PaginatedResponse<DemandeWithVisite> {
+  return {
+    ...page,
+    results: page.results.map((d) => ({
+      ...d,
+      visite_detail: d.visite_detail ?? (d.visite as DemandeWithVisite['visite_detail']) ?? undefined,
+    })),
+  };
+}
+
 export default function ClientDashboard() {
   const { user } = useAuth();
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
 
   const { data: demandes, isLoading: demandesLoading } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
+    select: avecVisite,
     refetchOnWindowFocus: true,
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   });

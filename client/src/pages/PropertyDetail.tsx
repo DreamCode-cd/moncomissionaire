@@ -46,6 +46,7 @@ import { formaterLoyer, formaterPrix } from '@/lib/prix';
 import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
+import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
 
 // Plus de photo d'illustration à la place d'une vraie : voir VignetteSansPhoto.
 
@@ -807,6 +808,7 @@ export default function PropertyDetail() {
                           <ShieldCheck className="h-4 w-4" /> Identité vérifiée par l’équipe VillaGo
                         </p>
                       )}
+                      {property.commissionnaire && <NoteCommissionnaire commissionnaireId={property.commissionnaire} />}
                       {/* Plus de « Propriétaire vérifié » : aucune vérification
                           d'identité n'existe encore, il ne faut pas l'affirmer. */}
                       <p className="text-sm text-muted-foreground">

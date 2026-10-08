@@ -3234,6 +3234,79 @@
                 }
             ]
         },
+        "/biens/commissionnaire/{id}/reconfirmer/": {
+            "post": {
+                "operationId": "biens_commissionnaire_reconfirmer",
+                "description": "Remet l'annonce en ligne pour trente jours, en un geste.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/commissionnaires/": {
+            "get": {
+                "operationId": "biens_commissionnaires_list",
+                "summary": "Les commissionnaires parmi lesquels un propriétaire choisit.",
+                "description": "Le commissionnaire n'a pas de ville sur son profil : celle où il exerce\nse déduit de son portefeuille. Ordre : ceux qui ont déjà des biens dans\nla ville demandée, puis l'identité vérifiée, puis la note et le nombre\nd'avis. Ni téléphone ni e-mail : la mise en relation passe par le mandat.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/CommissionnaireAnnuaire"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": []
+        },
         "/biens/favoris/": {
             "get": {
                 "operationId": "biens_favoris_list",
@@ -3458,6 +3531,154 @@
                 }
             ]
         },
+        "/biens/mandats/": {
+            "get": {
+                "operationId": "biens_mandats_list",
+                "description": "Les biens que des propriétaires proposent au commissionnaire.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Mandat"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": []
+        },
+        "/biens/mandats/{id}/": {
+            "get": {
+                "operationId": "biens_mandats_read",
+                "description": "Les biens que des propriétaires proposent au commissionnaire.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Mandat"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/mandats/{id}/accepter/": {
+            "post": {
+                "operationId": "biens_mandats_accepter",
+                "description": "Les biens que des propriétaires proposent au commissionnaire.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Mandat"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Mandat"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/mandats/{id}/refuser/": {
+            "post": {
+                "operationId": "biens_mandats_refuser",
+                "description": "Les biens que des propriétaires proposent au commissionnaire.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RefusMandat"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/RefusMandat"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/biens/moderation/": {
             "get": {
                 "operationId": "biens_moderation_list",
@@ -3658,7 +3879,7 @@
         "/biens/proprietaire/": {
             "get": {
                 "operationId": "biens_proprietaire_list",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [
                     {
                         "name": "search",
@@ -3721,7 +3942,7 @@
             },
             "post": {
                 "operationId": "biens_proprietaire_create",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [
                     {
                         "name": "data",
@@ -3749,7 +3970,7 @@
         "/biens/proprietaire/{id}/": {
             "get": {
                 "operationId": "biens_proprietaire_read",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -3765,7 +3986,7 @@
             },
             "put": {
                 "operationId": "biens_proprietaire_update",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [
                     {
                         "name": "data",
@@ -3790,7 +4011,7 @@
             },
             "patch": {
                 "operationId": "biens_proprietaire_partial_update",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [
                     {
                         "name": "data",
@@ -3815,7 +4036,7 @@
             },
             "delete": {
                 "operationId": "biens_proprietaire_delete",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [],
                 "responses": {
                     "204": {
@@ -3838,7 +4059,7 @@
         "/biens/proprietaire/{id}/add_photo/": {
             "post": {
                 "operationId": "biens_proprietaire_add_photo",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [
                     {
                         "name": "titre",
@@ -4106,10 +4327,45 @@
                 }
             ]
         },
+        "/biens/proprietaire/{id}/confier/": {
+            "post": {
+                "operationId": "biens_proprietaire_confier",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/biens/proprietaire/{id}/photo/{photo_id}/": {
             "delete": {
                 "operationId": "biens_proprietaire_delete_photo",
-                "description": "",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [],
                 "responses": {
                     "204": {
@@ -4129,6 +4385,76 @@
                 },
                 {
                     "name": "photo_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/proprietaire/{id}/reconfirmer/": {
+            "post": {
+                "operationId": "biens_proprietaire_reconfirmer",
+                "description": "Remet l'annonce en ligne pour trente jours, en un geste.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/proprietaire/{id}/reprendre/": {
+            "post": {
+                "operationId": "biens_proprietaire_reprendre",
+                "description": "Annule une proposition en attente, ou reprend un bien confié.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
                     "in": "path",
                     "required": true,
                     "type": "string"
@@ -4352,8 +4678,7 @@
         "/commissions/": {
             "get": {
                 "operationId": "commissions_list",
-                "summary": "Les commissions dont l'utilisateur est titulaire ou confrère.",
-                "description": "L'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
+                "description": "Les commissions dont l'utilisateur est titulaire ou confrère, et\ncelles des biens dont il est le propriétaire inscrit — il est le bailleur,\nil a le droit de savoir ce qui a été conclu chez lui.\n\nL'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
                 "parameters": [
                     {
                         "name": "ordering",
@@ -4433,6 +4758,572 @@
                 ]
             },
             "parameters": []
+        },
+        "/commissions/avis/": {
+            "get": {
+                "operationId": "commissions_avis_list",
+                "summary": "Les avis sur un commissionnaire (`?commissionnaire=<id>`), publics.",
+                "description": "Créer un avis demande d'être connecté et d'avoir eu affaire à lui :\nune visite faite, ou un bail signé chez soi.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/AvisCommissionnaire"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "post": {
+                "operationId": "commissions_avis_create",
+                "summary": "Les avis sur un commissionnaire (`?commissionnaire=<id>`), publics.",
+                "description": "Créer un avis demande d'être connecté et d'avoir eu affaire à lui :\nune visite faite, ou un bail signé chez soi.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AvisCommissionnaireCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/AvisCommissionnaireCreate"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": []
+        },
+        "/commissions/avis/{id}/": {
+            "get": {
+                "operationId": "commissions_avis_read",
+                "summary": "Les avis sur un commissionnaire (`?commissionnaire=<id>`), publics.",
+                "description": "Créer un avis demande d'être connecté et d'avoir eu affaire à lui :\nune visite faite, ou un bail signé chez soi.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/AvisCommissionnaire"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/commissionnaires/{commissionnaire_id}/note/": {
+            "get": {
+                "operationId": "commissions_commissionnaires_note_list",
+                "description": "La note d'un commissionnaire, nulle sous trois avis.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "commissionnaire_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etat-des-lieux-public/{jeton}/": {
+            "get": {
+                "operationId": "commissions_etat-des-lieux-public_read",
+                "description": "Le locataire consulte et valide l'état des lieux par son lien, sans\ncompte. Le jeton ne se devine pas ; il n'est stocké que sous forme\nd'empreinte.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "jeton",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etat-des-lieux-public/{jeton}/valider/": {
+            "get": {
+                "operationId": "commissions_etat-des-lieux-public_valider_list",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "post": {
+                "operationId": "commissions_etat-des-lieux-public_valider_create",
+                "description": "",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "jeton",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etats-des-lieux/": {
+            "get": {
+                "operationId": "commissions_etats-des-lieux_list",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/EtatDesLieux"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "post": {
+                "operationId": "commissions_etats-des-lieux_create",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieuxCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieuxCreate"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": []
+        },
+        "/commissions/etats-des-lieux/{id}/": {
+            "get": {
+                "operationId": "commissions_etats-des-lieux_read",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "patch": {
+                "operationId": "commissions_etats-des-lieux_partial_update",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "delete": {
+                "operationId": "commissions_etats-des-lieux_delete",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etats-des-lieux/{id}/lien/": {
+            "post": {
+                "operationId": "commissions_etats-des-lieux_lien",
+                "description": "Le lien à envoyer au locataire, par WhatsApp ou SMS. Un nouveau\nlien rend l'ancien inutilisable.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etats-des-lieux/{id}/photos/{photo_id}/": {
+            "delete": {
+                "operationId": "commissions_etats-des-lieux_supprimer_photo",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "photo_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etats-des-lieux/{id}/pieces/": {
+            "post": {
+                "operationId": "commissions_etats-des-lieux_pieces",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etats-des-lieux/{id}/pieces/{piece_id}/": {
+            "patch": {
+                "operationId": "commissions_etats-des-lieux_pieces_partial_update",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "delete": {
+                "operationId": "commissions_etats-des-lieux_pieces_delete",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "piece_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/etats-des-lieux/{id}/pieces/{piece_id}/photos/": {
+            "post": {
+                "operationId": "commissions_etats-des-lieux_pieces_photos",
+                "summary": "État des lieux établi par le commissionnaire du bail.",
+                "description": "Lisible aussi par le propriétaire inscrit du bien et par l'équipe. Tant\nque le locataire ne l'a pas validé, le commissionnaire le complète ;\nensuite, plus rien ne bouge.",
+                "parameters": [
+                    {
+                        "name": "commission",
+                        "in": "formData",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "type",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "entree",
+                            "sortie"
+                        ],
+                        "default": "entree"
+                    },
+                    {
+                        "name": "date",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "format": "date"
+                    },
+                    {
+                        "name": "releves_compteurs",
+                        "in": "formData",
+                        "description": "Index ou crédit restant : SNEL, REGIDESO.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "observations",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieux"
+                        }
+                    }
+                },
+                "consumes": [
+                    "multipart/form-data",
+                    "application/x-www-form-urlencoded"
+                ],
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "piece_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
         },
         "/commissions/reglements/": {
             "get": {
@@ -4586,8 +5477,7 @@
         "/commissions/{id}/": {
             "get": {
                 "operationId": "commissions_read",
-                "summary": "Les commissions dont l'utilisateur est titulaire ou confrère.",
-                "description": "L'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
+                "description": "Les commissions dont l'utilisateur est titulaire ou confrère, et\ncelles des biens dont il est le propriétaire inscrit — il est le bailleur,\nil a le droit de savoir ce qui a été conclu chez lui.\n\nL'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -4629,6 +5519,41 @@
                         "description": "",
                         "schema": {
                             "$ref": "#/definitions/Annulation"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/{id}/bail-enregistre/": {
+            "post": {
+                "operationId": "commissions_bail_enregistre",
+                "description": "Le bail a été enregistré (loi n° 15/025, article 41).",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Commission"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Commission"
                         }
                     }
                 },
@@ -6955,6 +7880,9 @@
                         "signalement",
                         "commission",
                         "reglement",
+                        "mandat",
+                        "avis",
+                        "etat_des_lieux",
                         "autre"
                     ],
                     "readOnly": true
@@ -8150,6 +9078,25 @@
                     "type": "string",
                     "readOnly": true
                 },
+                "expire_le": {
+                    "title": "Expire le",
+                    "description": "Au-delà, l'annonce est masquée tant qu'elle n'est pas reconfirmée.",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "est_expiree": {
+                    "title": "Est expiree",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "mandat_en_cours": {
+                    "title": "Mandat en cours",
+                    "description": "Proposition ou mandat en cours auprès d'un commissionnaire. Renseigné pour le propriétaire et le commissionnaire du bien.",
+                    "type": "object",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
                 "statut_validation": {
                     "title": "Statut de validation",
                     "type": "string",
@@ -8721,6 +9668,25 @@
                     "type": "string",
                     "readOnly": true
                 },
+                "expire_le": {
+                    "title": "Expire le",
+                    "description": "Au-delà, l'annonce est masquée tant qu'elle n'est pas reconfirmée.",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "est_expiree": {
+                    "title": "Est expiree",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "mandat_en_cours": {
+                    "title": "Mandat en cours",
+                    "description": "Proposition ou mandat en cours auprès d'un commissionnaire. Renseigné pour le propriétaire et le commissionnaire du bien.",
+                    "type": "object",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
                 "valide_par": {
                     "$ref": "#/definitions/ProfilPublic"
                 },
@@ -8936,6 +9902,19 @@
                     "readOnly": true,
                     "x-nullable": true
                 },
+                "confirme_le": {
+                    "title": "Annonce confirmée le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "rappel_expiration_le": {
+                    "title": "Rappel d'expiration envoyé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
                 "created_at": {
                     "title": "Date de création",
                     "type": "string",
@@ -8972,6 +9951,54 @@
                 }
             }
         },
+        "CommissionnaireAnnuaire": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "full_name": {
+                    "title": "Full name",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "avatar": {
+                    "title": "Photo de profil",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "bio": {
+                    "title": "Biographie",
+                    "type": "string"
+                },
+                "identite_verifiee": {
+                    "title": "Identite verifiee",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "biens_dans_la_ville": {
+                    "title": "Biens dans la ville",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "nombre_avis": {
+                    "title": "Nombre avis",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "note_moyenne": {
+                    "title": "Note moyenne",
+                    "description": "Nulle sous trois avis : une seule note ne dit rien.",
+                    "type": "number",
+                    "readOnly": true,
+                    "x-nullable": true
+                }
+            }
+        },
         "Favori": {
             "type": "object",
             "properties": {
@@ -9000,6 +10027,109 @@
                 "bien": {
                     "title": "Bien",
                     "type": "integer"
+                }
+            }
+        },
+        "Mandat": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "bien": {
+                    "title": "Bien",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "bien_quartier": {
+                    "title": "Bien quartier",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "proprietaire": {
+                    "title": "Propriétaire",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "proprietaire_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "commissionnaire": {
+                    "title": "Commissionnaire",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "commissionnaire_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "statut": {
+                    "title": "Statut",
+                    "type": "string",
+                    "enum": [
+                        "propose",
+                        "accepte",
+                        "refuse",
+                        "annule",
+                        "retire"
+                    ],
+                    "readOnly": true
+                },
+                "statut_display": {
+                    "title": "Statut display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "message": {
+                    "title": "Message du propriétaire",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "motif_refus": {
+                    "title": "Motif du refus",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "repondu_le": {
+                    "title": "Repondu le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "termine_le": {
+                    "title": "Termine le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "RefusMandat": {
+            "type": "object",
+            "properties": {
+                "motif": {
+                    "title": "Motif",
+                    "type": "string",
+                    "maxLength": 1000
                 }
             }
         },
@@ -9190,6 +10320,25 @@
                     "description": "Ce que le client paiera pour visiter : jamais plus que le plafond de la ville, et zéro tant que l'identité du commissionnaire n'a pas été vérifiée par l'équipe.",
                     "type": "string",
                     "readOnly": true
+                },
+                "expire_le": {
+                    "title": "Expire le",
+                    "description": "Au-delà, l'annonce est masquée tant qu'elle n'est pas reconfirmée.",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "est_expiree": {
+                    "title": "Est expiree",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "mandat_en_cours": {
+                    "title": "Mandat en cours",
+                    "description": "Proposition ou mandat en cours auprès d'un commissionnaire. Renseigné pour le propriétaire et le commissionnaire du bien.",
+                    "type": "object",
+                    "readOnly": true,
+                    "x-nullable": true
                 },
                 "statut_validation": {
                     "title": "Statut de validation",
@@ -9881,6 +11030,31 @@
                     },
                     "readOnly": true
                 },
+                "bail_enregistre_le": {
+                    "title": "Bail enregistré le",
+                    "type": "string",
+                    "format": "date",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "echeance_enregistrement": {
+                    "title": "Echeance enregistrement",
+                    "description": "Dernier jour pour enregistrer le bail (loi n° 15/025, art. 41).",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "etats_des_lieux": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "readOnly": true
+                },
+                "avis_proprietaire_donne": {
+                    "title": "Avis proprietaire donne",
+                    "type": "boolean",
+                    "readOnly": true
+                },
                 "annulee_le": {
                     "title": "Annulé le",
                     "type": "string",
@@ -9933,6 +11107,324 @@
                     "title": "Date du bail",
                     "type": "string",
                     "format": "date"
+                }
+            }
+        },
+        "AvisCommissionnaire": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "commissionnaire": {
+                    "title": "Commissionnaire",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "type_auteur": {
+                    "title": "Type auteur",
+                    "type": "string",
+                    "enum": [
+                        "client",
+                        "proprietaire"
+                    ],
+                    "readOnly": true
+                },
+                "type_auteur_display": {
+                    "title": "Type auteur display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "auteur_prenom": {
+                    "title": "Auteur prenom",
+                    "description": "Prénom seul : l'avis est public, son auteur reste discret.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "note": {
+                    "title": "Note",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "commentaire": {
+                    "title": "Commentaire",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "AvisCommissionnaireCreate": {
+            "required": [
+                "note"
+            ],
+            "type": "object",
+            "properties": {
+                "visite": {
+                    "title": "Visite",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "commission": {
+                    "title": "Commission",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "note": {
+                    "title": "Note",
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                },
+                "commentaire": {
+                    "title": "Commentaire",
+                    "type": "string",
+                    "maxLength": 1000
+                }
+            }
+        },
+        "PhotoEtatDesLieux": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "image": {
+                    "title": "Image",
+                    "type": "string",
+                    "readOnly": true,
+                    "format": "uri"
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "PieceEtatDesLieux": {
+            "required": [
+                "nom"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "nom": {
+                    "title": "Pièce",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "etat": {
+                    "title": "Etat",
+                    "type": "string",
+                    "enum": [
+                        "bon",
+                        "usage",
+                        "mauvais"
+                    ]
+                },
+                "etat_display": {
+                    "title": "Etat display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "observations": {
+                    "title": "Observations",
+                    "type": "string"
+                },
+                "ordre": {
+                    "title": "Ordre",
+                    "type": "integer",
+                    "maximum": 32767,
+                    "minimum": 0
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PhotoEtatDesLieux"
+                    },
+                    "readOnly": true
+                }
+            }
+        },
+        "EtatDesLieux": {
+            "required": [
+                "commission",
+                "date"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "commission": {
+                    "title": "Bail",
+                    "type": "integer"
+                },
+                "type": {
+                    "title": "Type",
+                    "type": "string",
+                    "enum": [
+                        "entree",
+                        "sortie"
+                    ],
+                    "default": "entree"
+                },
+                "type_display": {
+                    "title": "Type display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "date": {
+                    "title": "Date de l'état des lieux",
+                    "type": "string",
+                    "format": "date"
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "bien_quartier": {
+                    "title": "Bien quartier",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "locataire_nom": {
+                    "title": "Locataire nom",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "etabli_par": {
+                    "title": "Établi par",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "etabli_par_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "releves_compteurs": {
+                    "title": "Relevés des compteurs",
+                    "description": "Index ou crédit restant : SNEL, REGIDESO.",
+                    "type": "string"
+                },
+                "observations": {
+                    "title": "Observations générales",
+                    "type": "string"
+                },
+                "pieces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PieceEtatDesLieux"
+                    },
+                    "readOnly": true
+                },
+                "est_valide": {
+                    "title": "Est valide",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "valide_le": {
+                    "title": "Validé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "valide_par_nom": {
+                    "title": "Validé par (nom saisi)",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "reserves_locataire": {
+                    "title": "Réserves du locataire",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "lien_envoye": {
+                    "title": "Lien envoye",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "updated_at": {
+                    "title": "Updated at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "EtatDesLieuxCreate": {
+            "required": [
+                "commission",
+                "date"
+            ],
+            "type": "object",
+            "properties": {
+                "commission": {
+                    "title": "Bail",
+                    "type": "integer"
+                },
+                "type": {
+                    "title": "Type",
+                    "type": "string",
+                    "enum": [
+                        "entree",
+                        "sortie"
+                    ],
+                    "default": "entree"
+                },
+                "date": {
+                    "title": "Date de l'état des lieux",
+                    "type": "string",
+                    "format": "date"
+                },
+                "releves_compteurs": {
+                    "title": "Relevés des compteurs",
+                    "description": "Index ou crédit restant : SNEL, REGIDESO.",
+                    "type": "string"
+                },
+                "observations": {
+                    "title": "Observations générales",
+                    "type": "string"
+                },
+                "pieces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PieceEtatDesLieux"
+                    }
                 }
             }
         },
@@ -10227,7 +11719,12 @@
                         "rapport_disponible",
                         "agent_ajoute_chat",
                         "signalement",
-                        "commission"
+                        "commission",
+                        "mandat",
+                        "avis",
+                        "etat_des_lieux",
+                        "expiration_annonce",
+                        "rappel_bail"
                     ],
                     "readOnly": true
                 },
@@ -10563,6 +12060,12 @@
                     "type": "string",
                     "readOnly": true,
                     "minLength": 1
+                },
+                "avis_commissionnaire_donne": {
+                    "title": "Avis commissionnaire donne",
+                    "description": "Le client a déjà noté le commissionnaire pour cette visite.",
+                    "type": "boolean",
+                    "readOnly": true
                 }
             }
         },

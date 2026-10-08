@@ -41,6 +41,8 @@ const ModerateurDashboard = lazyWithRetry(() => import("@/pages/dashboard/Modera
 const AgentDashboard = lazyWithRetry(() => import("@/pages/dashboard/AgentDashboard"));
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const LegalPage = lazyWithRetry(() => import("@/pages/LegalPage"));
+const EtatDesLieuxEdition = lazyWithRetry(() => import("@/pages/EtatDesLieuxEdition"));
+const EtatDesLieuxPublic = lazyWithRetry(() => import("@/pages/EtatDesLieuxPublic"));
 
 function PageLoader() {
   return (
@@ -140,6 +142,11 @@ function Router() {
           <Route path="/mon-portefeuille">
             <ProtectedRoute allowedRoles={['commissionnaire']}><CommissionnaireDashboard /></ProtectedRoute>
           </Route>
+          <Route path="/etats-des-lieux/bail/:commissionId">
+            <ProtectedRoute allowedRoles={['commissionnaire']}><EtatDesLieuxEdition /></ProtectedRoute>
+          </Route>
+          {/* Public : le locataire n'a pas besoin de compte. */}
+          <Route path="/etat-des-lieux/:jeton" component={EtatDesLieuxPublic} />
           <Route path="/moderation">
             <ProtectedRoute allowedRoles={['moderateur', 'admin']}><ModerateurDashboard /></ProtectedRoute>
           </Route>
