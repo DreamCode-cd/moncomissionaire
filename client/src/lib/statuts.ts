@@ -85,12 +85,21 @@ const APPRECIATION: Record<string, Statut> = {
   non_recommande: { libelle: 'Non recommandé', ton: 'defavorable' },
 };
 
+/** Règlement d'une commission, du point de vue de celui qui l'attend. */
+const COMMISSION: Record<string, Statut> = {
+  due: { libelle: 'À encaisser', ton: 'attente', icone: Clock },
+  partiellement_reglee: { libelle: 'En partie réglée', ton: 'information', icone: Clock },
+  reglee: { libelle: 'Réglée', ton: 'favorable', icone: CircleCheck },
+  annulee: { libelle: 'Annulée', ton: 'neutre', icone: CircleX },
+};
+
 const FAMILLES = {
   validation: VALIDATION,
   location: LOCATION,
   visite: VISITE,
   demande: DEMANDE,
   appreciation: APPRECIATION,
+  commission: COMMISSION,
 } as const;
 
 /**
@@ -107,6 +116,7 @@ const ORDRE_RECHERCHE: Famille[] = [
   'validation',
   'location',
   'appreciation',
+  'commission',
 ];
 
 export type Famille = keyof typeof FAMILLES;

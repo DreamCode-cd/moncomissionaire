@@ -2,16 +2,21 @@ import { EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Calendar, Clock, CircleCheck, CircleX, FileText, User, Eye, ArrowLeft, House } from 'lucide-react';
+import { Calendar, Clock, CircleCheck, CircleX, FileText, User, Eye, ArrowLeft, House, Flag, Wallet } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
+import { queryClient } from '@/lib/queryClient';
+import { estPositif, formaterMontant } from '@/lib/prix';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,6 +31,28 @@ interface DemandeWithVisite extends DemandeVisite {
 
 export default function MyVisits() {
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
+  const [aSignaler, setASignaler] = useState<DemandeWithVisite | null>(null);
+  const [motifSignalement, setMotifSignalement] = useState('');
+  const { toast } = useToast();
+
+  // Un abus (frais exigés au-delà de l'annonce, commissionnaire injoignable
+  // après paiement) remonte à l'équipe VillaGo, et reste sur la demande.
+  const signaler = useMutation({
+    mutationFn: () =>
+      api.post(`/api/v1/visites/client/demandes/${aSignaler!.id}/signaler/`, { motif: motifSignalement }),
+    onSuccess: () => {
+      setASignaler(null);
+      setMotifSignalement('');
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/client/demandes/'] });
+      toast({ title: 'Signalement envoyé', description: 'L’équipe VillaGo va examiner la situation.' });
+    },
+    onError: (e) =>
+      toast({
+        title: 'Signalement non envoyé',
+        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      }),
+  });
 
   const { data: demandes, isLoading } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
@@ -122,6 +149,31 @@ export default function MyVisits() {
                 <FileText className="w-4 h-4 mr-2" />
                 Voir le rapport
               </Button>
+            )}
+            {estPositif(demande.frais_visite) && (
+              <p className="flex items-center gap-1 text-sm mt-2" data-testid={`frais-visite-${demande.id}`}>
+                <Wallet className="w-4 h-4 text-muted-foreground" />
+                {'Frais de visite annoncés : '}
+                {formaterMontant(demande.frais_visite, demande.frais_visite_devise)}
+                {estPositif(demande.frais_visite_regles) && ' · réglés'}
+              </p>
+            )}
+            {demande.signale_le ? (
+              <p className="text-xs text-muted-foreground mt-2">
+                Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue.
+              </p>
+            ) : (
+              demande.statut !== 'en_attente' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2 px-0 text-muted-foreground"
+                  onClick={() => setASignaler(demande)}
+                  data-testid={`button-signaler-${demande.id}`}
+                >
+                  <Flag className="w-4 h-4 mr-1" /> Signaler un problème
+                </Button>
+              )
             )}
           </div>
         </div>
@@ -275,6 +327,33 @@ export default function MyVisits() {
                 </div>
               </ScrollArea>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!aSignaler} onOpenChange={(o) => !o && setASignaler(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Signaler un problème</DialogTitle>
+              <DialogDescription>
+                Frais demandés au-delà de l’annonce, commissionnaire injoignable… Décrivez ce qui s’est passé : l’équipe VillaGo sera prévenue.
+              </DialogDescription>
+            </DialogHeader>
+            <Textarea
+              value={motifSignalement}
+              onChange={(e) => setMotifSignalement(e.target.value)}
+              placeholder="Ex : on m’a demandé 20 $ de frais de visite au lieu de 10 $"
+              data-testid="textarea-signalement"
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setASignaler(null)}>Annuler</Button>
+              <Button
+                disabled={!motifSignalement.trim() || signaler.isPending}
+                onClick={() => signaler.mutate()}
+                data-testid="button-envoyer-signalement"
+              >
+                Envoyer
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

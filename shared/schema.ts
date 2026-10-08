@@ -109,6 +109,9 @@ export interface VilleDetail {
    *  dans une annonce. */
   communes?: string[];
   nombre_biens?: number;
+  /** Plafond des frais de visite, réglé par l'équipe. Zéro = frais interdits. */
+  frais_visite_plafond_usd?: string;
+  frais_visite_plafond_cdf?: string;
 }
 
 /** Régularité de l'eau. Une chaîne vide veut dire « non précisé ». */
@@ -118,6 +121,10 @@ export type Electricite = '' | 'stable' | 'delestage' | 'autonome' | 'aucune';
 
 /** Loi n° 15/025 du 31 décembre 2015, article 18. */
 export const GARANTIE_MOIS_MAX = 3;
+
+/** Loi n° 15/025, article 10 : un mois de loyer, à la charge du locataire,
+ *  ou pour moitié chacun si les deux parties ont saisi l'intermédiaire. */
+export type PayeurCommission = 'locataire' | 'moitie';
 
 /** Bailleur sans compte, du carnet d'un commissionnaire. Visible de lui seul. */
 export interface Bailleur {
@@ -164,7 +171,20 @@ export interface BienList {
   commissionnaire: number | null;
   commissionnaire_detail: ProfilPublic | null;
   photo_principale?: Photo | null;
+  /** Qui paie la commission ; sans objet pour un bien de propriétaire. */
+  commission_payee_par?: PayeurCommission;
+  commission_payee_par_display?: string;
+  /** Montants dans la devise du bien. Nuls pour un bien de propriétaire. */
+  commission_locataire?: string | null;
+  commission_bailleur?: string | null;
+  /** Ce que le client paiera réellement pour visiter, plafond appliqué. */
+  frais_visite_applicables?: string;
   created_at: string;
+}
+
+/** Un bien qu'un confrère a ouvert au partage. */
+export interface BienPartage extends BienList {
+  part_confrere_pourcent: number;
 }
 
 export interface BienDetail extends BienList {
@@ -187,6 +207,10 @@ export interface BienDetail extends BienList {
   valide_par?: ProfilPublic | null;
   motif_rejet?: string;
   date_validation?: string;
+  /** Renseignés pour l'auteur de l'annonce et la modération. */
+  frais_visite?: string;
+  partage_ouvert?: boolean;
+  part_confrere_pourcent?: number;
   updated_at: string;
 }
 
@@ -217,6 +241,10 @@ export interface BienCreate {
   meuble?: boolean;
   climatisation?: boolean;
   gardien?: boolean;
+  commission_payee_par?: PayeurCommission;
+  frais_visite?: string;
+  partage_ouvert?: boolean;
+  part_confrere_pourcent?: number;
   photo_principale_index?: number;
 }
 
@@ -268,6 +296,102 @@ export interface DemandeVisite {
   traitee_par?: number;
   traitee_par_detail?: UserList;
   motif_rejet?: string;
+  /** Client amené par un confrère : c'est le confrère qui est `client`. */
+  prospect_nom?: string;
+  prospect_telephone?: string;
+  /** Part du confrère, figée au moment où il a présenté son client. */
+  part_confrere_pourcent?: number | null;
+  /** Frais de visite figés à la demande, et ce qui en a été réglé. */
+  frais_visite?: string;
+  frais_visite_devise?: Devise | '';
+  frais_visite_regles?: string;
+  signalement_motif?: string;
+  signale_le?: string | null;
+  chatroom_id?: number | null;
+  created_at: string;
+}
+
+export interface PresentationClientCreate {
+  bien: number;
+  date_souhaitee: string;
+  heure_souhaitee: string;
+  message?: string;
+  prospect_nom: string;
+  prospect_telephone?: string;
+}
+
+export type ModeReglement =
+  | 'especes'
+  | 'mpesa'
+  | 'airtel_money'
+  | 'orange_money'
+  | 'virement'
+  | 'villago';
+
+/** Modes que le commissionnaire peut saisir. « villago » est réservé à
+ *  l'encaissement par la plateforme, pas encore ouvert. */
+export const MODES_REGLEMENT: { valeur: ModeReglement; libelle: string }[] = [
+  { valeur: 'especes', libelle: 'Espèces' },
+  { valeur: 'mpesa', libelle: 'M-Pesa' },
+  { valeur: 'airtel_money', libelle: 'Airtel Money' },
+  { valeur: 'orange_money', libelle: 'Orange Money' },
+  { valeur: 'virement', libelle: 'Virement bancaire' },
+];
+
+export type Payeur = 'locataire' | 'bailleur';
+
+export interface Reglement {
+  id: number;
+  nature: 'commission' | 'frais_visite';
+  nature_display: string;
+  commission: number | null;
+  demande: number | null;
+  payeur: Payeur;
+  payeur_display: string;
+  montant: string;
+  devise: Devise;
+  devise_symbole: string;
+  mode: ModeReglement;
+  mode_display: string;
+  reference: string;
+  date_reglement: string;
+  recu_par: number;
+  recu_par_detail: ProfilPublic;
+  annulee_le: string | null;
+  motif_annulation: string;
+  created_at: string;
+}
+
+export type StatutCommission = 'due' | 'partiellement_reglee' | 'reglee' | 'annulee';
+
+export interface Commission {
+  id: number;
+  bien: number;
+  bien_titre: string;
+  demande: number | null;
+  titulaire: number;
+  titulaire_detail: ProfilPublic;
+  confrere: number | null;
+  confrere_detail: ProfilPublic | null;
+  locataire_nom: string;
+  locataire_telephone: string;
+  date_bail: string;
+  devise: Devise;
+  devise_symbole: string;
+  montant_total: string;
+  payee_par: PayeurCommission;
+  part_locataire: string;
+  part_bailleur: string;
+  part_confrere_pourcent: number | null;
+  montant_titulaire: string;
+  montant_confrere: string;
+  statut: StatutCommission;
+  montant_regle: string;
+  reste_locataire: string;
+  reste_bailleur: string;
+  reglements: Reglement[];
+  annulee_le: string | null;
+  motif_annulation: string;
   created_at: string;
 }
 
@@ -491,6 +615,13 @@ export const bienCreateSchema = z.object({
   meuble: z.boolean().optional(),
   climatisation: z.boolean().optional(),
   gardien: z.boolean().optional(),
+  // Réservés au commissionnaire ; le serveur refuse les frais et le partage
+  // pour un propriétaire, et vérifie le plafond de la ville.
+  commission_payee_par: z.enum(['locataire', 'moitie']).default('locataire'),
+  frais_visite: z.string().optional(),
+  partage_ouvert: z.boolean().optional(),
+  part_confrere_pourcent: z.coerce.number().int()
+    .min(1, "Au moins 1 %").max(99, "Au plus 99 %").default(50),
 });
 
 export const demandeVisiteSchema = z.object({

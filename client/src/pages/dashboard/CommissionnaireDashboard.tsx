@@ -5,6 +5,8 @@ import {
   Building2,
   CalendarCheck,
   CalendarClock,
+  FilePenLine,
+  Handshake,
   Inbox,
   MapPin,
   Pencil,
@@ -12,6 +14,7 @@ import {
   Plus,
   Trash2,
   UserRound,
+  Wallet,
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { EtatChargement, EtatVide } from '@/components/etats';
@@ -42,13 +45,24 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
-import { formaterLoyer } from '@/lib/prix';
+import { estPositif, formaterLoyer, formaterMontant } from '@/lib/prix';
+import { OngletGains } from '@/components/commission/OngletGains';
+import { OngletPartages } from '@/components/commission/OngletPartages';
+import { DialogueBail } from '@/components/commission/DialogueBail';
+import { DialogueReglement } from '@/components/commission/DialogueReglement';
+import {
+  CLE_BIENS,
+  CLE_COMMISSIONS,
+  CLE_DEMANDES,
+  CLE_VISITES,
+} from '@/components/commission/commun';
 import { lieuAnnonce } from '@/lib/annonce';
 import { formaterDateCourte } from '@/lib/dates';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
 import type {
   Bailleur,
   BienList,
+  Commission,
   DemandeVisite,
   PaginatedResponse,
   Visite,
@@ -65,9 +79,6 @@ import type {
  * appel au bailleur ou au client en un geste.
  */
 
-const CLE_BIENS = ['/api/v1/biens/commissionnaire/'];
-const CLE_DEMANDES = ['/api/v1/visites/commissionnaire/demandes/'];
-const CLE_VISITES = ['/api/v1/visites/commissionnaire/visites/'];
 
 const STATUTS_LOCATION = [
   { valeur: 'disponible', libelle: 'Disponible' },
@@ -132,7 +143,9 @@ export default function CommissionnaireDashboard() {
         </div>
 
         <Tabs value={onglet} onValueChange={setOnglet}>
-          <TabsList className="mb-4 grid grid-cols-4 w-full">
+          {/* Six onglets : sur un téléphone, la barre défile plutôt que
+              d'écraser les libellés. */}
+          <TabsList className="mb-4 flex w-full justify-start overflow-x-auto">
             <TabsTrigger value="biens" data-testid="tab-biens">
               Biens ({biens.data?.count ?? 0})
             </TabsTrigger>
@@ -144,6 +157,12 @@ export default function CommissionnaireDashboard() {
             </TabsTrigger>
             <TabsTrigger value="visites" data-testid="tab-visites">
               Visites ({visitesAVenir.length})
+            </TabsTrigger>
+            <TabsTrigger value="gains" data-testid="tab-gains">
+              Gains
+            </TabsTrigger>
+            <TabsTrigger value="partages" data-testid="tab-partages">
+              Partages
             </TabsTrigger>
           </TabsList>
 
@@ -163,6 +182,12 @@ export default function CommissionnaireDashboard() {
           </TabsContent>
           <TabsContent value="visites">
             <OngletVisites visites={visites.data?.results} chargement={visites.isLoading} />
+          </TabsContent>
+          <TabsContent value="gains">
+            <OngletGains />
+          </TabsContent>
+          <TabsContent value="partages">
+            <OngletPartages />
           </TabsContent>
         </Tabs>
       </div>
@@ -411,6 +436,7 @@ function OngletDemandes({
               </div>
               <BadgeStatut famille="demande" valeur={d.statut} libelle={d.statut_display} compact />
             </div>
+            <InfosDemande demande={d} />
             {d.message && <p className="text-sm text-muted-foreground italic">« {d.message} »</p>}
             {d.statut === 'acceptee' && (
               <p className="text-sm"><LienTelephone numero={d.client?.phone} /></p>
@@ -542,21 +568,96 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
                   {demande.client.full_name || demande.client.username} · <LienTelephone numero={demande.client.phone} />
                 </p>
               )}
-              {v.statut === 'planifiee' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-1"
-                  onClick={() => terminer.mutate(v.id)}
-                  disabled={terminer.isPending}
-                >
-                  Visite faite
-                </Button>
-              )}
+              {demande && <InfosDemande demande={demande} />}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {v.statut === 'planifiee' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => terminer.mutate(v.id)}
+                    disabled={terminer.isPending}
+                  >
+                    Visite faite
+                  </Button>
+                )}
+                {demande && <ActionsArgent demande={demande} />}
+              </div>
             </CardContent>
           </Card>
         );
       })}
     </div>
+  );
+}
+
+/** Ce que le commissionnaire doit savoir d'une demande avant de la traiter :
+ *  qui l'amène, quelle part revient au confrère, quels frais ont été
+ *  annoncés au client. */
+function InfosDemande({ demande }: { demande: DemandeVisite }) {
+  const parConfrere = demande.part_confrere_pourcent != null;
+  if (!parConfrere && !estPositif(demande.frais_visite)) return null;
+  return (
+    <div className="text-xs space-y-0.5">
+      {parConfrere && (
+        <p className="flex items-center gap-1">
+          <Handshake className="w-3 h-3" />
+          Client présenté par un confrère : {demande.prospect_nom}
+          {demande.prospect_telephone ? <> · <LienTelephone numero={demande.prospect_telephone} /></> : null}
+          {` · part du confrère ${demande.part_confrere_pourcent} %`}
+        </p>
+      )}
+      {estPositif(demande.frais_visite) && (
+        <p className="flex items-center gap-1 text-muted-foreground">
+          <Wallet className="w-3 h-3" />
+          Frais de visite annoncés : {formaterMontant(demande.frais_visite, demande.frais_visite_devise)}
+          {estPositif(demande.frais_visite_regles) ? ' · reçus' : ''}
+        </p>
+      )}
+      {demande.signale_le && (
+        <p className="text-destructive">Le client a signalé un problème : {demande.signalement_motif}</p>
+      )}
+    </div>
+  );
+}
+
+/** Noter les frais de visite reçus, puis déclarer le bail une fois signé. */
+function ActionsArgent({ demande }: { demande: DemandeVisite }) {
+  const commissions = useQuery<PaginatedResponse<Commission>>({ queryKey: CLE_COMMISSIONS });
+  const [fraisOuvert, setFraisOuvert] = useState(false);
+  const [bailOuvert, setBailOuvert] = useState(false);
+
+  if (demande.statut !== 'acceptee') return null;
+  const resteFrais =
+    (parseFloat(demande.frais_visite ?? '0') || 0) - (parseFloat(demande.frais_visite_regles ?? '0') || 0);
+  const bailDeclare = (commissions.data?.results ?? []).some(
+    (c) => c.demande === demande.id && !c.annulee_le,
+  );
+
+  return (
+    <>
+      {resteFrais > 0 && (
+        <Button size="sm" variant="outline" onClick={() => setFraisOuvert(true)} data-testid={`button-frais-recus-${demande.id}`}>
+          <Wallet className="w-4 h-4 mr-1" /> Frais reçus
+        </Button>
+      )}
+      {!bailDeclare && !commissions.isLoading && (
+        <Button size="sm" onClick={() => setBailOuvert(true)} data-testid={`button-bail-${demande.id}`}>
+          <FilePenLine className="w-4 h-4 mr-1" /> Bail signé
+        </Button>
+      )}
+      {fraisOuvert && (
+        <DialogueReglement
+          cible={{
+            nature: 'frais_visite',
+            demande: demande.id,
+            titre: demande.bien_detail?.titre ?? 'Visite',
+            devise: demande.frais_visite_devise || demande.bien_detail?.devise || 'USD',
+            reste: String(resteFrais),
+          }}
+          onFermer={() => setFraisOuvert(false)}
+        />
+      )}
+      {bailOuvert && <DialogueBail demande={demande} onFermer={() => setBailOuvert(false)} />}
+    </>
   );
 }
