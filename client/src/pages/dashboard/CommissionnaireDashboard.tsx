@@ -47,6 +47,8 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { estPositif, formaterLoyer, formaterMontant } from '@/lib/prix';
 import { OngletGains } from '@/components/commission/OngletGains';
+import { Expiration } from '@/components/confiance/Expiration';
+import { PropositionsMandat } from '@/components/confiance/PropositionsMandat';
 import { OngletPartages } from '@/components/commission/OngletPartages';
 import { DialogueBail } from '@/components/commission/DialogueBail';
 import { DialogueReglement } from '@/components/commission/DialogueReglement';
@@ -167,6 +169,7 @@ export default function CommissionnaireDashboard() {
           </TabsList>
 
           <TabsContent value="biens">
+            <PropositionsMandat cleBiens={CLE_BIENS} />
             <OngletBiens biens={biens.data?.results} chargement={biens.isLoading} />
           </TabsContent>
           <TabsContent value="bailleurs">
@@ -276,6 +279,10 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
                   </Button>
                 </Link>
               </div>
+              {bien.proprietaire && (
+                <p className="text-xs text-muted-foreground">Confié par {bien.proprietaire.full_name}, propriétaire inscrit</p>
+              )}
+              <Expiration bien={bien} routeApi="/api/v1/biens/commissionnaire/" cle={CLE_BIENS} />
             </div>
           </CardContent>
         </Card>
