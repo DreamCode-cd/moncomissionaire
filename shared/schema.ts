@@ -254,6 +254,15 @@ export interface PieceEtatDesLieux {
   observations: string;
   ordre: number;
   photos: { id: number; image: string; created_at: string }[];
+  /** Sortie seulement : la même pièce à l'entrée, si elle y figurait. */
+  a_l_entree?: {
+    etat: EtatPiece;
+    etat_display: string;
+    observations: string;
+    photos: { id: number; image: string; created_at: string }[];
+  } | null;
+  /** Sortie seulement : l'état est pire qu'à l'entrée. */
+  degradee?: boolean;
 }
 
 export interface EtatDesLieux {
@@ -275,7 +284,19 @@ export interface EtatDesLieux {
   valide_par_nom: string;
   reserves_locataire: string;
   lien_envoye?: boolean;
+  /** Devise du bail, pour la garantie. */
+  devise?: Devise;
+  /** Sortie seulement. La retenue ne dépasse jamais la garantie versée, et
+   *  a toujours un motif. */
+  garantie_versee?: string | null;
+  retenue_garantie?: string;
+  motif_retenue?: string;
+  garantie_restituee?: string | null;
+  /** Sortie seulement : date de validation de l'entrée, si elle existe. */
+  entree_validee_le?: string | null;
 }
+
+export type TypeEtatDesLieux = 'entree' | 'sortie';
 
 /** Un bien qu'un confrère a ouvert au partage. */
 export interface BienPartage extends BienList {

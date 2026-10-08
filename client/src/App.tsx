@@ -142,7 +142,7 @@ function Router() {
           <Route path="/mon-portefeuille">
             <ProtectedRoute allowedRoles={['commissionnaire']}><CommissionnaireDashboard /></ProtectedRoute>
           </Route>
-          <Route path="/etats-des-lieux/bail/:commissionId">
+          <Route path="/etats-des-lieux/bail/:commissionId/:type?">
             <ProtectedRoute allowedRoles={['commissionnaire']}><EtatDesLieuxEdition /></ProtectedRoute>
           </Route>
           {/* Public : le locataire n'a pas besoin de compte. */}

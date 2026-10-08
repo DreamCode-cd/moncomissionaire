@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { formaterDateCourte } from '@/lib/dates';
+import { formaterMontant, symboleDevise } from '@/lib/prix';
 import { getDjangoImageUrl } from '@/lib/utils';
 import { aujourdhui, messageErreur } from '@/components/commission/commun';
 import {
@@ -28,6 +29,7 @@ import {
   type EtatPiece,
   type PaginatedResponse,
   type PieceEtatDesLieux,
+  type TypeEtatDesLieux,
 } from '@shared/schema';
 
 /**
@@ -38,13 +40,20 @@ import {
  * un lien au locataire (WhatsApp ou SMS). Le locataire le valide, avec ses
  * réserves s'il en a. Ensuite, plus rien ne se modifie : c'est la pièce qu'on
  * ressortira au départ, quand il faudra rendre ou non la garantie.
+ *
+ * À la sortie (même page, `/sortie` au bout de l'adresse), les pièces
+ * reprennent celles de l'entrée, chacune avec son état d'alors et ses photos.
+ * Le commissionnaire ne change que ce qui s'est dégradé, puis indique ce qu'il
+ * retient de la garantie, avec un motif. Le locataire valide de la même façon,
+ * et ses réserves sont le moyen de contester une retenue.
  */
 
 const PIECES_COURANTES = ['Salon', 'Chambre 1', 'Chambre 2', 'Cuisine', 'Douche et WC', 'Parcelle et clôture'];
 
 export default function EtatDesLieuxEdition() {
-  const { commissionId } = useParams<{ commissionId: string }>();
-  const cle = [`/api/v1/commissions/etats-des-lieux/?commission=${commissionId}&type=entree`];
+  const { commissionId, type: typeDemande } = useParams<{ commissionId: string; type?: string }>();
+  const type: TypeEtatDesLieux = typeDemande === 'sortie' ? 'sortie' : 'entree';
+  const cle = [`/api/v1/commissions/etats-des-lieux/?commission=${commissionId}&type=${type}`];
   const etats = useQuery<PaginatedResponse<EtatDesLieux>>({ queryKey: cle });
   const etat = etats.data?.results?.[0];
 
@@ -55,7 +64,7 @@ export default function EtatDesLieuxEdition() {
           <Link href="/mon-portefeuille">
             <Button variant="ghost" size="icon" aria-label="Retour"><ChevronLeft className="w-5 h-5" /></Button>
           </Link>
-          <h1 className="text-xl font-bold">État des lieux d’entrée</h1>
+          <h1 className="text-xl font-bold">État des lieux {type === 'sortie' ? 'de sortie' : 'd’entrée'}</h1>
         </div>
         {etats.isLoading ? (
           <EtatChargement texte="Chargement…" />
@@ -66,27 +75,32 @@ export default function EtatDesLieuxEdition() {
         ) : etat ? (
           <Edition etat={etat} cle={cle} />
         ) : (
-          <Creation commissionId={Number(commissionId)} cle={cle} />
+          <Creation commissionId={Number(commissionId)} type={type} cle={cle} />
         )}
       </div>
     </Layout>
   );
 }
 
-function Creation({ commissionId, cle }: { commissionId: number; cle: string[] }) {
+function Creation({ commissionId, type, cle }: { commissionId: number; type: TypeEtatDesLieux; cle: string[] }) {
   const { toast } = useToast();
   const [date, setDate] = useState(aujourdhui());
   const [compteurs, setCompteurs] = useState('');
   const [pieces, setPieces] = useState<string[]>(PIECES_COURANTES.slice(0, 4));
+  const [garantie, setGarantie] = useState('');
+  const sortie = type === 'sortie';
 
   const creer = useMutation({
     mutationFn: () =>
       api.post('/api/v1/commissions/etats-des-lieux/', {
         commission: commissionId,
-        type: 'entree',
+        type,
         date,
         releves_compteurs: compteurs,
-        pieces: pieces.map((nom) => ({ nom, etat: 'bon' })),
+        // À la sortie, le serveur reprend les pièces de l'entrée.
+        ...(sortie
+          ? garantie.trim() ? { garantie_versee: garantie.replace(',', '.') } : {}
+          : { pieces: pieces.map((nom) => ({ nom, etat: 'bon' })) }),
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: cle }),
     onError: (e) => toast({ title: 'Non créé', description: messageErreur(e), variant: 'destructive' }),
@@ -108,6 +122,26 @@ function Creation({ commissionId, cle }: { commissionId: number; cle: string[] }
             placeholder="Ex : SNEL prépayé, 42 kWh restants ; REGIDESO index 1 204"
           />
         </div>
+        {sortie ? (
+          <>
+            <div className="space-y-1">
+              <Label htmlFor="edl-garantie">Garantie versée à l’entrée (facultatif)</Label>
+              <Input
+                id="edl-garantie"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="any"
+                value={garantie}
+                onChange={(e) => setGarantie(e.target.value)}
+                placeholder="Vide : la garantie de l’annonce"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Les pièces de l’état des lieux d’entrée sont reprises, chacune dans l’état où elle était. Vous n’aurez qu’à changer ce qui s’est dégradé.
+            </p>
+          </>
+        ) : (
         <div className="space-y-2">
           <Label>Pièces à visiter</Label>
           <div className="flex flex-wrap gap-2">
@@ -128,8 +162,9 @@ function Creation({ commissionId, cle }: { commissionId: number; cle: string[] }
           </div>
           <p className="text-xs text-muted-foreground">Vous pourrez en ajouter d’autres ensuite.</p>
         </div>
-        <Button className="w-full" disabled={!date || !pieces.length || creer.isPending} onClick={() => creer.mutate()}>
-          Commencer l’état des lieux
+        )}
+        <Button className="w-full" disabled={!date || (!sortie && !pieces.length) || creer.isPending} onClick={() => creer.mutate()}>
+          Commencer l’état des lieux {sortie ? 'de sortie' : ''}
         </Button>
       </CardContent>
     </Card>
@@ -196,7 +231,8 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
             <p className="text-muted-foreground">Il ne se modifie plus.</p>
           </CardContent>
         </Card>
-        {etat.pieces.map((p) => <PieceLecture key={p.id} piece={p} />)}
+        {etat.type === 'sortie' && <BilanGarantie etat={etat} />}
+        {etat.pieces.map((p) => <PieceLecture key={p.id} piece={p} sortie={etat.type === 'sortie'} />)}
       </div>
     );
   }
@@ -205,7 +241,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
     <div className="space-y-3">
       {resume}
       {etat.pieces.map((p) => (
-        <PieceEdition key={p.id} piece={p} base={base} onChange={rafraichir} onErreur={surErreur} />
+        <PieceEdition key={p.id} piece={p} sortie={etat.type === 'sortie'} base={base} onChange={rafraichir} onErreur={surErreur} />
       ))}
 
       <form
@@ -231,6 +267,8 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
         />
       </div>
 
+      {etat.type === 'sortie' && <SaisieGarantie etat={etat} base={base} onChange={rafraichir} onErreur={surErreur} />}
+
       <Card>
         <CardContent className="p-4 space-y-3">
           <p className="text-sm">
@@ -250,7 +288,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
                   <Copy className="w-4 h-4 mr-1" /> Copier
                 </Button>
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`État des lieux de « ${etat.bien_titre} » à valider : ${lien}`)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(`État des lieux ${etat.type === 'sortie' ? 'de sortie' : 'd’entrée'} de « ${etat.bien_titre} » à valider : ${lien}`)}`}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -272,11 +310,13 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
 
 function PieceEdition({
   piece,
+  sortie,
   base,
   onChange,
   onErreur,
 }: {
   piece: PieceEtatDesLieux;
+  sortie: boolean;
   base: string;
   onChange: () => void;
   onErreur: (e: unknown) => void;
@@ -319,6 +359,7 @@ function PieceEdition({
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
+        <ComparaisonEntree piece={piece} sortie={sortie} />
         <Select value={piece.etat} onValueChange={(etat) => modifier.mutate({ etat: etat as EtatPiece })}>
           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -375,7 +416,7 @@ function PieceEdition({
   );
 }
 
-export function PieceLecture({ piece }: { piece: PieceEtatDesLieux }) {
+export function PieceLecture({ piece, sortie = false }: { piece: PieceEtatDesLieux; sortie?: boolean }) {
   return (
     <Card>
       <CardContent className="p-3 space-y-2">
@@ -383,6 +424,7 @@ export function PieceLecture({ piece }: { piece: PieceEtatDesLieux }) {
           <p className="font-medium">{piece.nom}</p>
           <span className="text-sm text-muted-foreground">{piece.etat_display}</span>
         </div>
+        <ComparaisonEntree piece={piece} sortie={sortie} />
         {piece.observations && <p className="text-sm">{piece.observations}</p>}
         {piece.photos.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -393,6 +435,123 @@ export function PieceLecture({ piece }: { piece: PieceEtatDesLieux }) {
             ))}
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** À la sortie : ce qu'était la pièce à l'entrée, photos comprises. C'est
+ *  sur cette comparaison que se discute la garantie. */
+export function ComparaisonEntree({ piece, sortie }: { piece: PieceEtatDesLieux; sortie: boolean }) {
+  if (!sortie) return null;
+  if (!piece.a_l_entree) {
+    return <p className="text-xs text-muted-foreground">Pièce absente de l’état des lieux d’entrée.</p>;
+  }
+  const avant = piece.a_l_entree;
+  return (
+    <div
+      className={`rounded-md p-2 text-xs space-y-1 ${piece.degradee ? 'bg-statut-defavorable-fond' : 'bg-muted'}`}
+      data-testid={`comparaison-${piece.id}`}
+    >
+      <p>
+        {piece.degradee && <span className="font-semibold text-statut-defavorable">Dégradée depuis l’entrée · </span>}
+        À l’entrée : {avant.etat_display}
+        {avant.observations ? ` · ${avant.observations}` : ''}
+      </p>
+      {avant.photos.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {avant.photos.map((photo) => (
+            <a key={photo.id} href={getDjangoImageUrl(photo.image) || '#'} target="_blank" rel="noreferrer">
+              <img src={getDjangoImageUrl(photo.image) || ''} alt={`${piece.nom} à l’entrée`} className="h-12 w-12 rounded object-cover" loading="lazy" />
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Garantie versée, retenue et somme rendue : ce que le locataire doit lire
+ *  avant de valider. */
+export function BilanGarantie({ etat }: { etat: EtatDesLieux }) {
+  if (etat.garantie_versee == null) return null;
+  const retenue = parseFloat(etat.retenue_garantie ?? '0') || 0;
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-1 text-sm" data-testid="bilan-garantie">
+        <p className="font-medium">Garantie</p>
+        <p>Versée à l’entrée : {formaterMontant(etat.garantie_versee, etat.devise)}</p>
+        <p>
+          Retenue : {formaterMontant(retenue, etat.devise)}
+          {retenue > 0 && etat.motif_retenue ? `, pour : ${etat.motif_retenue}` : ''}
+        </p>
+        <p className="font-semibold">À rendre au locataire : {formaterMontant(etat.garantie_restituee, etat.devise)}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SaisieGarantie({
+  etat,
+  base,
+  onChange,
+  onErreur,
+}: {
+  etat: EtatDesLieux;
+  base: string;
+  onChange: () => void;
+  onErreur: (e: unknown) => void;
+}) {
+  const [garantie, setGarantie] = useState(etat.garantie_versee ?? '');
+  const [retenue, setRetenue] = useState(String(parseFloat(etat.retenue_garantie ?? '0') || ''));
+  const [motif, setMotif] = useState(etat.motif_retenue ?? '');
+  const symbole = symboleDevise(etat.devise);
+  const degradees = etat.pieces.filter((p) => p.degradee).map((p) => p.nom);
+
+  const enregistrer = useMutation({
+    mutationFn: () =>
+      api.patch(base, {
+        garantie_versee: garantie === '' ? null : String(garantie).replace(',', '.'),
+        retenue_garantie: retenue === '' ? '0' : retenue.replace(',', '.'),
+        motif_retenue: motif,
+      }),
+    onSuccess: onChange,
+    onError: onErreur,
+  });
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <p className="font-medium">Garantie</p>
+        {degradees.length > 0 && (
+          <p className="text-sm text-statut-defavorable">Dégradé depuis l’entrée : {degradees.join(', ')}.</p>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="garantie-versee">Versée ({symbole})</Label>
+            <Input id="garantie-versee" type="number" inputMode="decimal" min="0" step="any" value={garantie} onChange={(e) => setGarantie(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="garantie-retenue">Retenue ({symbole})</Label>
+            <Input id="garantie-retenue" type="number" inputMode="decimal" min="0" step="any" value={retenue} onChange={(e) => setRetenue(e.target.value)} placeholder="0" data-testid="input-retenue" />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="garantie-motif">Motif de la retenue</Label>
+          <Textarea
+            id="garantie-motif"
+            value={motif}
+            onChange={(e) => setMotif(e.target.value)}
+            placeholder="Ex : évier de la cuisine cassé, devis du plombier 150 $"
+          />
+          <p className="text-xs text-muted-foreground">
+            Obligatoire dès qu’il y a une retenue. Le locataire le lira avant de valider, et pourra le contester dans ses réserves.
+          </p>
+        </div>
+        <Button variant="outline" disabled={enregistrer.isPending} onClick={() => enregistrer.mutate()} data-testid="button-enregistrer-garantie">
+          Enregistrer la garantie
+        </Button>
+        <BilanGarantie etat={etat} />
       </CardContent>
     </Card>
   );
