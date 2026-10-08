@@ -179,7 +179,102 @@ export interface BienList {
   commission_bailleur?: string | null;
   /** Ce que le client paiera réellement pour visiter, plafond appliqué. */
   frais_visite_applicables?: string;
+  /** Une annonce se reconfirme tous les 30 jours, sinon elle est masquée. */
+  expire_le?: string;
+  est_expiree?: boolean;
+  /** Proposition ou mandat en cours ; renseigné pour le propriétaire et le
+   *  commissionnaire du bien seulement. */
+  mandat_en_cours?: Mandat | null;
   created_at: string;
+}
+
+export type StatutMandat = 'propose' | 'accepte' | 'refuse' | 'annule' | 'retire';
+
+/** Un propriétaire confie son bien à un commissionnaire, qui accepte ou refuse. */
+export interface Mandat {
+  id: number;
+  bien: number;
+  bien_titre: string;
+  bien_quartier: string;
+  proprietaire: number;
+  proprietaire_detail: ProfilPublic;
+  commissionnaire: number;
+  commissionnaire_detail: ProfilPublic;
+  statut: StatutMandat;
+  statut_display: string;
+  message: string;
+  motif_refus: string;
+  repondu_le: string | null;
+  termine_le: string | null;
+  created_at: string;
+}
+
+/** Un commissionnaire tel que le propriétaire le voit pour le choisir. */
+export interface CommissionnaireAnnuaire {
+  id: number;
+  full_name: string;
+  avatar?: string | null;
+  bio?: string;
+  identite_verifiee: boolean;
+  biens_dans_la_ville: number;
+  nombre_avis: number;
+  /** Nulle sous trois avis. */
+  note_moyenne: number | null;
+}
+
+export interface NoteCommissionnaire {
+  note_moyenne: number | null;
+  nombre_avis: number;
+}
+
+export interface AvisCommissionnaire {
+  id: number;
+  commissionnaire: number;
+  type_auteur: 'client' | 'proprietaire';
+  type_auteur_display: string;
+  auteur_prenom: string;
+  note: number;
+  commentaire: string;
+  created_at: string;
+}
+
+export type EtatPiece = 'bon' | 'usage' | 'mauvais';
+
+export const ETATS_PIECE: { valeur: EtatPiece; libelle: string }[] = [
+  { valeur: 'bon', libelle: 'Bon état' },
+  { valeur: 'usage', libelle: 'Usé, en état de marche' },
+  { valeur: 'mauvais', libelle: 'Mauvais état' },
+];
+
+export interface PieceEtatDesLieux {
+  id: number;
+  nom: string;
+  etat: EtatPiece;
+  etat_display: string;
+  observations: string;
+  ordre: number;
+  photos: { id: number; image: string; created_at: string }[];
+}
+
+export interface EtatDesLieux {
+  id?: number;
+  commission?: number;
+  type: 'entree' | 'sortie';
+  type_display: string;
+  date: string;
+  bien_titre: string;
+  bien_quartier: string;
+  locataire_nom: string;
+  etabli_par?: number;
+  etabli_par_detail: ProfilPublic;
+  releves_compteurs: string;
+  observations: string;
+  pieces: PieceEtatDesLieux[];
+  est_valide: boolean;
+  valide_le: string | null;
+  valide_par_nom: string;
+  reserves_locataire: string;
+  lien_envoye?: boolean;
 }
 
 /** Un bien qu'un confrère a ouvert au partage. */
@@ -308,6 +403,8 @@ export interface DemandeVisite {
   signalement_motif?: string;
   signale_le?: string | null;
   chatroom_id?: number | null;
+  /** La visite fixée pour cette demande, s'il y en a une. */
+  visite?: VisiteMini | null;
   created_at: string;
 }
 
@@ -390,9 +487,25 @@ export interface Commission {
   reste_locataire: string;
   reste_bailleur: string;
   reglements: Reglement[];
+  /** Loi n° 15/025, art. 41 : enregistrement sous 30 jours. */
+  bail_enregistre_le: string | null;
+  echeance_enregistrement: string;
+  etats_des_lieux: { id: number; type: 'entree' | 'sortie'; date: string; valide_le: string | null }[];
+  avis_proprietaire_donne: boolean;
   annulee_le: string | null;
   motif_annulation: string;
   created_at: string;
+}
+
+export interface VisiteMini {
+  id: number;
+  agent_detail?: UserList | null;
+  date_visite: string;
+  heure_visite: string;
+  statut: StatutVisite;
+  statut_display: string;
+  /** Le client a déjà noté le commissionnaire pour cette visite. */
+  avis_commissionnaire_donne: boolean;
 }
 
 export interface DemandeVisiteCreate {

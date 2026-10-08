@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { HandCoins, Phone, Undo2, Wallet } from 'lucide-react';
+import { ClipboardList, HandCoins, Phone, Stamp, Undo2, Wallet } from 'lucide-react';
+import { Link } from 'wouter';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { EtatChargement, EtatVide } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { Button } from '@/components/ui/button';
@@ -22,7 +25,7 @@ import { formaterDateCourte } from '@/lib/dates';
 import { formaterMontant } from '@/lib/prix';
 import type { Commission, PaginatedResponse, Reglement } from '@shared/schema';
 import { DialogueReglement } from './DialogueReglement';
-import { CLE_COMMISSIONS, messageErreur } from './commun';
+import { CLE_COMMISSIONS, aujourdhui, messageErreur } from './commun';
 
 /**
  * Ce que le commissionnaire a gagné, ce qu'on lui doit encore, et la trace
@@ -36,6 +39,7 @@ export function OngletGains() {
   const { user } = useAuth();
   const commissions = useQuery<PaginatedResponse<Commission>>({ queryKey: CLE_COMMISSIONS });
   const [aRegler, setARegler] = useState<Commission | null>(null);
+  const [aEnregistrer, setAEnregistrer] = useState<Commission | null>(null);
   const [aAnnuler, setAAnnuler] = useState<
     { type: 'commission'; objet: Commission } | { type: 'reglement'; objet: Reglement } | null
   >(null);
@@ -97,6 +101,19 @@ export function OngletGains() {
                   </p>
                 )}
                 {c.annulee_le && <p className="text-muted-foreground">Annulée : {c.motif_annulation}</p>}
+                {!c.annulee_le && (
+                  <p className="text-muted-foreground">
+                    {c.bail_enregistre_le
+                      ? `Bail enregistré le ${formaterDateCourte(c.bail_enregistre_le)}`
+                      : `Bail à enregistrer avant le ${formaterDateCourte(c.echeance_enregistrement)} (loi n° 15/025, art. 41)`}
+                    {' · '}
+                    {c.etats_des_lieux.some((e) => e.type === 'entree' && e.valide_le)
+                      ? 'état des lieux validé'
+                      : c.etats_des_lieux.some((e) => e.type === 'entree')
+                        ? 'état des lieux en attente du locataire'
+                        : 'pas d’état des lieux'}
+                  </p>
+                )}
               </div>
 
               {c.reglements.length > 0 && (
@@ -136,6 +153,16 @@ export function OngletGains() {
                       <Button size="sm" variant="outline"><Phone className="w-4 h-4 mr-1" /> Locataire</Button>
                     </a>
                   )}
+                  <Link href={`/etats-des-lieux/bail/${c.id}`}>
+                    <Button size="sm" variant="outline" data-testid={`button-etat-des-lieux-${c.id}`}>
+                      <ClipboardList className="w-4 h-4 mr-1" /> État des lieux
+                    </Button>
+                  </Link>
+                  {!c.bail_enregistre_le && (
+                    <Button size="sm" variant="outline" onClick={() => setAEnregistrer(c)} data-testid={`button-bail-enregistre-${c.id}`}>
+                      <Stamp className="w-4 h-4 mr-1" /> Bail enregistré
+                    </Button>
+                  )}
                   {actifs.length === 0 && (
                     <Button size="sm" variant="ghost" onClick={() => setAAnnuler({ type: 'commission', objet: c })}>
                       Le bail ne s’est pas fait
@@ -161,6 +188,7 @@ export function OngletGains() {
         />
       )}
       {aAnnuler && <DialogueAnnulation cible={aAnnuler} onFermer={() => setAAnnuler(null)} />}
+      {aEnregistrer && <DialogueEnregistrement commission={aEnregistrer} onFermer={() => setAEnregistrer(null)} />}
     </div>
   );
 }
@@ -245,6 +273,38 @@ function DialogueAnnulation({
           <Button variant="destructive" disabled={!motif.trim() || annuler.isPending} onClick={() => annuler.mutate()}>
             Confirmer
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Le bail a été enregistré (loi n° 15/025, article 41 : sous trente jours). */
+function DialogueEnregistrement({ commission, onFermer }: { commission: Commission; onFermer: () => void }) {
+  const { toast } = useToast();
+  const [date, setDate] = useState(aujourdhui());
+  const noter = useMutation({
+    mutationFn: () => api.post(`/api/v1/commissions/${commission.id}/bail-enregistre/`, { date }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CLE_COMMISSIONS });
+      onFermer();
+    },
+    onError: (e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' }),
+  });
+  return (
+    <Dialog open onOpenChange={(o) => !o && onFermer()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Bail enregistré</DialogTitle>
+          <DialogDescription>{commission.bien_titre} · à faire avant le {formaterDateCourte(commission.echeance_enregistrement)}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-1">
+          <Label htmlFor="date-enregistrement">Date de l’enregistrement</Label>
+          <Input id="date-enregistrement" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button disabled={!date || noter.isPending} onClick={() => noter.mutate()}>Enregistrer</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

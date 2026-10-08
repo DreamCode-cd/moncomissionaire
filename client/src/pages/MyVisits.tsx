@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { estPositif, formaterMontant } from '@/lib/prix';
+import { DialogueAvis } from '@/components/confiance/DialogueAvis';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,10 +30,24 @@ interface DemandeWithVisite extends DemandeVisite {
   visite_detail?: Visite & { rapport?: RapportVisite };
 }
 
+/** L'API renvoie la visite sous `visite` ; ces pages lisaient un champ
+ *  `visite_detail` que personne n'envoie : les visites planifiées et faites
+ *  n'apparaissaient jamais côté client. */
+function avecVisite(page: PaginatedResponse<DemandeWithVisite>): PaginatedResponse<DemandeWithVisite> {
+  return {
+    ...page,
+    results: page.results.map((d) => ({
+      ...d,
+      visite_detail: d.visite_detail ?? (d.visite as DemandeWithVisite['visite_detail']) ?? undefined,
+    })),
+  };
+}
+
 export default function MyVisits() {
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
   const [aSignaler, setASignaler] = useState<DemandeWithVisite | null>(null);
   const [motifSignalement, setMotifSignalement] = useState('');
+  const [aNoter, setANoter] = useState<DemandeWithVisite | null>(null);
   const { toast } = useToast();
 
   // Un abus (frais exigés au-delà de l'annonce, commissionnaire injoignable
@@ -56,6 +71,7 @@ export default function MyVisits() {
 
   const { data: demandes, isLoading } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
+    select: avecVisite,
     refetchOnWindowFocus: true,
   });
 
@@ -158,6 +174,18 @@ export default function MyVisits() {
                 {estPositif(demande.frais_visite_regles) && ' · réglés'}
               </p>
             )}
+            {demande.visite?.statut === 'terminee' &&
+              !demande.visite.avis_commissionnaire_donne &&
+              demande.bien_detail?.commissionnaire && (
+                <Button
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setANoter(demande)}
+                  data-testid={`button-noter-${demande.id}`}
+                >
+                  Noter le commissionnaire
+                </Button>
+              )}
             {demande.signale_le ? (
               <p className="text-xs text-muted-foreground mt-2">
                 Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue.
@@ -329,6 +357,15 @@ export default function MyVisits() {
             )}
           </DialogContent>
         </Dialog>
+
+        {aNoter?.visite && (
+          <DialogueAvis
+            cible={{ visite: aNoter.visite.id }}
+            nomCommissionnaire={aNoter.bien_detail?.commissionnaire_detail?.full_name}
+            clesARafraichir={[['/api/v1/visites/client/demandes/']]}
+            onFermer={() => setANoter(null)}
+          />
+        )}
 
         <Dialog open={!!aSignaler} onOpenChange={(o) => !o && setASignaler(null)}>
           <DialogContent>

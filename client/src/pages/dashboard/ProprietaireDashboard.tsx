@@ -26,8 +26,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
-import type { BienList, PaginatedResponse } from '@shared/schema';
-import { formaterLoyer } from '@/lib/prix';
+import type { BienList, Commission, PaginatedResponse } from '@shared/schema';
+import { formaterLoyer, formaterMontant } from '@/lib/prix';
+import { formaterDateCourte } from '@/lib/dates';
+import { Expiration } from '@/components/confiance/Expiration';
+import { DialogueConfier } from '@/components/confiance/DialogueConfier';
+import { DialogueAvis } from '@/components/confiance/DialogueAvis';
+
+const CLE_MES_BIENS = ['/api/v1/biens/proprietaire/'];
+const CLE_BAUX = ['/api/v1/commissions/'];
 
 const locationStatuses = [
   { value: 'disponible', label: 'Disponible' },
@@ -288,6 +295,10 @@ export default function ProprietaireDashboard() {
                           Modifier
                         </Button>
                       </Link>
+                      <div className="mt-2 space-y-2">
+                        <Expiration bien={property} routeApi="/api/v1/biens/proprietaire/" cle={CLE_MES_BIENS} />
+                        <Mandat bien={property} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -295,7 +306,105 @@ export default function ProprietaireDashboard() {
             )}
           </TabsContent>
         </Tabs>
+
+        <BauxConclus />
       </div>
     </Layout>
+  );
+}
+
+/** À qui le bien est confié, ou le bouton pour le confier. */
+function Mandat({ bien }: { bien: BienList }) {
+  const { toast } = useToast();
+  const [choisir, setChoisir] = useState(false);
+  const mandat = bien.mandat_en_cours;
+  const reprendre = useMutation({
+    mutationFn: () => api.post(`/api/v1/biens/proprietaire/${bien.id}/reprendre/`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_MES_BIENS }),
+    onError: (e) =>
+      toast({ title: 'Erreur', description: e instanceof Error ? e.message : '', variant: 'destructive' }),
+  });
+
+  if (mandat) {
+    const nom = mandat.commissionnaire_detail?.full_name;
+    return (
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="text-muted-foreground">
+          {mandat.statut === 'accepte' ? `Confié à ${nom}` : `Proposé à ${nom}, en attente de réponse`}
+        </span>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 text-xs"
+          disabled={reprendre.isPending}
+          onClick={() => reprendre.mutate()}
+          data-testid={`button-reprendre-${bien.id}`}
+        >
+          {mandat.statut === 'accepte' ? 'Reprendre' : 'Annuler'}
+        </Button>
+      </div>
+    );
+  }
+  if (bien.statut_validation !== 'valide' || bien.commissionnaire) return null;
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="secondary"
+        className="w-full h-8 text-xs"
+        onClick={() => setChoisir(true)}
+        data-testid={`button-confier-${bien.id}`}
+      >
+        Confier à un commissionnaire
+      </Button>
+      {choisir && <DialogueConfier bien={bien} onFermer={() => setChoisir(false)} />}
+    </>
+  );
+}
+
+/** Les baux conclus chez le propriétaire par un commissionnaire : il est le
+ *  bailleur, il voit ce qui a été signé, et il peut noter le commissionnaire. */
+function BauxConclus() {
+  const baux = useQuery<PaginatedResponse<Commission>>({ queryKey: CLE_BAUX });
+  const [aNoter, setANoter] = useState<Commission | null>(null);
+  const liste = (baux.data?.results ?? []).filter((c) => !c.annulee_le);
+  if (!liste.length) return null;
+  return (
+    <section className="mt-8 space-y-3">
+      <h2 className="text-lg font-semibold">Baux conclus chez vous</h2>
+      {liste.map((c) => (
+        <Card key={c.id}>
+          <CardContent className="p-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0 text-sm">
+              <p className="font-medium">{c.bien_titre}</p>
+              <p className="text-muted-foreground">
+                {c.locataire_nom} · bail du {formaterDateCourte(c.date_bail)} · par {c.titulaire_detail?.full_name}
+              </p>
+              {c.part_bailleur && parseFloat(c.part_bailleur) > 0 && (
+                <p className="text-muted-foreground">Votre part de commission : {formaterMontant(c.part_bailleur, c.devise)}</p>
+              )}
+              <p className="text-muted-foreground">
+                {c.bail_enregistre_le
+                  ? `Bail enregistré le ${formaterDateCourte(c.bail_enregistre_le)}`
+                  : `À enregistrer avant le ${formaterDateCourte(c.echeance_enregistrement)}`}
+              </p>
+            </div>
+            {!c.avis_proprietaire_donne && (
+              <Button size="sm" variant="outline" onClick={() => setANoter(c)} data-testid={`button-noter-bail-${c.id}`}>
+                Noter {c.titulaire_detail?.full_name}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+      {aNoter && (
+        <DialogueAvis
+          cible={{ commission: aNoter.id }}
+          nomCommissionnaire={aNoter.titulaire_detail?.full_name}
+          clesARafraichir={[CLE_BAUX]}
+          onFermer={() => setANoter(null)}
+        />
+      )}
+    </section>
   );
 }
