@@ -11235,6 +11235,38 @@
                 }
             }
         },
+        "PieceALEntree": {
+            "description": "Sortie seulement : la même pièce à l'entrée, retrouvée par son nom. Nulle si la pièce n'y figurait pas, absente pour une entrée.",
+            "required": [
+                "etat",
+                "etat_display",
+                "observations",
+                "photos"
+            ],
+            "type": "object",
+            "properties": {
+                "etat": {
+                    "title": "Etat",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "etat_display": {
+                    "title": "Etat display",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "observations": {
+                    "title": "Observations",
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PhotoEtatDesLieux"
+                    }
+                }
+            }
+        },
         "PieceEtatDesLieux": {
             "required": [
                 "nom"
@@ -11282,6 +11314,15 @@
                     "items": {
                         "$ref": "#/definitions/PhotoEtatDesLieux"
                     },
+                    "readOnly": true
+                },
+                "a_l_entree": {
+                    "$ref": "#/definitions/PieceALEntree"
+                },
+                "degradee": {
+                    "title": "Degradee",
+                    "description": "Sortie seulement : l'état est pire qu'à l'entrée.",
+                    "type": "boolean",
                     "readOnly": true
                 }
             }
@@ -11414,6 +11455,14 @@
                     "description": "Garantie versée moins la retenue. Sortie seulement.",
                     "type": "string",
                     "format": "decimal",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "entree_validee_le": {
+                    "title": "Entree validee le",
+                    "description": "Sortie seulement : validation de l'état des lieux d'entrée.",
+                    "type": "string",
+                    "format": "date-time",
                     "readOnly": true,
                     "x-nullable": true
                 },

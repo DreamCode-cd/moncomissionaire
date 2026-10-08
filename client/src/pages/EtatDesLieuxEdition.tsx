@@ -232,7 +232,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
           </CardContent>
         </Card>
         {etat.type === 'sortie' && <BilanGarantie etat={etat} />}
-        {etat.pieces.map((p) => <PieceLecture key={p.id} piece={p} />)}
+        {etat.pieces.map((p) => <PieceLecture key={p.id} piece={p} sortie={etat.type === 'sortie'} />)}
       </div>
     );
   }
@@ -241,7 +241,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
     <div className="space-y-3">
       {resume}
       {etat.pieces.map((p) => (
-        <PieceEdition key={p.id} piece={p} base={base} onChange={rafraichir} onErreur={surErreur} />
+        <PieceEdition key={p.id} piece={p} sortie={etat.type === 'sortie'} base={base} onChange={rafraichir} onErreur={surErreur} />
       ))}
 
       <form
@@ -310,11 +310,13 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
 
 function PieceEdition({
   piece,
+  sortie,
   base,
   onChange,
   onErreur,
 }: {
   piece: PieceEtatDesLieux;
+  sortie: boolean;
   base: string;
   onChange: () => void;
   onErreur: (e: unknown) => void;
@@ -357,7 +359,7 @@ function PieceEdition({
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-        <ComparaisonEntree piece={piece} />
+        <ComparaisonEntree piece={piece} sortie={sortie} />
         <Select value={piece.etat} onValueChange={(etat) => modifier.mutate({ etat: etat as EtatPiece })}>
           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -414,7 +416,7 @@ function PieceEdition({
   );
 }
 
-export function PieceLecture({ piece }: { piece: PieceEtatDesLieux }) {
+export function PieceLecture({ piece, sortie = false }: { piece: PieceEtatDesLieux; sortie?: boolean }) {
   return (
     <Card>
       <CardContent className="p-3 space-y-2">
@@ -422,7 +424,7 @@ export function PieceLecture({ piece }: { piece: PieceEtatDesLieux }) {
           <p className="font-medium">{piece.nom}</p>
           <span className="text-sm text-muted-foreground">{piece.etat_display}</span>
         </div>
-        <ComparaisonEntree piece={piece} />
+        <ComparaisonEntree piece={piece} sortie={sortie} />
         {piece.observations && <p className="text-sm">{piece.observations}</p>}
         {piece.photos.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -440,9 +442,9 @@ export function PieceLecture({ piece }: { piece: PieceEtatDesLieux }) {
 
 /** À la sortie : ce qu'était la pièce à l'entrée, photos comprises. C'est
  *  sur cette comparaison que se discute la garantie. */
-export function ComparaisonEntree({ piece }: { piece: PieceEtatDesLieux }) {
-  if (piece.a_l_entree === undefined) return null;
-  if (piece.a_l_entree === null) {
+export function ComparaisonEntree({ piece, sortie }: { piece: PieceEtatDesLieux; sortie: boolean }) {
+  if (!sortie) return null;
+  if (!piece.a_l_entree) {
     return <p className="text-xs text-muted-foreground">Pièce absente de l’état des lieux d’entrée.</p>;
   }
   const avant = piece.a_l_entree;

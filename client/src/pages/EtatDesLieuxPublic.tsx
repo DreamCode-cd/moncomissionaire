@@ -73,7 +73,7 @@ export default function EtatDesLieuxPublic() {
                 Chaque pièce est comparée à l’état des lieux d’entrée. Vérifiez surtout celles marquées « dégradée », et la retenue sur la garantie plus bas.
               </p>
             )}
-            {etat.data.pieces.map((p) => <PieceLecture key={p.id} piece={p} />)}
+            {etat.data.pieces.map((p) => <PieceLecture key={p.id} piece={p} sortie={etat.data.type === 'sortie'} />)}
             {etat.data.type === 'sortie' && <BilanGarantie etat={etat.data} />}
 
             {etat.data.est_valide ? (
