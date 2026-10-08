@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
+import { poserErreursSurChamps } from '@/lib/erreurs';
 import { bienCreateSchema, type BienCreateInput } from '@shared/schema';
 import { DEVISES } from '@/lib/prix';
 import { PHOTOS_MAX } from '@/lib/annonce';
@@ -228,9 +229,16 @@ export default function AddProperty() {
       });
       setLocation(pageRetour);
     } catch (error) {
+      // Les messages du serveur sous les champs concernés (frais de visite
+      // au-delà du plafond, garantie, ville fermée…), le reste en bulle.
+      const reste = poserErreursSurChamps(
+        error,
+        Object.keys(form.getValues()) as (keyof BienCreateInput)[],
+        (champ, message) => form.setError(champ, { message }),
+      );
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: 'Annonce non enregistrée',
+        description: reste ?? 'Corrigez les champs signalés en rouge.',
         variant: 'destructive',
       });
     } finally {

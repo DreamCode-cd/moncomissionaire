@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -50,7 +50,7 @@ export default function ProprietaireDashboard() {
   const [activeTab, setActiveTab] = useState('all');
   const { toast } = useToast();
 
-  const { data: myProperties, isLoading } = useQuery<PaginatedResponse<BienList>>({
+  const { data: myProperties, isLoading, error: erreurBiens, refetch } = useQuery<PaginatedResponse<BienList>>({
     queryKey: ['/api/v1/biens/proprietaire/'],
   });
 
@@ -212,6 +212,8 @@ export default function ProprietaireDashboard() {
                   </Card>
                 ))}
               </div>
+            ) : erreurBiens && !myProperties ? (
+              <ErreurRequete erreur={erreurBiens} titre="Vos biens n’ont pas pu être chargés" onReessayer={() => void refetch()} />
             ) : filteredProperties.length === 0 ? (
               <EtatVide
                 icone={House}
@@ -368,6 +370,13 @@ function BauxConclus() {
   const baux = useQuery<PaginatedResponse<Commission>>({ queryKey: CLE_BAUX });
   const [aNoter, setANoter] = useState<Commission | null>(null);
   const liste = (baux.data?.results ?? []).filter((c) => !c.annulee_le);
+  if (baux.error && !baux.data) {
+    return (
+      <section className="mt-8">
+        <ErreurRequete erreur={baux.error} titre="Les baux conclus n’ont pas pu être chargés" onReessayer={() => void baux.refetch()} />
+      </section>
+    );
+  }
   if (!liste.length) return null;
   return (
     <section className="mt-8 space-y-3">

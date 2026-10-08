@@ -9,9 +9,7 @@ export const CLE_DEMANDES = ['/api/v1/visites/commissionnaire/demandes/'];
 export const CLE_VISITES = ['/api/v1/visites/commissionnaire/visites/'];
 export const CLE_BIENS = ['/api/v1/biens/commissionnaire/'];
 
-export function messageErreur(erreur: unknown) {
-  return erreur instanceof Error ? erreur.message : 'Une erreur est survenue';
-}
+export { messageErreur } from '@/lib/erreurs';
 
 /** Date du jour au format des champs `date` : AAAA-MM-JJ, heure locale. */
 export function aujourdhui(): string {

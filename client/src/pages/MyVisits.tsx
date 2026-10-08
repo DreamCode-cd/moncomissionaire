@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
@@ -69,7 +69,7 @@ export default function MyVisits() {
       }),
   });
 
-  const { data: demandes, isLoading } = useQuery<PaginatedResponse<DemandeWithVisite>>({
+  const { data: demandes, isLoading, error: erreurDemandes, refetch } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
     select: avecVisite,
     refetchOnWindowFocus: true,
@@ -81,6 +81,10 @@ export default function MyVisits() {
     return timeString.slice(0, 5);
   };
 
+  const etatErreur =
+    erreurDemandes && !demandes ? (
+      <ErreurRequete erreur={erreurDemandes} titre="Vos visites n’ont pas pu être chargées" onReessayer={() => void refetch()} />
+    ) : null;
   const allDemandes = demandes?.results || [];
   const pendingDemandes = allDemandes.filter(d => d.statut === 'en_attente');
   const acceptedDemandes = allDemandes.filter(d => d.statut === 'acceptee' || d.visite_detail?.statut === 'planifiee');
@@ -269,35 +273,35 @@ export default function MyVisits() {
           </div>
 
           <TabsContent value="all">
-            {isLoading ? renderLoadingSkeleton() : 
+            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur : 
               allDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Vous n'avez pas encore fait de demande de visite" /> :
               <div className="space-y-4">{allDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="pending">
-            {isLoading ? renderLoadingSkeleton() :
+            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
               pendingDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande en attente" /> :
               <div className="space-y-4">{pendingDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="accepted">
-            {isLoading ? renderLoadingSkeleton() :
+            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
               acceptedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande acceptée" /> :
               <div className="space-y-4">{acceptedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="completed">
-            {isLoading ? renderLoadingSkeleton() :
+            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
               completedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune visite terminée" /> :
               <div className="space-y-4">{completedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
 
           <TabsContent value="rejected">
-            {isLoading ? renderLoadingSkeleton() :
+            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
               rejectedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande rejetée" /> :
               <div className="space-y-4">{rejectedDemandes.map(renderDemandeCard)}</div>
             }

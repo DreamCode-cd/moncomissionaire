@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useParams } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
-import { EtatChargement, EtatVide } from '@/components/etats';
+import { EtatChargement, EtatVide, ErreurRequete } from '@/components/etats';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { api } from '@/lib/api';
+import { ErreurApi, messageErreur } from '@/lib/erreurs';
 import { formaterDateCourte } from '@/lib/dates';
 import type { EtatDesLieux } from '@shared/schema';
 import { PieceLecture } from './EtatDesLieuxEdition';
@@ -24,7 +25,10 @@ import { PieceLecture } from './EtatDesLieuxEdition';
 export default function EtatDesLieuxPublic() {
   const { jeton } = useParams<{ jeton: string }>();
   const chemin = `/api/v1/commissions/etat-des-lieux-public/${jeton}/`;
-  const etat = useQuery<EtatDesLieux>({ queryKey: [chemin], retry: false });
+  const etat = useQuery<EtatDesLieux>({ queryKey: [chemin] });
+  // Seul un 404 veut dire que le lien n'est plus bon. Une coupure de réseau
+  // ne doit pas faire croire au locataire qu'il faut un nouveau lien.
+  const lienInvalide = etat.error instanceof ErreurApi && etat.error.statut === 404;
   const [nom, setNom] = useState('');
   const [reserves, setReserves] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
@@ -32,7 +36,7 @@ export default function EtatDesLieuxPublic() {
   const valider = useMutation({
     mutationFn: () => api.post<EtatDesLieux>(`${chemin}valider/`, { nom, reserves }),
     onSuccess: () => etat.refetch(),
-    onError: (e) => setErreur(e instanceof Error ? e.message : 'Une erreur est survenue'),
+    onError: (e) => setErreur(messageErreur(e)),
   });
 
   return (
@@ -41,6 +45,8 @@ export default function EtatDesLieuxPublic() {
         <h1 className="text-xl font-bold">État des lieux d’entrée</h1>
         {etat.isLoading ? (
           <EtatChargement texte="Chargement…" />
+        ) : etat.error && !etat.data && !lienInvalide ? (
+          <ErreurRequete erreur={etat.error} onReessayer={() => void etat.refetch()} />
         ) : !etat.data ? (
           <EtatVide
             titre="Lien plus valable"

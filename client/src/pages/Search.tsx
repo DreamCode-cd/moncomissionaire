@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { LayoutGrid, List } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { PropertyGrid } from '@/components/property/PropertyGrid';
+import { ErreurRequete } from '@/components/etats';
 import { SearchBar, type SearchFilters } from '@/components/property/SearchBar';
 import { Button } from '@/components/ui/button';
 import {
@@ -120,7 +121,7 @@ export default function Search() {
     return params;
   }, [currentPage, filters]);
   
-  const { data, isLoading } = useQuery<PaginatedResponse<BienList>>({
+  const { data, isLoading, error, refetch } = useQuery<PaginatedResponse<BienList>>({
     queryKey: ['/api/v1/biens/', apiParams],
   });
 
@@ -165,11 +166,15 @@ export default function Search() {
           </div>
         </div>
 
+        {error && !data ? (
+          <ErreurRequete erreur={error} titre="La recherche n’a pas abouti" onReessayer={() => void refetch()} />
+        ) : (
         <PropertyGrid
           properties={data?.results || []}
           isLoading={isLoading}
           variant={viewMode === 'list' ? 'horizontal' : 'default'}
         />
+        )}
 
         {totalPages > 1 && (
           <div className="mt-8">

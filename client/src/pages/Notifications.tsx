@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { classesDuTon } from '@/lib/statuts';
 import { apparenceNotification } from '@/lib/notifications';
 import { formaterAnciennete } from '@/lib/dates';
@@ -20,7 +20,7 @@ import type { Notification, PaginatedResponse } from '@shared/schema';
 export default function Notifications() {
   const { toast } = useToast();
 
-  const { data: notifications, isLoading } = useQuery<PaginatedResponse<Notification>>({
+  const { data: notifications, isLoading, error, refetch } = useQuery<PaginatedResponse<Notification>>({
     queryKey: ['/api/v1/notifications/'],
     refetchInterval: 15000, // Rafraîchir toutes les 15 secondes
     refetchOnWindowFocus: true,
@@ -90,6 +90,8 @@ export default function Notifications() {
               </Card>
             ))}
           </div>
+        ) : error && !notifications ? (
+          <ErreurRequete erreur={error} onReessayer={() => void refetch()} />
         ) : notifications?.results?.length === 0 ? (
           <EtatVide
             icone={Bell}

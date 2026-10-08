@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Building2, Handshake, MapPin, Search } from 'lucide-react';
-import { EtatChargement, EtatVide } from '@/components/etats';
+import { EtatChargement, EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -85,6 +85,8 @@ export function OngletPartages() {
 
         {partages.isLoading ? (
           <EtatChargement texte="Chargement des maisons partagées…" />
+        ) : partages.error && !partages.data ? (
+          <ErreurRequete erreur={partages.error} onReessayer={() => void partages.refetch()} />
         ) : !partages.data?.results?.length ? (
           <EtatVide
             icone={Handshake}

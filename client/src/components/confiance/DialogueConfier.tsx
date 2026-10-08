@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ShieldCheck } from 'lucide-react';
-import { EtatChargement, EtatVide } from '@/components/etats';
+import { EtatChargement, EtatVide, ErreurRequete } from '@/components/etats';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -63,6 +63,8 @@ export function DialogueConfier({ bien, onFermer }: { bien: BienList; onFermer: 
 
         {annuaire.isLoading ? (
           <EtatChargement texte="Chargement des commissionnaires…" />
+        ) : annuaire.error ? (
+          <ErreurRequete erreur={annuaire.error} onReessayer={() => void annuaire.refetch()} />
         ) : !annuaire.data?.length ? (
           <EtatVide titre="Aucun commissionnaire inscrit" description="Revenez bientôt : ils s’inscrivent au fil des semaines." />
         ) : (
