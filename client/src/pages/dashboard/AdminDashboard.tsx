@@ -126,6 +126,8 @@ interface VilleAdmin {
   is_active: boolean;
   communes: CommuneAdmin[];
   nombre_biens: number;
+  frais_visite_plafond_usd: string;
+  frais_visite_plafond_cdf: string;
 }
 
 const ROLES_D_EQUIPE: { valeur: UserRole; libelle: string }[] = [
@@ -867,6 +869,8 @@ function CarteVille({
             Ajouter
           </Button>
         </form>
+
+        <PlafondsFraisVisite ville={ville} chemin={chemin} onChange={onChange} onErreur={onErreur} />
       </CardContent>
 
       <Dialog open={aDesactiver} onOpenChange={setADesactiver}>
@@ -896,6 +900,93 @@ function CarteVille({
         />
       )}
     </Card>
+  );
+}
+
+/** Plafond des frais de visite dans la ville, dans chaque devise.
+ *
+ *  Zéro interdit les frais : c'est la valeur de départ d'une nouvelle ville.
+ *  Abaisser le plafond s'applique aussitôt aux annonces déjà publiées ;
+ *  chaque changement est inscrit au journal. */
+function PlafondsFraisVisite({
+  ville,
+  chemin,
+  onChange,
+  onErreur,
+}: {
+  ville: VilleAdmin;
+  chemin: string;
+  onChange: () => void;
+  onErreur: (e: Error) => void;
+}) {
+  const { toast } = useToast();
+  const [usd, setUsd] = useState(String(parseFloat(ville.frais_visite_plafond_usd ?? '0') || 0));
+  const [cdf, setCdf] = useState(String(parseFloat(ville.frais_visite_plafond_cdf ?? '0') || 0));
+  const modifie =
+    parseFloat(usd || '0') !== parseFloat(ville.frais_visite_plafond_usd ?? '0') ||
+    parseFloat(cdf || '0') !== parseFloat(ville.frais_visite_plafond_cdf ?? '0');
+
+  const enregistrer = useMutation({
+    mutationFn: () =>
+      api.patch(chemin, {
+        frais_visite_plafond_usd: usd || '0',
+        frais_visite_plafond_cdf: cdf || '0',
+      }),
+    onSuccess: () => {
+      toast({ title: `Plafond enregistré pour ${ville.nom}` });
+      onChange();
+    },
+    onError: onErreur,
+  });
+
+  return (
+    <form
+      className="space-y-2 border-t pt-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        enregistrer.mutate();
+      }}
+    >
+      <p className="text-sm font-medium">Frais de visite au plus</p>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1">
+          <Label htmlFor={`plafond-usd-${ville.id}`} className="text-xs text-muted-foreground">En dollars ($)</Label>
+          <Input
+            id={`plafond-usd-${ville.id}`}
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="any"
+            value={usd}
+            onChange={(e) => setUsd(e.target.value)}
+            className="h-9"
+            data-testid={`input-plafond-usd-${ville.nom}`}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor={`plafond-cdf-${ville.id}`} className="text-xs text-muted-foreground">En francs (FC)</Label>
+          <Input
+            id={`plafond-cdf-${ville.id}`}
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="any"
+            value={cdf}
+            onChange={(e) => setCdf(e.target.value)}
+            className="h-9"
+            data-testid={`input-plafond-cdf-${ville.nom}`}
+          />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        0 interdit les frais de visite dans la ville. Un plafond abaissé s’applique tout de suite aux annonces publiées.
+      </p>
+      {modifie && (
+        <Button type="submit" size="sm" disabled={enregistrer.isPending} data-testid={`bouton-plafond-${ville.nom}`}>
+          Enregistrer le plafond
+        </Button>
+      )}
+    </form>
   );
 }
 

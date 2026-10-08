@@ -66,3 +66,34 @@ export function formaterLoyer(
   const prix = formaterPrix(montant, devise);
   return prix === '—' ? prix : `${prix}/mois`;
 }
+
+/**
+ * Montant exact, centimes compris quand il y en a : une commission partagée
+ * moitié-moitié ou entre confrères tombe rarement sur un compte rond, et un
+ * écart d'un dollar affiché sur un reçu suffit à ouvrir une dispute.
+ */
+export function formaterMontant(
+  montant?: string | number | null,
+  devise?: string | null,
+): string {
+  if (montant === null || montant === undefined || montant === '') {
+    return '—';
+  }
+  const valeur = typeof montant === 'number' ? montant : parseFloat(montant);
+  if (Number.isNaN(valeur)) {
+    return '—';
+  }
+  return new Intl.NumberFormat('fr-CD', {
+    style: 'currency',
+    currency: normaliser(devise),
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: Number.isInteger(valeur) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(valeur);
+}
+
+/** Vrai si le montant renvoyé par l'API vaut plus que zéro. */
+export function estPositif(montant?: string | number | null): boolean {
+  const valeur = typeof montant === 'number' ? montant : parseFloat(montant ?? '');
+  return !Number.isNaN(valeur) && valeur > 0;
+}

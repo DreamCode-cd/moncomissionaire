@@ -45,6 +45,7 @@ import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterLoyer, formaterPrix } from '@/lib/prix';
 import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
+import { CoutsLocation } from '@/components/property/CoutsLocation';
 
 // Plus de photo d'illustration à la place d'une vraie : voir VignetteSansPhoto.
 
@@ -655,6 +656,7 @@ export default function PropertyDetail() {
                 ? `Garantie : ${libelleGarantie(property.garantie_mois)}, soit ${formaterPrix(property.garantie, property.devise)}`
                 : 'Aucune garantie demandée'}
             </p>
+            <CoutsLocation bien={property} />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -1075,6 +1077,12 @@ export default function PropertyDetail() {
                   Remplissez le formulaire pour demander une visite de ce bien.
                 </DialogDescription>
               </DialogHeader>
+              <div className="rounded-md bg-muted p-3">
+                <CoutsLocation bien={property} compact />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
+                </p>
+              </div>
               <div className="space-y-4 py-4">
                 <div>
                   <Label htmlFor="visit-date">Date souhaitée</Label>

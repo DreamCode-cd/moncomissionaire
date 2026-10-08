@@ -37,6 +37,7 @@ import {
   ChampBailleur,
   ChampCommune,
   ChampGarantie,
+  ChampsCommission,
   ChampsEauElectricite,
 } from '@/components/property/ChampsTerrain';
 
@@ -44,6 +45,8 @@ interface Ville {
   id: number;
   nom: string;
   communes?: string[];
+  frais_visite_plafond_usd?: string;
+  frais_visite_plafond_cdf?: string;
 }
 
 interface VillesResponse {
@@ -110,11 +113,16 @@ export default function AddProperty() {
       meuble: false,
       climatisation: false,
       gardien: false,
+      commission_payee_par: 'locataire',
+      frais_visite: '',
+      partage_ouvert: false,
+      part_confrere_pourcent: 50,
     },
   });
 
   const villeChoisie = form.watch('ville');
-  const communesDeLaVille = villes.find((v) => String(v.id) === villeChoisie)?.communes ?? [];
+  const villeObjet = villes.find((v) => String(v.id) === villeChoisie);
+  const communesDeLaVille = villeObjet?.communes ?? [];
 
   const convertHeicToJpg = async (file: File): Promise<File> => {
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
@@ -617,6 +625,21 @@ export default function AddProperty() {
 
               </CardContent>
             </Card>
+
+            {estCommissionnaire && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Commission et visite</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChampsCommission
+                    control={form.control}
+                    plafondUsd={villeObjet?.frais_visite_plafond_usd}
+                    plafondCdf={villeObjet?.frais_visite_plafond_cdf}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>

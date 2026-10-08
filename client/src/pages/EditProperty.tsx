@@ -9,6 +9,8 @@ interface Ville {
   id: number;
   nom: string;
   communes?: string[];
+  frais_visite_plafond_usd?: string;
+  frais_visite_plafond_cdf?: string;
 }
 
 interface VillesResponse {
@@ -60,6 +62,7 @@ import {
   ChampBailleur,
   ChampCommune,
   ChampGarantie,
+  ChampsCommission,
   ChampsEauElectricite,
 } from '@/components/property/ChampsTerrain';
 
@@ -146,11 +149,16 @@ export default function EditProperty() {
       meuble: false,
       climatisation: false,
       gardien: false,
+      commission_payee_par: 'locataire',
+      frais_visite: '',
+      partage_ouvert: false,
+      part_confrere_pourcent: 50,
     },
   });
 
   const villeChoisie = form.watch('ville');
-  const communesDeLaVille = villes.find((v) => String(v.id) === villeChoisie)?.communes ?? [];
+  const villeObjet = villes.find((v) => String(v.id) === villeChoisie);
+  const communesDeLaVille = villeObjet?.communes ?? [];
 
   useEffect(() => {
     if (property) {
@@ -176,6 +184,13 @@ export default function EditProperty() {
         meuble: property.meuble ?? false,
         climatisation: property.climatisation ?? false,
         gardien: property.gardien ?? false,
+        // Sans elle, un bien en francs repassait en dollars à la première
+        // modification : le formulaire renvoyait la valeur par défaut.
+        devise: property.devise === 'CDF' ? 'CDF' : 'USD',
+        commission_payee_par: property.commission_payee_par ?? 'locataire',
+        frais_visite: property.frais_visite && parseFloat(property.frais_visite) > 0 ? property.frais_visite : '',
+        partage_ouvert: property.partage_ouvert ?? false,
+        part_confrere_pourcent: property.part_confrere_pourcent ?? 50,
       });
 
       if (property.photos && property.photos.length > 0) {
@@ -264,6 +279,11 @@ export default function EditProperty() {
   });
 
   const onSubmit = async (data: BienCreateInput) => {
+    // Un champ vidé n'est pas envoyé : sans ce zéro explicite, retirer ses
+    // frais de visite laissait l'ancien montant en place.
+    if (estCommissionnaire && !data.frais_visite) {
+      data = { ...data, frais_visite: '0' };
+    }
     setIsSubmitting(true);
     try {
       for (const photoId of photosToDelete) {
@@ -819,6 +839,21 @@ export default function EditProperty() {
                 />
               </CardContent>
             </Card>
+
+            {estCommissionnaire && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Commission et visite</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChampsCommission
+                    control={form.control}
+                    plafondUsd={villeObjet?.frais_visite_plafond_usd}
+                    plafondCdf={villeObjet?.frais_visite_plafond_cdf}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>

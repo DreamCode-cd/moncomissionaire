@@ -327,3 +327,138 @@ export function ChampsEauElectricite({ control }: { control: Controle }) {
     </div>
   );
 }
+
+/** Ce que le client paiera, et ce que le commissionnaire partage.
+ *
+ *  - La commission vaut un mois de loyer, jamais plus (loi n° 15/025,
+ *    article 10) : on ne choisit que qui la paie.
+ *  - Les frais de visite restent sous le plafond fixé par VillaGo pour la
+ *    ville, dans la devise du bien. Le serveur le vérifie ; on l'affiche ici
+ *    pour que le commissionnaire n'ait pas à deviner.
+ *  - Ouvrir le bien au partage le montre aux confrères, avec la part cédée
+ *    à celui qui amènera le locataire.
+ */
+export function ChampsCommission({
+  control,
+  plafondUsd,
+  plafondCdf,
+}: {
+  control: Controle;
+  plafondUsd?: string;
+  plafondCdf?: string;
+}) {
+  const { watch } = useFormContext();
+  const devise = watch('devise') === 'CDF' ? 'CDF' : 'USD';
+  const partageOuvert = !!watch('partage_ouvert');
+  const plafond = parseFloat((devise === 'CDF' ? plafondCdf : plafondUsd) ?? '0') || 0;
+  const symbole = devise === 'CDF' ? 'FC' : '$';
+
+  return (
+    <div className="space-y-4">
+      <FormField
+        control={control}
+        name="commission_payee_par"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Commission (un mois de loyer)</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value ?? 'locataire'}>
+              <FormControl>
+                <SelectTrigger data-testid="select-commission-payee-par">
+                  <SelectValue />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="locataire">Payée par le locataire</SelectItem>
+                <SelectItem value="moitie">Moitié locataire, moitié bailleur</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              La loi la fixe à un mois de loyer (n° 15/025, article 10). Le client la voit avant de demander la visite.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="frais_visite"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Frais de visite ({symbole})</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="any"
+                placeholder="0"
+                disabled={plafond <= 0}
+                {...field}
+                value={field.value ?? ''}
+                data-testid="input-frais-visite"
+              />
+            </FormControl>
+            <FormDescription>
+              {plafond > 0
+                ? `${plafond.toLocaleString('fr-CD')} ${symbole} au plus dans cette ville. Ils ne sont dus qu’une fois par client, et seulement si votre identité a été vérifiée par VillaGo.`
+                : 'VillaGo n’autorise pas encore de frais de visite dans cette ville.'}
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="partage_ouvert"
+        render={({ field }) => (
+          <FormItem className="flex items-start gap-3 space-y-0">
+            <FormControl>
+              <input
+                type="checkbox"
+                className="mt-1 h-5 w-5 accent-[hsl(var(--primary))]"
+                checked={!!field.value}
+                onChange={(e) => field.onChange(e.target.checked)}
+                data-testid="checkbox-partage-ouvert"
+              />
+            </FormControl>
+            <div className="space-y-1">
+              <FormLabel>Ouvrir aux confrères</FormLabel>
+              <FormDescription>
+                Les autres commissionnaires voient ce bien et peuvent vous présenter leur client. Vous gardez le bailleur et la visite.
+              </FormDescription>
+            </div>
+          </FormItem>
+        )}
+      />
+
+      {partageOuvert && (
+        <FormField
+          control={control}
+          name="part_confrere_pourcent"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Part cédée au confrère (%)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  max="99"
+                  {...field}
+                  value={field.value ?? 50}
+                  data-testid="input-part-confrere"
+                />
+              </FormControl>
+              <FormDescription>
+                Figée au moment où le confrère présente son client : la changer ensuite ne touche pas aux clients déjà présentés.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+    </div>
+  );
+}

@@ -3134,6 +3134,39 @@
                         ]
                     },
                     {
+                        "name": "commission_payee_par",
+                        "in": "formData",
+                        "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "locataire",
+                            "moitie"
+                        ]
+                    },
+                    {
+                        "name": "frais_visite",
+                        "in": "formData",
+                        "description": "Dans la devise du bien, sous le plafond fixé pour la ville. Annoncés au client avant qu'il demande la visite.",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "partage_ouvert",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "part_confrere_pourcent",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 99,
+                        "minimum": 1
+                    },
+                    {
                         "name": "bailleur",
                         "in": "formData",
                         "required": false,
@@ -3555,6 +3588,73 @@
                 }
             ]
         },
+        "/biens/partages/": {
+            "get": {
+                "operationId": "biens_partages_list",
+                "summary": "Les biens que des confrères ont ouverts au partage, encore à louer.",
+                "description": "Un commissionnaire y cherche une maison pour son client, puis le présente\npar `POST /api/v1/visites/commissionnaire/presentations/`. Ses propres\nbiens n'y figurent pas.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/BienPartage"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": []
+        },
         "/biens/proprietaire/": {
             "get": {
                 "operationId": "biens_proprietaire_list",
@@ -3935,6 +4035,39 @@
                         ]
                     },
                     {
+                        "name": "commission_payee_par",
+                        "in": "formData",
+                        "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "locataire",
+                            "moitie"
+                        ]
+                    },
+                    {
+                        "name": "frais_visite",
+                        "in": "formData",
+                        "description": "Dans la devise du bien, sous le plafond fixé pour la ville. Annoncés au client avant qu'il demande la visite.",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "partage_ouvert",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "part_confrere_pourcent",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 99,
+                        "minimum": 1
+                    },
+                    {
                         "name": "bailleur",
                         "in": "formData",
                         "required": false,
@@ -4205,6 +4338,302 @@
                 },
                 "tags": [
                     "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/": {
+            "get": {
+                "operationId": "commissions_list",
+                "summary": "Les commissions dont l'utilisateur est titulaire ou confrère.",
+                "description": "L'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
+                "parameters": [
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Commission"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "post": {
+                "operationId": "commissions_create",
+                "description": "Déclare un bail signé : calcule la commission, et marque le bien\ncomme loué.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CommissionCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/CommissionCreate"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": []
+        },
+        "/commissions/reglements/": {
+            "get": {
+                "operationId": "commissions_reglements_list",
+                "summary": "Les règlements reçus, de commission ou de frais de visite.",
+                "description": "Chacun voit ce qui le concerne : le commissionnaire ce qu'il a reçu, le\nconfrère les règlements de ses commissions partagées, le client les frais\nde visite qu'il a payés — c'est sa preuve s'il faut contester.",
+                "parameters": [
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Reglement"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "post": {
+                "operationId": "commissions_reglements_create",
+                "summary": "Les règlements reçus, de commission ou de frais de visite.",
+                "description": "Chacun voit ce qui le concerne : le commissionnaire ce qu'il a reçu, le\nconfrère les règlements de ses commissions partagées, le client les frais\nde visite qu'il a payés — c'est sa preuve s'il faut contester.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ReglementCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/ReglementCreate"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": []
+        },
+        "/commissions/reglements/{id}/": {
+            "get": {
+                "operationId": "commissions_reglements_read",
+                "summary": "Les règlements reçus, de commission ou de frais de visite.",
+                "description": "Chacun voit ce qui le concerne : le commissionnaire ce qu'il a reçu, le\nconfrère les règlements de ses commissions partagées, le client les frais\nde visite qu'il a payés — c'est sa preuve s'il faut contester.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Reglement"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/reglements/{id}/annuler/": {
+            "post": {
+                "operationId": "commissions_reglements_annuler",
+                "summary": "Les règlements reçus, de commission ou de frais de visite.",
+                "description": "Chacun voit ce qui le concerne : le commissionnaire ce qu'il a reçu, le\nconfrère les règlements de ses commissions partagées, le client les frais\nde visite qu'il a payés — c'est sa preuve s'il faut contester.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Annulation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Annulation"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/{id}/": {
+            "get": {
+                "operationId": "commissions_read",
+                "summary": "Les commissions dont l'utilisateur est titulaire ou confrère.",
+                "description": "L'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Commission"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/commissions/{id}/annuler/": {
+            "post": {
+                "operationId": "commissions_annuler",
+                "description": "Le bail ne s'est finalement pas fait. La commission reste visible,\nbarrée, avec son motif.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Annulation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Annulation"
+                        }
+                    }
+                },
+                "tags": [
+                    "commissions"
                 ]
             },
             "parameters": [
@@ -5649,6 +6078,41 @@
                 }
             ]
         },
+        "/visites/client/demandes/{id}/signaler/": {
+            "post": {
+                "operationId": "visites_client_demandes_signaler",
+                "description": "Le client signale un abus sur sa demande : frais exigés au-delà de\nce qui était annoncé, commissionnaire injoignable après paiement…\nL'équipe VillaGo est prévenue, et la trace reste sur la demande.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DemandeVisite"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DemandeVisite"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/visites/commissionnaire/demandes/": {
             "get": {
                 "operationId": "visites_commissionnaire_demandes_list",
@@ -5848,6 +6312,123 @@
                         "description": "",
                         "schema": {
                             "$ref": "#/definitions/DemandeVisiteTraitement"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/visites/commissionnaire/presentations/": {
+            "get": {
+                "operationId": "visites_commissionnaire_presentations_list",
+                "description": "Les clients qu'un commissionnaire présente sur les biens de ses\nconfrères. Il ne voit que les siennes ; le commissionnaire du bien les\nreçoit dans ses demandes, comme toute autre demande de visite.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "A search term.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/DemandeVisite"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "post": {
+                "operationId": "visites_commissionnaire_presentations_create",
+                "description": "Les clients qu'un commissionnaire présente sur les biens de ses\nconfrères. Il ne voit que les siennes ; le commissionnaire du bien les\nreçoit dans ses demandes, comme toute autre demande de visite.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PresentationClient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/PresentationClient"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": []
+        },
+        "/visites/commissionnaire/presentations/{id}/": {
+            "get": {
+                "operationId": "visites_commissionnaire_presentations_read",
+                "description": "Les clients qu'un commissionnaire présente sur les biens de ses\nconfrères. Il ne voit que les siennes ; le commissionnaire du bien les\nreçoit dans ses demandes, comme toute autre demande de visite.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/DemandeVisite"
                         }
                     }
                 },
@@ -6371,6 +6952,9 @@
                         "confirmation_refusee",
                         "gestion_villes",
                         "gestion_pages",
+                        "signalement",
+                        "commission",
+                        "reglement",
                         "autre"
                     ],
                     "readOnly": true
@@ -6786,6 +7370,16 @@
                     "title": "Nombre biens",
                     "type": "integer",
                     "readOnly": true
+                },
+                "frais_visite_plafond_usd": {
+                    "title": "Plafond des frais de visite ($)",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "frais_visite_plafond_cdf": {
+                    "title": "Plafond des frais de visite (FC)",
+                    "type": "string",
+                    "format": "decimal"
                 }
             }
         },
@@ -7521,6 +8115,41 @@
                     "readOnly": true,
                     "minLength": 1
                 },
+                "commission_payee_par": {
+                    "title": "Commission payée par",
+                    "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "moitie"
+                    ]
+                },
+                "commission_payee_par_display": {
+                    "title": "Commission payee par display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_locataire": {
+                    "title": "Commission locataire",
+                    "description": "Commission à la charge du locataire si le bail est signé, dans la devise du bien. Nulle pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "commission_bailleur": {
+                    "title": "Commission bailleur",
+                    "description": "Commission à la charge du bailleur, dans la devise du bien.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "frais_visite_applicables": {
+                    "title": "Frais visite applicables",
+                    "description": "Ce que le client paiera pour visiter : jamais plus que le plafond de la ville, et zéro tant que l'identité du commissionnaire n'a pas été vérifiée par l'équipe.",
+                    "type": "string",
+                    "readOnly": true
+                },
                 "statut_validation": {
                     "title": "Statut de validation",
                     "type": "string",
@@ -7926,6 +8555,31 @@
                     "title": "Gardien",
                     "type": "boolean"
                 },
+                "commission_payee_par": {
+                    "title": "Commission payée par",
+                    "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "moitie"
+                    ]
+                },
+                "frais_visite": {
+                    "title": "Frais de visite",
+                    "description": "Dans la devise du bien, sous le plafond fixé pour la ville. Annoncés au client avant qu'il demande la visite.",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "partage_ouvert": {
+                    "title": "Ouvert au partage entre commissionnaires",
+                    "type": "boolean"
+                },
+                "part_confrere_pourcent": {
+                    "title": "Part cédée au confrère (%)",
+                    "type": "integer",
+                    "maximum": 99,
+                    "minimum": 1
+                },
                 "photo_principale_index": {
                     "title": "Photo principale index",
                     "type": "integer",
@@ -8040,6 +8694,32 @@
                 },
                 "commissionnaire_detail": {
                     "$ref": "#/definitions/ProfilPublic"
+                },
+                "commission_payee_par_display": {
+                    "title": "Commission payee par display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_locataire": {
+                    "title": "Commission locataire",
+                    "description": "Commission à la charge du locataire si le bail est signé, dans la devise du bien. Nulle pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "commission_bailleur": {
+                    "title": "Commission bailleur",
+                    "description": "Commission à la charge du bailleur, dans la devise du bien.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "frais_visite_applicables": {
+                    "title": "Frais visite applicables",
+                    "description": "Ce que le client paiera pour visiter : jamais plus que le plafond de la ville, et zéro tant que l'identité du commissionnaire n'a pas été vérifiée par l'équipe.",
+                    "type": "string",
+                    "readOnly": true
                 },
                 "valide_par": {
                     "$ref": "#/definitions/ProfilPublic"
@@ -8218,6 +8898,31 @@
                         "indisponible"
                     ]
                 },
+                "commission_payee_par": {
+                    "title": "Commission payée par",
+                    "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "moitie"
+                    ]
+                },
+                "frais_visite": {
+                    "title": "Frais de visite",
+                    "description": "Dans la devise du bien, sous le plafond fixé pour la ville. Annoncés au client avant qu'il demande la visite.",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "partage_ouvert": {
+                    "title": "Ouvert au partage entre commissionnaires",
+                    "type": "boolean"
+                },
+                "part_confrere_pourcent": {
+                    "title": "Part cédée au confrère (%)",
+                    "type": "integer",
+                    "maximum": 99,
+                    "minimum": 1
+                },
                 "motif_rejet": {
                     "title": "Motif de rejet",
                     "type": "string",
@@ -8298,6 +9003,264 @@
                 }
             }
         },
+        "BienPartage": {
+            "required": [
+                "titre",
+                "prix_mensuel",
+                "ville",
+                "quartier"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "titre": {
+                    "title": "Titre",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "type_bien": {
+                    "title": "Type de bien",
+                    "type": "string",
+                    "enum": [
+                        "maison",
+                        "appartement",
+                        "studio",
+                        "villa",
+                        "duplex",
+                        "terrain"
+                    ]
+                },
+                "type_bien_display": {
+                    "title": "Type bien display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise": {
+                    "title": "Devise",
+                    "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "CDF"
+                    ]
+                },
+                "devise_display": {
+                    "title": "Devise display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise_symbole": {
+                    "title": "Devise symbole",
+                    "description": "Symbole court à afficher à côté du montant : $ ou FC.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "prix_mensuel": {
+                    "title": "Prix mensuel",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "garantie_mois": {
+                    "title": "Garantie (en mois de loyer)",
+                    "description": "Trois mois au maximum (loi n° 15/025, article 18).",
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 0
+                },
+                "garantie": {
+                    "title": "Garantie",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "superficie": {
+                    "title": "Superficie (m²)",
+                    "type": "string",
+                    "format": "decimal",
+                    "x-nullable": true
+                },
+                "nombre_chambres": {
+                    "title": "Nombre de chambres",
+                    "type": "integer",
+                    "maximum": 2147483647,
+                    "minimum": 0
+                },
+                "nombre_salles_bain": {
+                    "title": "Nombre de salles de bain",
+                    "type": "integer",
+                    "maximum": 2147483647,
+                    "minimum": 0
+                },
+                "ville": {
+                    "title": "Ville",
+                    "type": "integer"
+                },
+                "ville_nom": {
+                    "title": "Ville nom",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "ville_detail": {
+                    "$ref": "#/definitions/VilleResume"
+                },
+                "commune": {
+                    "title": "Commune",
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "quartier": {
+                    "title": "Quartier",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "eau": {
+                    "title": "Eau",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "permanente",
+                        "intermittente",
+                        "forage",
+                        "aucune"
+                    ]
+                },
+                "eau_display": {
+                    "title": "Eau display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "electricite": {
+                    "title": "Électricité",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "stable",
+                        "delestage",
+                        "autonome",
+                        "aucune"
+                    ]
+                },
+                "electricite_display": {
+                    "title": "Electricite display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_payee_par": {
+                    "title": "Commission payée par",
+                    "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "moitie"
+                    ]
+                },
+                "commission_payee_par_display": {
+                    "title": "Commission payee par display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_locataire": {
+                    "title": "Commission locataire",
+                    "description": "Commission à la charge du locataire si le bail est signé, dans la devise du bien. Nulle pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "commission_bailleur": {
+                    "title": "Commission bailleur",
+                    "description": "Commission à la charge du bailleur, dans la devise du bien.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "frais_visite_applicables": {
+                    "title": "Frais visite applicables",
+                    "description": "Ce que le client paiera pour visiter : jamais plus que le plafond de la ville, et zéro tant que l'identité du commissionnaire n'a pas été vérifiée par l'équipe.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "statut_validation": {
+                    "title": "Statut de validation",
+                    "type": "string",
+                    "enum": [
+                        "en_attente",
+                        "valide",
+                        "rejete"
+                    ]
+                },
+                "statut_validation_display": {
+                    "title": "Statut validation display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "statut_location": {
+                    "title": "Statut de location",
+                    "type": "string",
+                    "enum": [
+                        "disponible",
+                        "en_visite",
+                        "loue",
+                        "indisponible"
+                    ]
+                },
+                "statut_location_display": {
+                    "title": "Statut location display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "proprietaire": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "commissionnaire": {
+                    "title": "Commissionnaire",
+                    "description": "Le commissionnaire à qui le bailleur a confié ce bien.",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "commissionnaire_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "agency": {
+                    "title": "Agence",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "agency_detail": {
+                    "$ref": "#/definitions/Agency"
+                },
+                "photo_principale": {
+                    "title": "Photo principale",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "created_at": {
+                    "title": "Date de création",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "part_confrere_pourcent": {
+                    "title": "Part cédée au confrère (%)",
+                    "type": "integer",
+                    "maximum": 99,
+                    "minimum": 1
+                }
+            }
+        },
         "Ville": {
             "required": [
                 "nom"
@@ -8335,6 +9298,16 @@
                     "title": "Nombre biens",
                     "type": "string",
                     "readOnly": true
+                },
+                "frais_visite_plafond_usd": {
+                    "title": "Plafond des frais de visite ($)",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "frais_visite_plafond_cdf": {
+                    "title": "Plafond des frais de visite (FC)",
+                    "type": "string",
+                    "format": "decimal"
                 }
             }
         },
@@ -8501,6 +9474,42 @@
                     "readOnly": true,
                     "minLength": 1
                 },
+                "commission_payee_par": {
+                    "title": "Commission payée par",
+                    "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "moitie"
+                    ],
+                    "readOnly": true
+                },
+                "commission_payee_par_display": {
+                    "title": "Commission payee par display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_locataire": {
+                    "title": "Commission locataire",
+                    "description": "Commission à la charge du locataire si le bail est signé, dans la devise du bien. Nulle pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "commission_bailleur": {
+                    "title": "Commission bailleur",
+                    "description": "Commission à la charge du bailleur, dans la devise du bien.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "frais_visite_applicables": {
+                    "title": "Frais visite applicables",
+                    "description": "Ce que le client paiera pour visiter : jamais plus que le plafond de la ville, et zéro tant que l'identité du commissionnaire n'a pas été vérifiée par l'équipe.",
+                    "type": "string",
+                    "readOnly": true
+                },
                 "parking": {
                     "title": "Parking",
                     "type": "boolean",
@@ -8599,6 +9608,410 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
+                }
+            }
+        },
+        "Reglement": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "nature": {
+                    "title": "Nature",
+                    "type": "string",
+                    "enum": [
+                        "commission",
+                        "frais_visite"
+                    ],
+                    "readOnly": true
+                },
+                "nature_display": {
+                    "title": "Nature display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission": {
+                    "title": "Commission",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "demande": {
+                    "title": "Demande de visite (frais de visite)",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "payeur": {
+                    "title": "Payeur",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "bailleur"
+                    ],
+                    "readOnly": true
+                },
+                "payeur_display": {
+                    "title": "Payeur display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "montant": {
+                    "title": "Montant",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "devise": {
+                    "title": "Devise",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise_symbole": {
+                    "title": "Devise symbole",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "mode": {
+                    "title": "Mode",
+                    "type": "string",
+                    "enum": [
+                        "especes",
+                        "mpesa",
+                        "airtel_money",
+                        "orange_money",
+                        "virement",
+                        "villago"
+                    ],
+                    "readOnly": true
+                },
+                "mode_display": {
+                    "title": "Mode display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "reference": {
+                    "title": "Référence",
+                    "description": "Numéro de transaction mobile money, ou de reçu.",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "date_reglement": {
+                    "title": "Date du règlement",
+                    "type": "string",
+                    "format": "date",
+                    "readOnly": true
+                },
+                "recu_par": {
+                    "title": "Reçu par",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "recu_par_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "annulee_le": {
+                    "title": "Annulé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "motif_annulation": {
+                    "title": "Motif d'annulation",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "created_at": {
+                    "title": "Saisi le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "Commission": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "bien": {
+                    "title": "Bien",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "demande": {
+                    "title": "Demande de visite d'origine",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "titulaire": {
+                    "title": "Commissionnaire du bien",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "titulaire_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "confrere": {
+                    "title": "Confrère qui a amené le locataire",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "confrere_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "locataire_nom": {
+                    "title": "Locataire",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "locataire_telephone": {
+                    "title": "Téléphone du locataire",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "date_bail": {
+                    "title": "Date du bail",
+                    "type": "string",
+                    "format": "date",
+                    "readOnly": true
+                },
+                "devise": {
+                    "title": "Devise",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise_symbole": {
+                    "title": "Devise symbole",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "montant_total": {
+                    "title": "Commission (un mois de loyer)",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "payee_par": {
+                    "title": "Payée par",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "part_locataire": {
+                    "title": "À la charge du locataire",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "part_bailleur": {
+                    "title": "À la charge du bailleur",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "part_confrere_pourcent": {
+                    "title": "Part du confrère (%)",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "montant_titulaire": {
+                    "title": "Revient au titulaire",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "montant_confrere": {
+                    "title": "Revient au confrère",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "statut": {
+                    "title": "Statut",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "montant_regle": {
+                    "title": "Montant regle",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "reste_locataire": {
+                    "title": "Reste locataire",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "reste_bailleur": {
+                    "title": "Reste bailleur",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "reglements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Reglement"
+                    },
+                    "readOnly": true
+                },
+                "annulee_le": {
+                    "title": "Annulé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "motif_annulation": {
+                    "title": "Motif d'annulation",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "created_at": {
+                    "title": "Créée le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "CommissionCreate": {
+            "required": [
+                "bien",
+                "date_bail"
+            ],
+            "type": "object",
+            "properties": {
+                "bien": {
+                    "title": "Bien",
+                    "type": "integer"
+                },
+                "demande": {
+                    "title": "Demande de visite d'origine",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "locataire_nom": {
+                    "title": "Locataire nom",
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "locataire_telephone": {
+                    "title": "Téléphone du locataire",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "date_bail": {
+                    "title": "Date du bail",
+                    "type": "string",
+                    "format": "date"
+                }
+            }
+        },
+        "ReglementCreate": {
+            "required": [
+                "nature",
+                "montant",
+                "mode",
+                "date_reglement"
+            ],
+            "type": "object",
+            "properties": {
+                "nature": {
+                    "title": "Nature",
+                    "type": "string",
+                    "enum": [
+                        "commission",
+                        "frais_visite"
+                    ]
+                },
+                "commission": {
+                    "title": "Commission",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "demande": {
+                    "title": "Demande de visite (frais de visite)",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "payeur": {
+                    "title": "Payeur",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "bailleur"
+                    ]
+                },
+                "montant": {
+                    "title": "Montant",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "mode": {
+                    "title": "Mode",
+                    "type": "string",
+                    "enum": [
+                        "especes",
+                        "mpesa",
+                        "airtel_money",
+                        "orange_money",
+                        "virement",
+                        "villago"
+                    ]
+                },
+                "reference": {
+                    "title": "Référence",
+                    "description": "Numéro de transaction mobile money, ou de reçu.",
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "date_reglement": {
+                    "title": "Date du règlement",
+                    "type": "string",
+                    "format": "date"
+                }
+            }
+        },
+        "Annulation": {
+            "required": [
+                "motif"
+            ],
+            "type": "object",
+            "properties": {
+                "motif": {
+                    "title": "Motif",
+                    "type": "string",
+                    "maxLength": 1000,
+                    "minLength": 1
                 }
             }
         },
@@ -8812,7 +10225,9 @@
                         "visite_terminee",
                         "nouveau_message",
                         "rapport_disponible",
-                        "agent_ajoute_chat"
+                        "agent_ajoute_chat",
+                        "signalement",
+                        "commission"
                     ],
                     "readOnly": true
                 },
@@ -9238,6 +10653,55 @@
                 },
                 "visite": {
                     "$ref": "#/definitions/VisiteMini"
+                },
+                "prospect_nom": {
+                    "title": "Client présenté",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "prospect_telephone": {
+                    "title": "Téléphone du client présenté",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "part_confrere_pourcent": {
+                    "title": "Part du confrère (%)",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "frais_visite": {
+                    "title": "Frais de visite",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "frais_visite_devise": {
+                    "title": "Devise des frais de visite",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "frais_visite_regles": {
+                    "title": "Frais visite regles",
+                    "description": "Total des règlements de frais de visite non annulés.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "signalement_motif": {
+                    "title": "Signalement du client",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "signale_le": {
+                    "title": "Signalé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
                 }
             }
         },
@@ -9437,6 +10901,45 @@
                 "motif_rejet": {
                     "title": "Motif de rejet",
                     "type": "string"
+                }
+            }
+        },
+        "PresentationClient": {
+            "required": [
+                "bien",
+                "date_souhaitee",
+                "heure_souhaitee",
+                "prospect_nom"
+            ],
+            "type": "object",
+            "properties": {
+                "bien": {
+                    "title": "Bien",
+                    "type": "integer"
+                },
+                "date_souhaitee": {
+                    "title": "Date souhaitée",
+                    "type": "string",
+                    "format": "date"
+                },
+                "heure_souhaitee": {
+                    "title": "Heure souhaitée",
+                    "type": "string"
+                },
+                "message": {
+                    "title": "Message",
+                    "type": "string"
+                },
+                "prospect_nom": {
+                    "title": "Prospect nom",
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "prospect_telephone": {
+                    "title": "Téléphone du client présenté",
+                    "type": "string",
+                    "maxLength": 20
                 }
             }
         },
