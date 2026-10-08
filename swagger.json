@@ -5292,6 +5292,27 @@
                         "in": "formData",
                         "required": false,
                         "type": "string"
+                    },
+                    {
+                        "name": "garantie_versee",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "retenue_garantie",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "motif_retenue",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -11367,6 +11388,35 @@
                     "readOnly": true,
                     "minLength": 1
                 },
+                "devise": {
+                    "title": "Devise",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "garantie_versee": {
+                    "title": "Garantie versée à l'entrée",
+                    "type": "string",
+                    "format": "decimal",
+                    "x-nullable": true
+                },
+                "retenue_garantie": {
+                    "title": "Retenue sur la garantie",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "motif_retenue": {
+                    "title": "Motif de la retenue",
+                    "type": "string"
+                },
+                "garantie_restituee": {
+                    "title": "Garantie restituee",
+                    "description": "Garantie versée moins la retenue. Sortie seulement.",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
                 "lien_envoye": {
                     "title": "Lien envoye",
                     "type": "boolean",
@@ -11425,6 +11475,21 @@
                     "items": {
                         "$ref": "#/definitions/PieceEtatDesLieux"
                     }
+                },
+                "garantie_versee": {
+                    "title": "Garantie versée à l'entrée",
+                    "type": "string",
+                    "format": "decimal",
+                    "x-nullable": true
+                },
+                "retenue_garantie": {
+                    "title": "Retenue sur la garantie",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "motif_retenue": {
+                    "title": "Motif de la retenue",
+                    "type": "string"
                 }
             }
         },

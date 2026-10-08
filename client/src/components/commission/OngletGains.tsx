@@ -110,11 +110,7 @@ export function OngletGains() {
                       ? `Bail enregistré le ${formaterDateCourte(c.bail_enregistre_le)}`
                       : `Bail à enregistrer avant le ${formaterDateCourte(c.echeance_enregistrement)} (loi n° 15/025, art. 41)`}
                     {' · '}
-                    {c.etats_des_lieux.some((e) => e.type === 'entree' && e.valide_le)
-                      ? 'état des lieux validé'
-                      : c.etats_des_lieux.some((e) => e.type === 'entree')
-                        ? 'état des lieux en attente du locataire'
-                        : 'pas d’état des lieux'}
+                    {resumeEtatsDesLieux(c)}
                   </p>
                 )}
               </div>
@@ -158,9 +154,16 @@ export function OngletGains() {
                   )}
                   <Link href={`/etats-des-lieux/bail/${c.id}`}>
                     <Button size="sm" variant="outline" data-testid={`button-etat-des-lieux-${c.id}`}>
-                      <ClipboardList className="w-4 h-4 mr-1" /> État des lieux
+                      <ClipboardList className="w-4 h-4 mr-1" /> État des lieux d’entrée
                     </Button>
                   </Link>
+                  {c.etats_des_lieux.some((e) => e.type === 'entree') && (
+                    <Link href={`/etats-des-lieux/bail/${c.id}/sortie`}>
+                      <Button size="sm" variant="outline" data-testid={`button-etat-des-lieux-sortie-${c.id}`}>
+                        <ClipboardList className="w-4 h-4 mr-1" /> Sortie du locataire
+                      </Button>
+                    </Link>
+                  )}
                   {!c.bail_enregistre_le && (
                     <Button size="sm" variant="outline" onClick={() => setAEnregistrer(c)} data-testid={`button-bail-enregistre-${c.id}`}>
                       <Stamp className="w-4 h-4 mr-1" /> Bail enregistré
@@ -312,4 +315,15 @@ function DialogueEnregistrement({ commission, onFermer }: { commission: Commissi
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Où en sont l'entrée et la sortie, en quelques mots. */
+function resumeEtatsDesLieux(c: Commission): string {
+  const decrire = (type: 'entree' | 'sortie', nom: string) => {
+    const etat = c.etats_des_lieux.find((e) => e.type === type);
+    if (!etat) return null;
+    return etat.valide_le ? `${nom} validé` : `${nom} en attente du locataire`;
+  };
+  const parties = [decrire('entree', 'état des lieux d’entrée'), decrire('sortie', 'de sortie')].filter(Boolean);
+  return parties.length ? parties.join(', ') : 'pas d’état des lieux';
 }

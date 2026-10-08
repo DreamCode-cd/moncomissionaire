@@ -12,7 +12,7 @@ import { api } from '@/lib/api';
 import { ErreurApi, messageErreur } from '@/lib/erreurs';
 import { formaterDateCourte } from '@/lib/dates';
 import type { EtatDesLieux } from '@shared/schema';
-import { PieceLecture } from './EtatDesLieuxEdition';
+import { BilanGarantie, PieceLecture } from './EtatDesLieuxEdition';
 
 /**
  * Ce que le locataire ouvre depuis le lien reçu par WhatsApp : l'état des
@@ -42,7 +42,9 @@ export default function EtatDesLieuxPublic() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <h1 className="text-xl font-bold">État des lieux d’entrée</h1>
+        <h1 className="text-xl font-bold">
+          État des lieux {etat.data?.type === 'sortie' ? 'de sortie' : etat.data ? 'd’entrée' : ''}
+        </h1>
         {etat.isLoading ? (
           <EtatChargement texte="Chargement…" />
         ) : etat.error && !etat.data && !lienInvalide ? (
@@ -66,7 +68,13 @@ export default function EtatDesLieuxPublic() {
               </CardContent>
             </Card>
 
+            {etat.data.type === 'sortie' && (
+              <p className="text-sm text-muted-foreground">
+                Chaque pièce est comparée à l’état des lieux d’entrée. Vérifiez surtout celles marquées « dégradée », et la retenue sur la garantie plus bas.
+              </p>
+            )}
             {etat.data.pieces.map((p) => <PieceLecture key={p.id} piece={p} />)}
+            {etat.data.type === 'sortie' && <BilanGarantie etat={etat.data} />}
 
             {etat.data.est_valide ? (
               <Card>
@@ -82,7 +90,7 @@ export default function EtatDesLieuxPublic() {
               <Card>
                 <CardContent className="p-4 space-y-3">
                   <p className="text-sm">
-                    Relisez chaque pièce. Si quelque chose ne correspond pas à ce que vous voyez, écrivez-le ci-dessous : vos réserves resteront jointes à l’état des lieux.
+                    Relisez chaque pièce. Si quelque chose ne correspond pas à ce que vous voyez{etat.data.type === 'sortie' ? ', ou si vous contestez la retenue' : ''}, écrivez-le ci-dessous : vos réserves resteront jointes à l’état des lieux.
                   </p>
                   <div className="space-y-1">
                     <Label htmlFor="reserves">Vos réserves (facultatif)</Label>
