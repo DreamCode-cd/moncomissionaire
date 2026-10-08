@@ -14,6 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
+import { messageErreur } from '@/lib/erreurs';
 import type { Mandat, PaginatedResponse } from '@shared/schema';
 
 const CLE_MANDATS = ['/api/v1/biens/mandats/?statut=propose'];
@@ -42,6 +43,14 @@ export function PropositionsMandat({ cleBiens }: { cleBiens: string[] }) {
   });
 
   const liste = propositions.data?.results ?? [];
+  if (propositions.error && !propositions.data) {
+    return (
+      <p className="mb-4 text-sm text-muted-foreground" role="status">
+        Les propositions des propriétaires n’ont pas pu être vérifiées. {messageErreur(propositions.error)}{' '}
+        <button type="button" className="underline" onClick={() => void propositions.refetch()}>Réessayer</button>
+      </p>
+    );
+  }
   if (!liste.length) return null;
 
   return (

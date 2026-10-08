@@ -1,4 +1,5 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
+import { ErreurApi } from '@/lib/erreurs';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
@@ -121,7 +122,7 @@ export default function PropertyDetail() {
     carouselApi?.scrollNext();
   }, [carouselApi]);
 
-  const { data: property, isLoading } = useQuery<BienDetail>({
+  const { data: property, isLoading, error: erreurBien, refetch: rechargerBien } = useQuery<BienDetail>({
     queryKey: ['/api/v1/biens/', propertyId],
     enabled: !!propertyId,
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
@@ -454,11 +455,23 @@ export default function PropertyDetail() {
     );
   }
 
+  // « Bien non trouvé » seulement si le serveur l'a dit. Une coupure de
+  // réseau n'est pas une annonce supprimée.
+  if (!property && erreurBien && !(erreurBien instanceof ErreurApi && erreurBien.statut === 404)) {
+    return (
+      <Layout>
+        <ErreurRequete erreur={erreurBien} titre="Cette annonce n’a pas pu être chargée" onReessayer={() => void rechargerBien()} className="min-h-[50vh]" />
+      </Layout>
+    );
+  }
+
   if (!property) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <p className="text-muted-foreground">Bien non trouvé</p>
+          <p className="text-muted-foreground">
+            Cette annonce n’est plus en ligne. Le bien a peut-être été loué, ou l’annonce n’a pas été reconfirmée.
+          </p>
           <Button onClick={() => setLocation('/search')}>Retour à la recherche</Button>
         </div>
       </Layout>

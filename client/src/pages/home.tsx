@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +18,7 @@ export default function House() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useAuth();
 
-  const { data: allProperties, isLoading } = useQuery<PaginatedResponse<BienList>>({
+  const { data: allProperties, isLoading, error, refetch } = useQuery<PaginatedResponse<BienList>>({
     queryKey: ['/api/v1/biens/', { statut_validation: 'valide', statut_location: 'disponible' }],
     refetchInterval: 60000, // Rafraîchir toutes les 60 secondes
     refetchOnWindowFocus: true, // Rafraîchir quand l'utilisateur revient sur l'onglet
@@ -165,6 +165,8 @@ export default function House() {
                   <Skeleton className="h-4 w-32" />
                 </div>
               ))
+            ) : error && !allProperties ? (
+              <ErreurRequete erreur={error} className="col-span-full py-8" onReessayer={() => void refetch()} />
             ) : popularCities.length > 0 ? (
               popularCities.map((city) => (
                 <Link key={city.name} href={`/search?ville=${city.id}`}>
@@ -208,10 +210,11 @@ export default function House() {
             </Link>
           </div>
           
-          <PropertyGrid 
-            properties={featuredProperties} 
-            isLoading={isLoading}
-          />
+          {error && !allProperties ? (
+            <ErreurRequete erreur={error} titre="Les annonces n’ont pas pu être chargées" onReessayer={() => void refetch()} />
+          ) : (
+            <PropertyGrid properties={featuredProperties} isLoading={isLoading} />
+          )}
         </div>
       </section>
 

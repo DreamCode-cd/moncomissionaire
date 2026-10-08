@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { messageErreur } from '@/lib/erreurs';
 import { Link } from 'wouter';
 import {
   BadgeCheck,
@@ -159,17 +160,8 @@ function invaliderAdministration() {
   void queryClient.invalidateQueries({ queryKey: [CHEMIN_JOURNAL] });
 }
 
-/** Les erreurs du serveur arrivent parfois en JSON brut (« {"mot_de_passe":
- *  ["Mot de passe incorrect."]} ») : on en extrait la phrase. */
-function messageLisible(erreur: Error): string {
-  try {
-    const donnees = JSON.parse(erreur.message);
-    const premiere = Object.values(donnees)[0];
-    return Array.isArray(premiere) ? String(premiere[0]) : String(premiere);
-  } catch {
-    return erreur.message;
-  }
-}
+/** Les erreurs arrivent déjà traduites en phrase par lib/erreurs. */
+const messageLisible = (erreur: Error) => messageErreur(erreur);
 
 export default function AdminDashboard() {
   const [onglet, setOnglet] = useState('apercu');

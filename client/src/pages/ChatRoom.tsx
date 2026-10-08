@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { formaterHeure, formaterSeparateurDeJour } from '@/lib/dates';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoute, useLocation } from 'wouter';
@@ -30,7 +30,7 @@ export default function ChatRoom() {
 
   const chatroomId = params?.id ? parseInt(params.id) : undefined;
 
-  const { data: chatroom, isLoading, refetch, isFetching } = useQuery<ChatRoomDetail>({
+  const { data: chatroom, isLoading, refetch, isFetching, error: erreurSalon } = useQuery<ChatRoomDetail>({
     queryKey: ['/api/v1/messaging/chatrooms/', chatroomId],
     enabled: !!chatroomId && !!user,
     refetchInterval: wsConnected ? false : 5000, // Disable polling if WebSocket is connected
@@ -265,6 +265,14 @@ export default function ChatRoom() {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (!chatroom && erreurSalon) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <ErreurRequete erreur={erreurSalon} titre="La conversation n’a pas pu être chargée" onReessayer={() => void refetch()} />
       </div>
     );
   }

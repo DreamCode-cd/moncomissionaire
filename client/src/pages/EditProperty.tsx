@@ -1,3 +1,4 @@
+import { ErreurRequete } from '@/components/etats';
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useParams } from 'wouter';
 import { useForm } from 'react-hook-form';
@@ -52,6 +53,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
+import { poserErreursSurChamps } from '@/lib/erreurs';
+import { ErreurApi } from '@/lib/erreurs';
 import { queryClient } from '@/lib/queryClient';
 import { getDjangoImageUrl, getVilleId } from '@/lib/utils';
 import { bienCreateSchema, type BienCreateInput, type BienDetail } from '@shared/schema';
@@ -114,7 +117,7 @@ export default function EditProperty() {
   const [locationStatus, setLocationStatus] = useState('disponible');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: property, isLoading } = useQuery<BienDetail>({
+  const { data: property, isLoading, error: erreurBien, refetch: rechargerBien } = useQuery<BienDetail>({
     queryKey: [routeApi, propertyId],
     enabled: !!propertyId,
   });
@@ -357,9 +360,16 @@ export default function EditProperty() {
       });
       setLocation(pageRetour);
     } catch (error) {
+      // Les messages du serveur sous les champs concernés (frais de visite
+      // au-delà du plafond, garantie, ville fermée…), le reste en bulle.
+      const reste = poserErreursSurChamps(
+        error,
+        Object.keys(form.getValues()) as (keyof BienCreateInput)[],
+        (champ, message) => form.setError(champ, { message }),
+      );
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: 'Annonce non enregistrée',
+        description: reste ?? 'Corrigez les champs signalés en rouge.',
         variant: 'destructive',
       });
     } finally {
@@ -380,6 +390,14 @@ export default function EditProperty() {
             </CardContent>
           </Card>
         </div>
+      </Layout>
+    );
+  }
+
+  if (!property && erreurBien && !(erreurBien instanceof ErreurApi && erreurBien.statut === 404)) {
+    return (
+      <Layout>
+        <ErreurRequete erreur={erreurBien} titre="L’annonce n’a pas pu être chargée" onReessayer={() => void rechargerBien()} className="min-h-[50vh]" />
       </Layout>
     );
   }

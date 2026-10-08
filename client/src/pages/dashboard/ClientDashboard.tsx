@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
@@ -43,7 +43,7 @@ export default function ClientDashboard() {
   const { user } = useAuth();
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
 
-  const { data: demandes, isLoading: demandesLoading } = useQuery<PaginatedResponse<DemandeWithVisite>>({
+  const { data: demandes, isLoading: demandesLoading, error: erreurDemandes, refetch: rechargerDemandes } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
     select: avecVisite,
     refetchOnWindowFocus: true,
@@ -173,6 +173,8 @@ export default function ClientDashboard() {
                     </div>
                   ))}
                 </div>
+              ) : erreurDemandes && !demandes ? (
+                <ErreurRequete erreur={erreurDemandes} onReessayer={() => void rechargerDemandes()} />
               ) : demandes?.results?.length === 0 ? (
                 <EtatVide
                   icone={Calendar}

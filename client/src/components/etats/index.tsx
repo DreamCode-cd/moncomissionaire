@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Ton } from '@/lib/statuts';
 import { cn } from '@/lib/utils';
+import { ErreurReseau, messageErreur } from '@/lib/erreurs';
 
 /**
  * États d'écran partagés : chargement, vide, erreur, hors ligne.
@@ -186,4 +187,56 @@ export function EtatChargement({
       <p className="text-sm text-muted-foreground">{texte}</p>
     </div>
   );
+}
+
+/**
+ * L'échec d'un chargement, dit honnêtement.
+ *
+ * Sans lui, une liste qui n'a pas pu se charger affichait son état vide :
+ * « Aucun bien dans votre portefeuille » alors que le serveur n'avait pas
+ * répondu. Le commissionnaire croyait avoir perdu ses annonces.
+ */
+export function ErreurRequete({
+  erreur,
+  onReessayer,
+  titre,
+  className,
+}: {
+  erreur: unknown;
+  onReessayer?: () => void;
+  titre?: string;
+  className?: string;
+}) {
+  if (erreur instanceof ErreurReseau) {
+    return <EtatHorsLigne onReessayer={onReessayer} className={className} />;
+  }
+  return (
+    <EtatErreur
+      titre={titre}
+      description={messageErreur(erreur)}
+      onReessayer={onReessayer}
+      className={className}
+    />
+  );
+}
+
+/**
+ * Affiche le contenu, sauf si son chargement a échoué sans rien laisser à
+ * montrer. Des données déjà en cache restent affichées même si leur
+ * rafraîchissement échoue : mieux vaut une liste d'il y a une minute qu'un
+ * écran d'erreur.
+ */
+export function SiCharge({
+  requete,
+  titre,
+  children,
+}: {
+  requete: { error: unknown; data?: unknown; refetch: () => unknown };
+  titre?: string;
+  children: ReactNode;
+}) {
+  if (requete.error && requete.data === undefined) {
+    return <ErreurRequete erreur={requete.error} titre={titre} onReessayer={() => void requete.refetch()} />;
+  }
+  return <>{children}</>;
 }

@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { messageErreur } from '@/lib/erreurs';
 import { ArrowDown, ArrowUp, FileText, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 
@@ -56,16 +57,8 @@ interface PageLegale {
 const CHEMIN = '/api/v1/administration/pages/';
 const CHEMIN_JOURNAL = '/api/v1/administration/journal/';
 
-function messageLisible(erreur: Error): string {
-  try {
-    const donnees = JSON.parse(erreur.message);
-    if (typeof donnees === 'string') return donnees;
-    const premiere = Object.values(donnees)[0];
-    return Array.isArray(premiere) ? String(premiere[0]) : String(premiere);
-  } catch {
-    return erreur.message;
-  }
-}
+/** Les erreurs arrivent déjà traduites en phrase par lib/erreurs. */
+const messageLisible = (erreur: Error) => messageErreur(erreur);
 
 export function PagesLegales() {
   const { data, isPending, error, refetch } = useQuery<PaginatedResponse<PageLegale>>({ queryKey: [CHEMIN] });

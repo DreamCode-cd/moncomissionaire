@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
@@ -96,7 +96,7 @@ export default function AgentDashboard() {
   });
 
   // Fetch all visits for the agent
-  const { data: visites, isLoading: visitesLoading } = useQuery<PaginatedResponse<Visite>>({
+  const { data: visites, isLoading: visitesLoading, error: erreurVisites, refetch: rechargerVisites } = useQuery<PaginatedResponse<Visite>>({
     queryKey: ['/api/v1/visites/agent/visites/', visiteFilter],
     queryFn: async () => {
       const url = visiteFilter !== 'all' 
@@ -563,6 +563,8 @@ export default function AgentDashboard() {
                   <Skeleton key={i} className="h-32" />
                 ))}
               </div>
+            ) : erreurVisites && !visites ? (
+              <ErreurRequete erreur={erreurVisites} titre="Vos visites n’ont pas pu être chargées" onReessayer={() => void rechargerVisites()} />
             ) : allVisites.length === 0 ? (
               <EtatVide
                 icone={Calendar}

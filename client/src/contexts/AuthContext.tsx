@@ -1,6 +1,7 @@
 import { libelleRole } from '@/lib/roles';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { api } from '@/lib/api';
+import { api, EVENEMENT_SESSION_EXPIREE } from '@/lib/api';
+import { ErreurApi } from '@/lib/erreurs';
 import type { UserProfile, TokenResponse, LoginInput, RegisterInput } from '@shared/schema';
 
 interface AuthContextType {
@@ -40,8 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await api.get<UserProfile>('/api/v1/auth/profile/');
       setUser(normalizeProfile(profile));
-    } catch {
-      api.clearTokens();
+    } catch (erreur) {
+      // Seul un refus du serveur met fin à la session. Une coupure de réseau
+      // au chargement de la page déconnectait l'utilisateur : on garde ses
+      // jetons, et on réessaie au retour du réseau.
+      if (erreur instanceof ErreurApi && (erreur.statut === 401 || erreur.statut === 403)) {
+        api.clearTokens();
+      }
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -50,6 +56,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    const sessionPerdue = () => setUser(null);
+    const reseauRevenu = () => {
+      if (api.isAuthenticated()) void fetchProfile();
+    };
+    window.addEventListener(EVENEMENT_SESSION_EXPIREE, sessionPerdue);
+    window.addEventListener('online', reseauRevenu);
+    return () => {
+      window.removeEventListener(EVENEMENT_SESSION_EXPIREE, sessionPerdue);
+      window.removeEventListener('online', reseauRevenu);
+    };
   }, [fetchProfile]);
 
   const login = async (credentials: LoginInput): Promise<UserProfile> => {

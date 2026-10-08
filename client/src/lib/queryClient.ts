@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { api } from "./api";
+import { ErreurApi, erreurPassagere } from "./erreurs";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -63,7 +64,7 @@ export function getQueryFn<T>(options: {
     try {
       return await api.get<T>(url);
     } catch (error) {
-      if (error instanceof Error && error.message.includes('401')) {
+      if (error instanceof ErreurApi && error.statut === 401) {
         if (options.on401 === "returnNull") {
           return null as T;
         }
@@ -81,8 +82,10 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: true,
       staleTime: 5 * 60 * 1000, // 5 minutes - données considérées fraîches
       gcTime: 30 * 60 * 1000, // 30 minutes - garder en cache
-      retry: 1,
-      retryDelay: 1000,
+      // Réessayer seulement quand le serveur n'a pas pu répondre (réseau,
+      // serveur qui redémarre). Un 403 ou un 404 redonnerait la même chose.
+      retry: (tentatives, erreur) => tentatives < 2 && erreurPassagere(erreur),
+      retryDelay: (tentative) => 1500 * (tentative + 1),
     },
     mutations: {
       retry: false,

@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { poserErreursSurChamps } from '@/lib/erreurs';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { registerSchema, type RegisterInput } from '@shared/schema';
@@ -63,37 +64,12 @@ const CHAMPS_DU_FORMULAIRE: (keyof RegisterInput)[] = [
   'consentement_donnees',
 ];
 
-/**
- * Le serveur répond {"password": ["Ce mot de passe est trop courant."]} : ces
- * messages s'affichaient en JSON brut dans une bulle. On les remet sous le
- * champ concerné ; ce qui ne correspond à aucun champ est renvoyé tel quel.
- */
+/** Les messages du serveur vont sous le champ concerné ; le reste en bulle. */
 function repartirErreurs(
   erreur: unknown,
   poser: (champ: keyof RegisterInput, message: string) => void,
 ): string | null {
-  const brut = erreur instanceof Error ? erreur.message : '';
-  let donnees: unknown;
-  try {
-    donnees = JSON.parse(brut);
-  } catch {
-    return brut || 'Une erreur est survenue';
-  }
-  // Une phrase seule ou une liste de phrases : rien à placer sous un champ.
-  if (typeof donnees === 'string') return donnees;
-  if (Array.isArray(donnees)) return donnees.join(' ');
-  if (!donnees || typeof donnees !== 'object') return 'Une erreur est survenue';
-
-  const restes: string[] = [];
-  for (const [champ, messages] of Object.entries(donnees as Record<string, unknown>)) {
-    const message = Array.isArray(messages) ? messages.join(' ') : String(messages);
-    if ((CHAMPS_DU_FORMULAIRE as string[]).includes(champ)) {
-      poser(champ as keyof RegisterInput, message);
-    } else {
-      restes.push(message);
-    }
-  }
-  return restes.length ? restes.join(' ') : null;
+  return poserErreursSurChamps(erreur, CHAMPS_DU_FORMULAIRE, poser);
 }
 
 export default function Register() {

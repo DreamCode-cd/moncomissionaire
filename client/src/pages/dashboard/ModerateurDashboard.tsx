@@ -1,4 +1,4 @@
-import { EtatVide } from '@/components/etats';
+import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateCourte } from '@/lib/dates';
 import { useState } from 'react';
@@ -120,7 +120,7 @@ export default function ModerateurDashboard() {
     retry: 1,
   });
 
-  const { data: pendingProperties, isLoading: propertiesLoading } = useQuery<PaginatedResponse<BienList>>({
+  const { data: pendingProperties, isLoading: propertiesLoading, error: erreurPendingProperties, refetch: rechargerPendingProperties } = useQuery<PaginatedResponse<BienList>>({
     queryKey: ['/api/v1/biens/moderation/', { statut_validation: 'en_attente' }],
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
@@ -132,25 +132,25 @@ export default function ModerateurDashboard() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: demandes, isLoading: demandesLoading } = useQuery<PaginatedResponse<DemandeVisite>>({
+  const { data: demandes, isLoading: demandesLoading, error: erreurDemandes, refetch: rechargerDemandes } = useQuery<PaginatedResponse<DemandeVisite>>({
     queryKey: ['/api/v1/visites/commissionnaire/demandes/'],
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
 
-  const { data: visites, isLoading: visitesLoading } = useQuery<PaginatedResponse<Visite>>({
+  const { data: visites, isLoading: visitesLoading, error: erreurVisites, refetch: rechargerVisites } = useQuery<PaginatedResponse<Visite>>({
     queryKey: ['/api/v1/visites/commissionnaire/visites/'],
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
 
-  const { data: rapports, isLoading: rapportsLoading } = useQuery<PaginatedResponse<RapportVisite>>({
+  const { data: rapports, isLoading: rapportsLoading, error: erreurRapports, refetch: rechargerRapports } = useQuery<PaginatedResponse<RapportVisite>>({
     queryKey: ['/api/v1/visites/commissionnaire/rapports/'],
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
   });
 
-  const { data: agents, isLoading: agentsLoading } = useQuery<PaginatedResponse<UserList>>({
+  const { data: agents, isLoading: agentsLoading, error: erreurAgents, refetch: rechargerAgents } = useQuery<PaginatedResponse<UserList>>({
     queryKey: ['/api/v1/auth/moderation/agents/'],
     refetchInterval: 60000, // Rafraîchir toutes les 60 secondes pour les agents
     refetchOnWindowFocus: true,
@@ -614,7 +614,9 @@ export default function ModerateurDashboard() {
           </TabsList>
 
           <TabsContent value="properties">
-            {propertiesLoading ? (
+            {erreurPendingProperties && !pendingProperties ? (
+              <ErreurRequete erreur={erreurPendingProperties} titre="Les annonces à valider n’ont pas pu être chargées" onReessayer={() => void rechargerPendingProperties()} />
+            ) : propertiesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <Card key={i}>
@@ -742,7 +744,9 @@ export default function ModerateurDashboard() {
           </TabsContent>
 
           <TabsContent value="demandes">
-            {demandesLoading ? (
+            {erreurDemandes && !demandes ? (
+              <ErreurRequete erreur={erreurDemandes} titre="Les demandes n’ont pas pu être chargées" onReessayer={() => void rechargerDemandes()} />
+            ) : demandesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <Skeleton key={i} className="h-32" />
@@ -901,7 +905,9 @@ export default function ModerateurDashboard() {
           </TabsContent>
 
           <TabsContent value="visites">
-            {visitesLoading ? (
+            {erreurVisites && !visites ? (
+              <ErreurRequete erreur={erreurVisites} titre="Les visites n’ont pas pu être chargées" onReessayer={() => void rechargerVisites()} />
+            ) : visitesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <Skeleton key={i} className="h-32" />
@@ -1028,7 +1034,9 @@ export default function ModerateurDashboard() {
           </TabsContent>
 
           <TabsContent value="rapports">
-            {rapportsLoading ? (
+            {erreurRapports && !rapports ? (
+              <ErreurRequete erreur={erreurRapports} titre="Les rapports n’ont pas pu être chargés" onReessayer={() => void rechargerRapports()} />
+            ) : rapportsLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <Skeleton key={i} className="h-32" />
@@ -1114,7 +1122,9 @@ export default function ModerateurDashboard() {
                 Ajouter un agent
               </Button>
             </div>
-            {agentsLoading ? (
+            {erreurAgents && !agents ? (
+              <ErreurRequete erreur={erreurAgents} titre="La liste des agents n’a pas pu être chargée" onReessayer={() => void rechargerAgents()} />
+            ) : agentsLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <Card key={i}>

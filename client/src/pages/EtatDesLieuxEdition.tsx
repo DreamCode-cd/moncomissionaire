@@ -3,7 +3,7 @@ import { useParams, Link } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Camera, ChevronLeft, Copy, Plus, Send, Trash2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { EtatChargement } from '@/components/etats';
+import { EtatChargement, ErreurRequete } from '@/components/etats';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -59,6 +59,10 @@ export default function EtatDesLieuxEdition() {
         </div>
         {etats.isLoading ? (
           <EtatChargement texte="Chargement…" />
+        ) : etats.error && !etats.data ? (
+          // Surtout pas le formulaire de création : on ne sait pas s'il en
+          // existe déjà un, et en recréer un perdrait le travail commencé.
+          <ErreurRequete erreur={etats.error} titre="L’état des lieux n’a pas pu être chargé" onReessayer={() => void etats.refetch()} />
         ) : etat ? (
           <Edition etat={etat} cle={cle} />
         ) : (

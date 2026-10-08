@@ -4,7 +4,7 @@ import { ClipboardList, HandCoins, Phone, Stamp, Undo2, Wallet } from 'lucide-re
 import { Link } from 'wouter';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { EtatChargement, EtatVide } from '@/components/etats';
+import { EtatChargement, EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,6 +45,9 @@ export function OngletGains() {
   >(null);
 
   if (commissions.isLoading) return <EtatChargement texte="Chargement de vos gains…" />;
+  if (commissions.error && !commissions.data) {
+    return <ErreurRequete erreur={commissions.error} titre="Vos gains n’ont pas pu être chargés" onReessayer={() => void commissions.refetch()} />;
+  }
   const liste = commissions.data?.results ?? [];
   if (!liste.length) {
     return (

@@ -17,7 +17,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { EtatChargement, EtatVide } from '@/components/etats';
+import { EtatChargement, EtatVide, SiCharge } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { DialogueNouveauBailleur, CLE_BAILLEURS } from '@/components/property/ChampsTerrain';
 import { Button } from '@/components/ui/button';
@@ -61,6 +61,7 @@ import {
 import { lieuAnnonce } from '@/lib/annonce';
 import { formaterDateCourte } from '@/lib/dates';
 import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { messageErreur } from '@/lib/erreurs';
 import type {
   Bailleur,
   BienList,
@@ -89,9 +90,6 @@ const STATUTS_LOCATION = [
   { valeur: 'indisponible', libelle: 'Indisponible' },
 ];
 
-function messageErreur(erreur: unknown) {
-  return erreur instanceof Error ? erreur.message : 'Une erreur est survenue';
-}
 
 function LienTelephone({ numero }: { numero?: string | null }) {
   if (!numero) return null;
@@ -170,21 +168,29 @@ export default function CommissionnaireDashboard() {
 
           <TabsContent value="biens">
             <PropositionsMandat cleBiens={CLE_BIENS} />
-            <OngletBiens biens={biens.data?.results} chargement={biens.isLoading} />
+            <SiCharge requete={biens} titre="Vos biens n’ont pas pu être chargés">
+              <OngletBiens biens={biens.data?.results} chargement={biens.isLoading} />
+            </SiCharge>
           </TabsContent>
           <TabsContent value="bailleurs">
-            <OngletBailleurs bailleurs={bailleurs.data?.results} chargement={bailleurs.isLoading} />
+            <SiCharge requete={bailleurs} titre="Votre carnet n’a pas pu être chargé">
+              <OngletBailleurs bailleurs={bailleurs.data?.results} chargement={bailleurs.isLoading} />
+            </SiCharge>
           </TabsContent>
           <TabsContent value="demandes">
-            <OngletDemandes
-              demandes={demandesATraiter}
-              chargement={demandes.isLoading}
-              demandesAvecVisite={demandesAvecVisite}
-              onErreur={(e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' })}
-            />
+            <SiCharge requete={demandes} titre="Les demandes n’ont pas pu être chargées">
+              <OngletDemandes
+                demandes={demandesATraiter}
+                chargement={demandes.isLoading}
+                demandesAvecVisite={demandesAvecVisite}
+                onErreur={(e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' })}
+              />
+            </SiCharge>
           </TabsContent>
           <TabsContent value="visites">
-            <OngletVisites visites={visites.data?.results} chargement={visites.isLoading} />
+            <SiCharge requete={visites} titre="Les visites n’ont pas pu être chargées">
+              <OngletVisites visites={visites.data?.results} chargement={visites.isLoading} />
+            </SiCharge>
           </TabsContent>
           <TabsContent value="gains">
             <OngletGains />
@@ -647,7 +653,9 @@ function ActionsArgent({ demande }: { demande: DemandeVisite }) {
           <Wallet className="w-4 h-4 mr-1" /> Frais reçus
         </Button>
       )}
-      {!bailDeclare && !commissions.isLoading && (
+      {/* Sans la liste des baux, on ne sait pas si celui-ci est déjà déclaré :
+          on ne propose pas le bouton plutôt que de risquer un doublon. */}
+      {!bailDeclare && commissions.isSuccess && (
         <Button size="sm" onClick={() => setBailOuvert(true)} data-testid={`button-bail-${demande.id}`}>
           <FilePenLine className="w-4 h-4 mr-1" /> Bail signé
         </Button>
