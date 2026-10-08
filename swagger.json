@@ -41,21 +41,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -121,7 +121,7 @@
                 {
                     "name": "id",
                     "in": "path",
-                    "description": "A unique integer value identifying this Agence.",
+                    "description": "Un(une) valeur entière unique identifiant ce(cette) Agence.",
                     "required": true,
                     "type": "integer"
                 }
@@ -158,7 +158,7 @@
                 {
                     "name": "id",
                     "in": "path",
-                    "description": "A unique integer value identifying this Agence.",
+                    "description": "Un(une) valeur entière unique identifiant ce(cette) Agence.",
                     "required": true,
                     "type": "integer"
                 }
@@ -190,21 +190,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -256,21 +256,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -469,21 +469,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -768,21 +768,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -1019,21 +1019,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -1161,7 +1161,7 @@
                 {
                     "name": "id",
                     "in": "path",
-                    "description": "A unique integer value identifying this Agence.",
+                    "description": "Un(une) valeur entière unique identifiant ce(cette) Agence.",
                     "required": true,
                     "type": "integer"
                 }
@@ -1188,7 +1188,7 @@
                 {
                     "name": "id",
                     "in": "path",
-                    "description": "A unique integer value identifying this Agence.",
+                    "description": "Un(une) valeur entière unique identifiant ce(cette) Agence.",
                     "required": true,
                     "type": "integer"
                 }
@@ -1218,21 +1218,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -1300,21 +1300,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -1399,21 +1399,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -1579,21 +1579,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -1974,21 +1974,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     },
@@ -2140,21 +2140,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -2236,14 +2236,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -2409,14 +2409,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -2582,21 +2582,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -2762,21 +2762,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -3242,21 +3242,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -3333,21 +3333,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -3467,21 +3467,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -3597,21 +3597,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -3663,21 +3663,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4143,21 +4143,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4235,21 +4235,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4358,14 +4358,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4443,14 +4443,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4674,21 +4674,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4740,14 +4740,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -4799,21 +4799,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5012,21 +5012,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5178,21 +5178,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5244,21 +5244,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5410,21 +5410,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5563,21 +5563,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5743,14 +5743,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -5913,14 +5913,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -6121,21 +6121,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -6336,21 +6336,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -6453,21 +6453,21 @@
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "A search term.",
+                        "description": "Un terme de recherche.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
@@ -6545,14 +6545,14 @@
                     {
                         "name": "ordering",
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "description": "Quel champ utiliser pour classer les résultats.",
                         "required": false,
                         "type": "string"
                     },
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
                         "required": false,
                         "type": "integer"
                     }
