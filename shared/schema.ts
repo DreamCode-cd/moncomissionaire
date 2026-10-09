@@ -367,15 +367,21 @@ export interface BienCreate {
 export interface AvisBien {
   id: number;
   bien: number;
-  client: UserList;
+  /** Prénom seul : l'avis est public, son auteur reste discret. */
+  auteur_prenom: string;
+  /** L'avis appartient à l'utilisateur connecté : il peut le corriger. */
+  est_de_moi: boolean;
+  /** La visite qui a donné le droit de noter. Nulle pour les avis plus anciens que la règle. */
+  visite: number | null;
   note: number;
   commentaire: string;
   created_at: string;
   updated_at: string;
 }
 
+/** On note un bien parce qu'on l'a visité : le serveur en déduit le bien. */
 export interface AvisBienCreate {
-  bien: number;
+  visite: number;
   note: number;
   commentaire: string;
 }
@@ -527,6 +533,8 @@ export interface VisiteMini {
   statut_display: string;
   /** Le client a déjà noté le commissionnaire pour cette visite. */
   avis_commissionnaire_donne: boolean;
+  /** Le client a déjà donné son avis sur ce bien (un seul par bien). */
+  avis_bien_donne: boolean;
 }
 
 export interface DemandeVisiteCreate {

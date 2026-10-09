@@ -9184,7 +9184,6 @@
         },
         "AvisAgent": {
             "required": [
-                "visite",
                 "note"
             ],
             "type": "object",
@@ -9202,7 +9201,8 @@
                 },
                 "visite": {
                     "title": "Visite",
-                    "type": "integer"
+                    "type": "integer",
+                    "readOnly": true
                 },
                 "note": {
                     "title": "Note (1-5)",
@@ -9253,7 +9253,6 @@
         },
         "AvisBien": {
             "required": [
-                "bien",
                 "note"
             ],
             "type": "object",
@@ -9265,10 +9264,26 @@
                 },
                 "bien": {
                     "title": "Bien",
-                    "type": "integer"
+                    "type": "integer",
+                    "readOnly": true
                 },
-                "client": {
-                    "$ref": "#/definitions/ProfilPublic"
+                "auteur_prenom": {
+                    "title": "Auteur prenom",
+                    "description": "Prénom seul de l'auteur.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "est_de_moi": {
+                    "title": "Est de moi",
+                    "description": "L'avis appartient à l'utilisateur connecté : il peut le corriger.",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "visite": {
+                    "title": "Visite",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
                 },
                 "note": {
                     "title": "Note (1-5)",
@@ -9296,13 +9311,13 @@
         },
         "AvisBienCreate": {
             "required": [
-                "bien",
+                "visite",
                 "note"
             ],
             "type": "object",
             "properties": {
-                "bien": {
-                    "title": "Bien",
+                "visite": {
+                    "title": "Visite",
                     "type": "integer"
                 },
                 "note": {
@@ -12178,6 +12193,12 @@
                 "avis_commissionnaire_donne": {
                     "title": "Avis commissionnaire donne",
                     "description": "Le client a déjà noté le commissionnaire pour cette visite.",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "avis_bien_donne": {
+                    "title": "Avis bien donne",
+                    "description": "Le client a déjà donné son avis sur ce bien, lors de cette visite ou d'une précédente : un seul avis par bien.",
                     "type": "boolean",
                     "readOnly": true
                 }

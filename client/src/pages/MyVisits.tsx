@@ -47,7 +47,7 @@ export default function MyVisits() {
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
   const [aSignaler, setASignaler] = useState<DemandeWithVisite | null>(null);
   const [motifSignalement, setMotifSignalement] = useState('');
-  const [aNoter, setANoter] = useState<DemandeWithVisite | null>(null);
+  const [aNoter, setANoter] = useState<{ demande: DemandeWithVisite; sujet: 'commissionnaire' | 'bien' } | null>(null);
   const { toast } = useToast();
 
   // Un abus (frais exigés au-delà de l'annonce, commissionnaire injoignable
@@ -178,18 +178,31 @@ export default function MyVisits() {
                 {estPositif(demande.frais_visite_regles) && ' · réglés'}
               </p>
             )}
-            {demande.visite?.statut === 'terminee' &&
-              !demande.visite.avis_commissionnaire_donne &&
-              demande.bien_detail?.commissionnaire && (
-                <Button
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => setANoter(demande)}
-                  data-testid={`button-noter-${demande.id}`}
-                >
-                  Noter le commissionnaire
-                </Button>
-              )}
+            {demande.visite?.statut === 'terminee' && (
+              // Après la visite, et seulement après : c'est elle qui donne le
+              // droit de noter le bien comme le commissionnaire.
+              <div className="flex flex-wrap gap-2 mt-2">
+                {!demande.visite.avis_bien_donne && (
+                  <Button
+                    size="sm"
+                    onClick={() => setANoter({ demande, sujet: 'bien' })}
+                    data-testid={`button-noter-bien-${demande.id}`}
+                  >
+                    Noter le bien
+                  </Button>
+                )}
+                {!demande.visite.avis_commissionnaire_donne && demande.bien_detail?.commissionnaire && (
+                  <Button
+                    size="sm"
+                    variant={demande.visite.avis_bien_donne ? 'default' : 'outline'}
+                    onClick={() => setANoter({ demande, sujet: 'commissionnaire' })}
+                    data-testid={`button-noter-${demande.id}`}
+                  >
+                    Noter le commissionnaire
+                  </Button>
+                )}
+              </div>
+            )}
             {demande.signale_le ? (
               <p className="text-xs text-muted-foreground mt-2">
                 Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue.
@@ -362,10 +375,15 @@ export default function MyVisits() {
           </DialogContent>
         </Dialog>
 
-        {aNoter?.visite && (
+        {aNoter?.demande.visite && (
           <DialogueAvis
-            cible={{ visite: aNoter.visite.id }}
-            nomCommissionnaire={aNoter.bien_detail?.commissionnaire_detail?.full_name}
+            sujet={aNoter.sujet}
+            cible={{ visite: aNoter.demande.visite.id }}
+            nom={
+              aNoter.sujet === 'bien'
+                ? aNoter.demande.bien_detail?.titre
+                : aNoter.demande.bien_detail?.commissionnaire_detail?.full_name
+            }
             clesARafraichir={[['/api/v1/visites/client/demandes/']]}
             onFermer={() => setANoter(null)}
           />
