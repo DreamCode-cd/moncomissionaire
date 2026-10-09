@@ -120,11 +120,15 @@ export default function Login() {
                   name="login"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom d'utilisateur ou email</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Votre nom d'utilisateur ou email" 
-                          {...field} 
+                        {/* Pas type="email" : les comptes de l'équipe se
+                            connectent encore avec leur nom d'utilisateur. */}
+                        <Input
+                          inputMode="email"
+                          autoComplete="username"
+                          autoCapitalize="none"
+                          {...field}
                           data-testid="input-login"
                         />
                       </FormControl>
@@ -143,7 +147,6 @@ export default function Login() {
                         <FormControl>
                           <Input
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Votre mot de passe"
                             autoComplete="current-password"
                             className="pr-12"
                             {...field}
