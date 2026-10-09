@@ -15,28 +15,45 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 
+/** Ce qu'on note, et ce qu'on demande d'y regarder. */
+const SUJETS = {
+  commissionnaire: {
+    route: '/api/v1/commissions/avis/',
+    titreParDefaut: 'le commissionnaire',
+    consigne: 'Ponctualité, honnêteté sur l’état de la maison, frais annoncés respectés…',
+  },
+  bien: {
+    route: '/api/v1/biens/avis-biens/',
+    titreParDefaut: 'ce bien',
+    consigne: 'La maison correspondait-elle à l’annonce ? État, eau, courant, voisinage…',
+  },
+} as const;
+
 /**
- * Noter un commissionnaire, après une visite faite (client) ou un bail signé
- * chez soi (propriétaire). Le serveur déduit qui est noté et refuse une
- * seconde note pour le même fait.
+ * Noter un commissionnaire ou un bien. On ne note que ce qu'on a vu : une
+ * visite terminée (client) ou un bail signé chez soi (propriétaire). Le
+ * serveur déduit qui ou quoi est noté et refuse une seconde note.
  */
 export function DialogueAvis({
+  sujet = 'commissionnaire',
   cible,
-  nomCommissionnaire,
+  nom,
   clesARafraichir,
   onFermer,
 }: {
+  sujet?: keyof typeof SUJETS;
   cible: { visite: number } | { commission: number };
-  nomCommissionnaire?: string;
+  nom?: string;
   clesARafraichir: string[][];
   onFermer: () => void;
 }) {
+  const { route, titreParDefaut, consigne } = SUJETS[sujet];
   const { toast } = useToast();
   const [note, setNote] = useState(0);
   const [commentaire, setCommentaire] = useState('');
 
   const envoyer = useMutation({
-    mutationFn: () => api.post('/api/v1/commissions/avis/', { ...cible, note, commentaire }),
+    mutationFn: () => api.post(route, { ...cible, note, commentaire }),
     onSuccess: () => {
       clesARafraichir.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
       toast({ title: 'Merci pour votre avis', description: 'Il aide les autres à choisir.' });
@@ -54,10 +71,8 @@ export function DialogueAvis({
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Noter {nomCommissionnaire ?? 'le commissionnaire'}</DialogTitle>
-          <DialogDescription>
-            Ponctualité, honnêteté sur l’état de la maison, frais annoncés respectés… Votre prénom seul sera affiché.
-          </DialogDescription>
+          <DialogTitle>Noter {nom ?? titreParDefaut}</DialogTitle>
+          <DialogDescription>{consigne} Votre prénom seul sera affiché.</DialogDescription>
         </DialogHeader>
         <div className="flex justify-center gap-1" role="radiogroup" aria-label="Note sur 5">
           {[1, 2, 3, 4, 5].map((n) => (

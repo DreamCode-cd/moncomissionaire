@@ -409,7 +409,7 @@ function BauxConclus() {
       {aNoter && (
         <DialogueAvis
           cible={{ commission: aNoter.id }}
-          nomCommissionnaire={aNoter.titulaire_detail?.full_name}
+          nom={aNoter.titulaire_detail?.full_name}
           clesARafraichir={[CLE_BAUX]}
           onFermer={() => setANoter(null)}
         />

@@ -372,25 +372,13 @@ export default function PropertyDetail() {
     }
   };
 
+  // On ne crée pas d'avis depuis la fiche : il faut avoir visité le bien, et
+  // cela se fait depuis « Mes visites ». Ici, l'auteur corrige seulement le sien.
   const reviewMutation = useMutation({
-    mutationFn: async (data: { note: number; commentaire: string }) => {
-      if (userReviewId && isEditingReview) {
-        return api.patch(`/api/v1/biens/avis-biens/${userReviewId}/`, data);
-      } else {
-        return api.post('/api/v1/biens/avis-biens/', {
-          ...data,
-          bien: parseInt(propertyId!),
-        });
-      }
-    },
+    mutationFn: async (data: { note: number; commentaire: string }) =>
+      api.patch(`/api/v1/biens/avis-biens/${userReviewId}/`, data),
     onSuccess: () => {
-      const wasEditing = isEditingReview;
-      toast({
-        title: wasEditing ? 'Avis modifié' : 'Avis ajouté',
-        description: wasEditing 
-          ? 'Votre avis a été modifié avec succès' 
-          : 'Votre avis a été ajouté avec succès',
-      });
+      toast({ title: 'Avis modifié', description: 'Votre correction est enregistrée.' });
       queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/', propertyId, 'avis'] });
       setIsEditingReview(false);
       setReviewNote(0);
@@ -436,7 +424,7 @@ export default function PropertyDetail() {
     setReviewComment('');
   };
 
-  const existingUserReview = reviews?.results?.find(r => r.client.id === user?.id);
+  const existingUserReview = reviews?.results?.find(r => r.est_de_moi);
 
   if (isLoading) {
     return (
@@ -842,9 +830,9 @@ export default function PropertyDetail() {
               Avis {reviews?.count ? `(${reviews.count})` : ''}
             </h2>
             
-            {isAuthenticated && user?.role === 'client' && (
+            {isAuthenticated && user?.role === 'client' && existingUserReview && (
               <>
-                {existingUserReview && !isEditingReview ? (
+                {!isEditingReview ? (
                   <Card className="mb-4">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
@@ -878,7 +866,7 @@ export default function PropertyDetail() {
                   <Card className="mb-4">
                     <CardContent className="p-4">
                       <h3 className="font-medium mb-3">
-                        {isEditingReview ? 'Modifier votre avis' : 'Laisser un avis'}
+                        Modifier votre avis
                       </h3>
                       <div className="space-y-4">
                         <div>
@@ -930,11 +918,7 @@ export default function PropertyDetail() {
                             data-testid="button-submit-review"
                           >
                             <Send className="w-4 h-4 mr-2" />
-                            {reviewMutation.isPending 
-                              ? 'Envoi...' 
-                              : isEditingReview 
-                                ? 'Modifier mon avis' 
-                                : 'Publier mon avis'}
+                            {reviewMutation.isPending ? 'Envoi…' : 'Modifier mon avis'}
                           </Button>
                         </div>
                       </div>
@@ -944,37 +928,32 @@ export default function PropertyDetail() {
               </>
             )}
 
-            {!isAuthenticated && (
-              <Card className="mb-4">
-                <CardContent className="p-4 text-center">
-                  <p className="text-muted-foreground mb-3">
-                    Connectez-vous pour laisser un avis
-                  </p>
-                  <Button onClick={() => setLocation('/login')} data-testid="button-login-to-review">
-                    Se connecter
-                  </Button>
-                </CardContent>
-              </Card>
+            {!existingUserReview && (
+              <p className="text-sm text-muted-foreground mb-4" data-testid="text-origine-avis">
+                Seules les personnes qui ont visité ce bien avec VillaGo peuvent le noter.
+                {isAuthenticated && user?.role === 'client'
+                  ? ' Après votre visite, vous le noterez depuis « Mes visites ».'
+                  : ''}
+              </p>
             )}
             
             {reviews && reviews.results.length > 0 ? (
               <div className="space-y-4">
                 {reviews.results
-                  .filter(review => review.client.id !== user?.id)
+                  .filter(review => !review.est_de_moi)
                   .slice(0, 5)
                   .map((review) => (
                   <Card key={review.id}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={review.client.photo} />
                           <AvatarFallback>
-                            {review.client.first_name?.[0]?.toUpperCase() || 'U'}
+                            {review.auteur_prenom[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <p className="font-medium">
-                            {review.client.first_name} {review.client.last_name}
+                            {review.auteur_prenom}
                           </p>
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
@@ -996,21 +975,21 @@ export default function PropertyDetail() {
                     </CardContent>
                   </Card>
                 ))}
-                {reviews.results.filter(review => review.client.id !== user?.id).length > 5 && (
+                {reviews.results.filter(review => !review.est_de_moi).length > 5 && (
                   <Button 
                     variant="outline" 
                     className="w-full"
                     onClick={() => setAllReviewsDialogOpen(true)}
                     data-testid="button-show-all-reviews"
                   >
-                    Voir tous les avis ({reviews.results.filter(review => review.client.id !== user?.id).length})
+                    Voir tous les avis ({reviews.results.filter(review => !review.est_de_moi).length})
                   </Button>
                 )}
-                {reviews.results.filter(review => review.client.id !== user?.id).length === 0 && !existingUserReview && (
+                {reviews.results.filter(review => !review.est_de_moi).length === 0 && !existingUserReview && (
                   <EtatVide
                     icone={Star}
-                    titre="Aucun avis"
-                    description="Soyez la première personne à donner son avis sur ce bien."
+                    titre="Aucun avis pour l’instant"
+                    description="Personne n’a encore noté ce bien après l’avoir visité."
                     className="py-6"
                   />
                 )}
@@ -1018,8 +997,8 @@ export default function PropertyDetail() {
             ) : (
               <EtatVide
                 icone={Star}
-                titre="Aucun avis"
-                description="Soyez la première personne à donner son avis sur ce bien."
+                titre="Aucun avis pour l’instant"
+                description="Personne n’a encore noté ce bien après l’avoir visité."
                 className="py-6"
               />
             )}
@@ -1314,7 +1293,7 @@ export default function PropertyDetail() {
         <Dialog open={allReviewsDialogOpen} onOpenChange={setAllReviewsDialogOpen}>
           <DialogContent className="max-w-lg max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle>Tous les avis ({reviews?.results?.filter(review => review.client.id !== user?.id).length || 0})</DialogTitle>
+              <DialogTitle>Tous les avis ({reviews?.results?.filter(review => !review.est_de_moi).length || 0})</DialogTitle>
               <DialogDescription>
                 Découvrez les avis des autres utilisateurs sur ce bien
               </DialogDescription>
@@ -1322,20 +1301,19 @@ export default function PropertyDetail() {
             <ScrollArea className="max-h-[60vh] pr-4">
               <div className="space-y-4">
                 {reviews?.results
-                  ?.filter(review => review.client.id !== user?.id)
+                  ?.filter(review => !review.est_de_moi)
                   .map((review) => (
                   <Card key={review.id}>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3 mb-2">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={review.client.photo} />
                           <AvatarFallback>
-                            {review.client.first_name?.[0]?.toUpperCase() || 'U'}
+                            {review.auteur_prenom[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <p className="font-medium">
-                            {review.client.first_name} {review.client.last_name}
+                            {review.auteur_prenom}
                           </p>
                           <div className="flex items-center gap-1">
                             {[...Array(5)].map((_, i) => (
