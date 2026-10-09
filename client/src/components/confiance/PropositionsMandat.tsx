@@ -47,7 +47,7 @@ export function PropositionsMandat({ cleBiens }: { cleBiens: string[] }) {
     return (
       <p className="mb-4 text-sm text-muted-foreground" role="status">
         Les propositions des propriétaires n’ont pas pu être vérifiées. {messageErreur(propositions.error)}{' '}
-        <button type="button" className="underline" onClick={() => void propositions.refetch()}>Réessayer</button>
+        <button type="button" className="inline-flex min-h-11 md:min-h-0 items-center underline" onClick={() => void propositions.refetch()}>Réessayer</button>
       </p>
     );
   }

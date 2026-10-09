@@ -204,7 +204,7 @@ export default function MyVisits() {
               </div>
             )}
             {demande.signale_le ? (
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue.
               </p>
             ) : (
@@ -267,19 +267,19 @@ export default function MyVisits() {
         <Tabs defaultValue="all" className="w-full">
           <div className="overflow-x-auto pb-2 mb-4 -mx-4 px-4">
             <TabsList className="inline-flex w-max min-w-full sm:w-full sm:grid sm:grid-cols-5 gap-1">
-              <TabsTrigger value="all" className="text-xs whitespace-nowrap px-3">
+              <TabsTrigger value="all" className="whitespace-nowrap px-3">
                 Toutes ({allDemandes.length})
               </TabsTrigger>
-              <TabsTrigger value="pending" className="text-xs whitespace-nowrap px-3">
+              <TabsTrigger value="pending" className="whitespace-nowrap px-3">
                 En attente ({pendingDemandes.length})
               </TabsTrigger>
-              <TabsTrigger value="accepted" className="text-xs whitespace-nowrap px-3">
+              <TabsTrigger value="accepted" className="whitespace-nowrap px-3">
                 Acceptées ({acceptedDemandes.length})
               </TabsTrigger>
-              <TabsTrigger value="completed" className="text-xs whitespace-nowrap px-3">
+              <TabsTrigger value="completed" className="whitespace-nowrap px-3">
                 Terminées ({completedDemandes.length})
               </TabsTrigger>
-              <TabsTrigger value="rejected" className="text-xs whitespace-nowrap px-3">
+              <TabsTrigger value="rejected" className="whitespace-nowrap px-3">
                 Rejetées ({rejectedDemandes.length})
               </TabsTrigger>
             </TabsList>

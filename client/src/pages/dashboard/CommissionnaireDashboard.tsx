@@ -94,7 +94,8 @@ const STATUTS_LOCATION = [
 function LienTelephone({ numero }: { numero?: string | null }) {
   if (!numero) return null;
   return (
-    <a href={`tel:${numero.replace(/\s/g, '')}`} className="inline-flex items-center gap-1 text-primary">
+    // Appeler est l'action la plus fréquente du commissionnaire : 44 px au pouce.
+    <a href={`tel:${numero.replace(/\s/g, '')}`} className="inline-flex min-h-11 md:min-h-0 items-center gap-1 text-primary">
       <Phone className="w-3 h-3" /> {numero}
     </a>
   );
@@ -258,19 +259,19 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
                   compact
                 />
               </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 {lieuAnnonce([bien.quartier, bien.commune, getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)])}
               </p>
               <p className="text-sm font-semibold text-primary">
                 {formaterLoyer(bien.prix_mensuel, bien.devise)}
               </p>
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 <Select
                   value={bien.statut_location}
                   onValueChange={(statut) => changerStatut.mutate({ id: bien.id, statut })}
                 >
-                  <SelectTrigger className="h-8 w-36 text-xs" data-testid={`select-location-${bien.id}`}>
+                  <SelectTrigger className="w-36" data-testid={`select-location-${bien.id}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -280,13 +281,13 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
                   </SelectContent>
                 </Select>
                 <Link href={`/property/${bien.id}/edit`}>
-                  <Button variant="outline" size="sm" className="h-8">
+                  <Button variant="outline" size="sm">
                     <Pencil className="w-3 h-3 mr-1" /> Modifier
                   </Button>
                 </Link>
               </div>
               {bien.proprietaire && (
-                <p className="text-xs text-muted-foreground">Confié par {bien.proprietaire.full_name}, propriétaire inscrit</p>
+                <p className="text-sm text-muted-foreground">Confié par {bien.proprietaire.full_name}, propriétaire inscrit</p>
               )}
               <Expiration bien={bien} routeApi="/api/v1/biens/commissionnaire/" cle={CLE_BIENS} />
             </div>
@@ -334,7 +335,7 @@ function OngletBailleurs({ bailleurs, chargement }: { bailleurs?: Bailleur[]; ch
               <div className="min-w-0">
                 <p className="font-medium">{b.nom}</p>
                 <p className="text-sm"><LienTelephone numero={b.telephone} /></p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {b.nombre_biens} bien{b.nombre_biens > 1 ? 's' : ''}
                   {b.notes ? ` · ${b.notes}` : ''}
                 </p>
@@ -441,7 +442,7 @@ function OngletDemandes({
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-medium leading-tight">{d.bien_detail?.titre}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {d.client?.full_name || `${d.client?.first_name ?? ''} ${d.client?.last_name ?? ''}`.trim()}
                   {' · souhaitée le '}
                   {formaterDateCourte(d.date_souhaitee)} à {d.heure_souhaitee?.slice(0, 5)}
