@@ -31,7 +31,15 @@ function buildUrl(queryKey: readonly unknown[]): string {
   
   for (const part of queryKey) {
     if (typeof part === 'string') {
-      const trimmed = part.replace(/^\/+|\/+$/g, '');
+      // Une clé peut porter ses paramètres (« /mandats/?statut=propose ») :
+      // ils rejoignent les autres au lieu de recevoir la barre oblique finale.
+      // Sans cela, l'URL devenait « ?statut=propose/ » et Django refusait la
+      // valeur « propose/ » (400).
+      const [chemin, requete] = part.split('?', 2);
+      if (requete) {
+        params = { ...params, ...Object.fromEntries(new URLSearchParams(requete)) };
+      }
+      const trimmed = chemin.replace(/^\/+|\/+$/g, '');
       if (trimmed) {
         pathParts.push(trimmed);
       }
