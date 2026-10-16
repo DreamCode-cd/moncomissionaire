@@ -1,4 +1,5 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
+import { MotifRefus } from '@/components/confiance/MotifRefus';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -267,6 +268,7 @@ export default function ProprietaireDashboard() {
                         <MapPin className="w-3 h-3" />
                         {property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}
                       </p>
+                      <div className="mb-2"><MotifRefus bien={property} /></div>
                       
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <span className="font-bold text-sm">

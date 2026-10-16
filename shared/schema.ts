@@ -194,6 +194,9 @@ export interface BienList {
   electricite_display: string;
   statut_validation: StatutValidation;
   statut_validation_display: string;
+  /** Motif du dernier refus. Seulement dans le portefeuille de l\'auteur et
+   *  la modération (BienPortefeuille), jamais dans la liste publique. */
+  motif_rejet?: string;
   statut_location: StatutLocation;
   statut_location_display: string;
   /** Nul quand le bien est confié par un bailleur sans compte. */
