@@ -132,7 +132,12 @@ export function erreurDepuisReponse(statut: number, corps: unknown): ErreurApi {
       if (message === null && donnees[cle] !== undefined) message = premierTexte(donnees[cle]);
     }
     for (const [cle, valeur] of Object.entries(donnees)) {
-      if (['detail', 'error', 'message', 'non_field_errors', 'code'].includes(cle)) continue;
+      if (['detail', 'error', 'message', 'non_field_errors'].includes(cle)) continue;
+      // DRF accompagne parfois `detail` d'un `code` technique, en simple
+      // chaîne (« token_not_valid ») : ce n'est pas un message. Mais un
+      // champ peut s'appeler `code` (le code reçu par e-mail), et ses
+      // erreurs arrivent alors en liste, comme pour tout champ.
+      if (cle === 'code' && !Array.isArray(valeur)) continue;
       const texte = premierTexte(valeur);
       if (texte) champs[cle] = texte;
     }

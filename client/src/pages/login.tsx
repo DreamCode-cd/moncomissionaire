@@ -166,6 +166,13 @@ export default function Login() {
                         </button>
                       </div>
                       <FormMessage />
+                      <div className="text-right">
+                        <Link href="/mot-de-passe-oublie">
+                          <span className="inline-flex min-h-11 items-center text-sm text-primary cursor-pointer" data-testid="link-mot-de-passe-oublie">
+                            Mot de passe oublié ?
+                          </span>
+                        </Link>
+                      </div>
                     </FormItem>
                   )}
                 />

@@ -15,6 +15,7 @@ import Home from "@/pages/home";
 import Search from "@/pages/Search";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import MotDePasseOublie from "@/pages/MotDePasseOublie";
 import NotFound from "@/pages/not-found";
 
 function lazyWithRetry(importFn: () => Promise<{ default: React.ComponentType<any> }>) {
@@ -108,6 +109,7 @@ function Router() {
           <Route path="/search" component={Search} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+          <Route path="/mot-de-passe-oublie" component={MotDePasseOublie} />
           <Route path="/property/:id" component={PropertyDetail} />
           <Route path="/profile">
             <ProtectedRoute><Profile /></ProtectedRoute>
