@@ -1,4 +1,5 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
+import { MotifRefus } from '@/components/confiance/MotifRefus';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateCourte } from '@/lib/dates';
 import { useState } from 'react';
@@ -681,6 +682,7 @@ export default function ModerateurDashboard() {
                             <MapPin className="w-3 h-3" />
                             {property.quartier}, {getVilleName(property.ville, property.ville_nom, property.ville_detail)}
                           </p>
+                          <div className="mb-2"><MotifRefus bien={property} /></div>
                           <p className="text-sm font-medium text-primary mb-2">
                             {formaterLoyer(property.prix_mensuel, property.devise)}
                           </p>

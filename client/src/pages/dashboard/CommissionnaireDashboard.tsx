@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { MotifRefus } from '@/components/confiance/MotifRefus';
 import { Link } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -262,6 +263,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
                 <MapPin className="w-3 h-3" />
                 {lieuAnnonce([bien.quartier, bien.commune, getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)])}
               </p>
+              <MotifRefus bien={bien} />
               <p className="text-sm font-semibold text-primary">
                 {formaterLoyer(bien.prix_mensuel, bien.devise)}
               </p>

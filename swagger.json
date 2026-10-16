@@ -2819,7 +2819,7 @@
                                 "results": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/BienList"
+                                        "$ref": "#/definitions/BienPortefeuille"
                                     }
                                 }
                             }
@@ -3745,7 +3745,7 @@
                                 "results": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/BienList"
+                                        "$ref": "#/definitions/BienPortefeuille"
                                     }
                                 }
                             }
@@ -3941,7 +3941,7 @@
                                 "results": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/BienList"
+                                        "$ref": "#/definitions/BienPortefeuille"
                                     }
                                 }
                             }
@@ -9468,6 +9468,281 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
+                }
+            }
+        },
+        "BienPortefeuille": {
+            "required": [
+                "titre",
+                "prix_mensuel",
+                "ville",
+                "quartier"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "titre": {
+                    "title": "Titre",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "type_bien": {
+                    "title": "Type de bien",
+                    "type": "string",
+                    "enum": [
+                        "maison",
+                        "appartement",
+                        "studio",
+                        "villa",
+                        "duplex",
+                        "terrain"
+                    ]
+                },
+                "type_bien_display": {
+                    "title": "Type bien display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise": {
+                    "title": "Devise",
+                    "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "CDF"
+                    ]
+                },
+                "devise_display": {
+                    "title": "Devise display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise_symbole": {
+                    "title": "Devise symbole",
+                    "description": "Symbole court à afficher à côté du montant : $ ou FC.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "prix_mensuel": {
+                    "title": "Prix mensuel",
+                    "type": "string",
+                    "format": "decimal"
+                },
+                "garantie_mois": {
+                    "title": "Garantie (en mois de loyer)",
+                    "description": "Trois mois au maximum (loi n° 15/025, article 18).",
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 0
+                },
+                "garantie": {
+                    "title": "Garantie",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "superficie": {
+                    "title": "Superficie (m²)",
+                    "type": "string",
+                    "format": "decimal",
+                    "x-nullable": true
+                },
+                "nombre_chambres": {
+                    "title": "Nombre de chambres",
+                    "type": "integer",
+                    "maximum": 2147483647,
+                    "minimum": 0
+                },
+                "nombre_salles_bain": {
+                    "title": "Nombre de salles de bain",
+                    "type": "integer",
+                    "maximum": 2147483647,
+                    "minimum": 0
+                },
+                "ville": {
+                    "title": "Ville",
+                    "type": "integer"
+                },
+                "ville_nom": {
+                    "title": "Ville nom",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "ville_detail": {
+                    "$ref": "#/definitions/VilleResume"
+                },
+                "commune": {
+                    "title": "Commune",
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "quartier": {
+                    "title": "Quartier",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                },
+                "eau": {
+                    "title": "Eau",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "permanente",
+                        "intermittente",
+                        "forage",
+                        "aucune"
+                    ]
+                },
+                "eau_display": {
+                    "title": "Eau display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "electricite": {
+                    "title": "Électricité",
+                    "type": "string",
+                    "enum": [
+                        "",
+                        "stable",
+                        "delestage",
+                        "autonome",
+                        "aucune"
+                    ]
+                },
+                "electricite_display": {
+                    "title": "Electricite display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_payee_par": {
+                    "title": "Commission payée par",
+                    "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "enum": [
+                        "locataire",
+                        "moitie"
+                    ]
+                },
+                "commission_payee_par_display": {
+                    "title": "Commission payee par display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "commission_locataire": {
+                    "title": "Commission locataire",
+                    "description": "Commission à la charge du locataire si le bail est signé, dans la devise du bien. Nulle pour un bien publié par son propriétaire.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "commission_bailleur": {
+                    "title": "Commission bailleur",
+                    "description": "Commission à la charge du bailleur, dans la devise du bien.",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "frais_visite_applicables": {
+                    "title": "Frais visite applicables",
+                    "description": "Ce que le client paiera pour visiter : jamais plus que le plafond de la ville, et zéro tant que l'identité du commissionnaire n'a pas été vérifiée par l'équipe.",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "expire_le": {
+                    "title": "Expire le",
+                    "description": "Au-delà, l'annonce est masquée tant qu'elle n'est pas reconfirmée.",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "est_expiree": {
+                    "title": "Est expiree",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "mandat_en_cours": {
+                    "title": "Mandat en cours",
+                    "description": "Proposition ou mandat en cours auprès d'un commissionnaire. Renseigné pour le propriétaire et le commissionnaire du bien.",
+                    "type": "object",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "statut_validation": {
+                    "title": "Statut de validation",
+                    "type": "string",
+                    "enum": [
+                        "en_attente",
+                        "valide",
+                        "rejete"
+                    ]
+                },
+                "statut_validation_display": {
+                    "title": "Statut validation display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "statut_location": {
+                    "title": "Statut de location",
+                    "type": "string",
+                    "enum": [
+                        "disponible",
+                        "en_visite",
+                        "loue",
+                        "indisponible"
+                    ]
+                },
+                "statut_location_display": {
+                    "title": "Statut location display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "proprietaire": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "commissionnaire": {
+                    "title": "Commissionnaire",
+                    "description": "Le commissionnaire à qui le bailleur a confié ce bien.",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "commissionnaire_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "agency": {
+                    "title": "Agence",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "agency_detail": {
+                    "$ref": "#/definitions/Agency"
+                },
+                "photo_principale": {
+                    "title": "Photo principale",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "created_at": {
+                    "title": "Date de création",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "motif_rejet": {
+                    "title": "Motif de rejet",
+                    "type": "string"
                 }
             }
         },
