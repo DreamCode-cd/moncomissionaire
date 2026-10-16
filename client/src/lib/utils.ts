@@ -36,6 +36,17 @@ export function getVilleName(ville: string | number | { id?: number; nom?: strin
   return ville.nom || '';
 }
 
+/** Le nom à afficher d'un compte. Les visites et les demandes n'envoient que
+ *  `full_name` (CompteResume) ; le profil envoie aussi prénom et nom. */
+export function nomAffiche(
+  compte: { full_name?: string | null; first_name?: string; last_name?: string; username?: string } | null | undefined,
+  repli = '',
+): string {
+  if (!compte) return repli;
+  const nom = compte.full_name?.trim() || `${compte.first_name ?? ''} ${compte.last_name ?? ''}`.trim();
+  return nom || compte.username || repli;
+}
+
 export function getVilleId(ville: string | { id?: number; nom?: string } | null | undefined): string {
   if (!ville) return '';
   if (typeof ville === 'string') return ville;

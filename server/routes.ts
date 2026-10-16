@@ -1,6 +1,6 @@
 import express, { type Express, type Request, type Response } from "express";
 import type { Server } from "http";
-import { mockData, paginateResults } from "./mock-data";
+import { compteResume, mockData, paginateResults } from "./mock-data";
 
 const DJANGO_API_URL = process.env.DJANGO_API_URL;
 const USE_MOCK_API = !DJANGO_API_URL || DJANGO_API_URL === '';
@@ -455,7 +455,7 @@ export async function registerRoutes(
         const commissionnaire = mockData.users.find(u => u.id === commissionnaireId) || mockData.users[2];
         
         demande.traitee_par = commissionnaireId;
-        demande.traitee_par_detail = commissionnaire;
+        demande.traitee_par_detail = compteResume(commissionnaire);
         
         let chatRoom = null;
         let firstMessage = null;
@@ -483,7 +483,7 @@ export async function registerRoutes(
             chatRoom = newChatRoom;
             
             const bienDetail = demande.bien_detail;
-            const clientName = `${demande.client.first_name} ${demande.client.last_name}`;
+            const clientName = demande.client.full_name;
             const propertyTitle = bienDetail?.titre || 'la propriete';
             const location = bienDetail ? `${bienDetail.quartier}, ${bienDetail.ville}` : 'l\'adresse indiquee';
             const commissionnerName = `${commissionnaire.first_name} ${commissionnaire.last_name}`;
@@ -632,7 +632,7 @@ ${commissionnerName}`;
         const agentUser = mockData.users.find(u => u.id === agent);
         if (agentUser) {
           visite.agent = agent;
-          visite.agent_detail = agentUser;
+          visite.agent_detail = compteResume(agentUser);
           visite.updated_at = new Date().toISOString();
           res.json(visite);
         } else {

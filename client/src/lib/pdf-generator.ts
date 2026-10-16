@@ -7,6 +7,8 @@ import {
 import { jsPDF } from 'jspdf';
 import type { Visite, RapportVisite } from '@shared/schema';
 import { formaterPrix } from '@/lib/prix';
+import { nomAffiche } from '@/lib/utils';
+import { lieuVisite } from '@/lib/visite';
 
 const etatGeneralLabels: Record<string, string> = {
   tres_interessant: 'Très intéressant',
@@ -21,7 +23,6 @@ function safeString(
   value: string | number | null | undefined,
   fallback = 'N/A',
 ): string {
-  // `ville` arrive tantôt comme identifiant numérique, tantôt comme nom.
   return value === null || value === undefined ? fallback : String(value);
 }
 
@@ -85,7 +86,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
       ['Superficie:', `${safeString(bienDetail.superficie, '0')} m²`],
       ['Chambres:', safeNumber(bienDetail.nombre_chambres)],
       ['Salles de bain:', safeNumber(bienDetail.nombre_salles_bain)],
-      ['Adresse:', `${safeString(bienDetail.quartier, '')}, ${safeString(bienDetail.ville, '')}`],
+      ['Adresse:', [lieuVisite(visite).adresse, lieuVisite(visite).secteur].filter(Boolean).join(', ') || 'Non spécifiée'],
     ];
 
     bienInfo.forEach(([label, value]) => {
@@ -111,7 +112,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
     doc.setFont('helvetica', 'bold');
     doc.text('Client:', margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${safeString(client.first_name, '')} ${safeString(client.last_name, '')}`.trim() || 'Non spécifié', margin + 50, y);
+    doc.text(nomAffiche(client, 'Non spécifié'), margin + 50, y);
     y += 6;
   }
 
@@ -119,15 +120,15 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
     doc.setFont('helvetica', 'bold');
     doc.text('Agent:', margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${safeString(visite.agent_detail.first_name, '')} ${safeString(visite.agent_detail.last_name, '')}`.trim() || 'Non spécifié', margin + 50, y);
+    doc.text(nomAffiche(visite.agent_detail, 'Non spécifié'), margin + 50, y);
     y += 6;
   }
 
   if (visite.commissionnaire_detail) {
     doc.setFont('helvetica', 'bold');
-    doc.text('Commissionnaire:', margin, y);
+    doc.text('Suivie par:', margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${safeString(visite.commissionnaire_detail.first_name, '')} ${safeString(visite.commissionnaire_detail.last_name, '')}`.trim() || 'Non spécifié', margin + 50, y);
+    doc.text(nomAffiche(visite.commissionnaire_detail, 'Non spécifié'), margin + 50, y);
     y += 6;
   }
 
@@ -309,9 +310,7 @@ export function generateVisiteSummaryPDF(visites: Visite[]): boolean {
     doc.setFontSize(10);
     doc.text(`Date: ${formaterDateLongue(visite.date_visite)} à ${formaterHeure(visite.heure_visite)}`, margin + 2, y);
     y += 5;
-    const quartier = safeString(visite.demande_detail?.bien_detail?.quartier, '');
-    const ville = safeString(visite.demande_detail?.bien_detail?.ville, '');
-    const lieu = [quartier, ville].filter(Boolean).join(', ') || 'Lieu non spécifié';
+    const lieu = lieuVisite(visite).secteur || 'Lieu non spécifié';
     doc.text(`Lieu: ${lieu}`, margin + 2, y);
     y += 5;
     doc.text(`Statut: ${safeString(visite.statut_display, visite.statut ?? 'Non spécifié')}`, margin + 2, y);
