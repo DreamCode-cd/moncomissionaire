@@ -1,6 +1,7 @@
 import { libelleRole } from '@/lib/roles';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { api, EVENEMENT_SESSION_EXPIREE } from '@/lib/api';
+import { queryClient } from '@/lib/queryClient';
 import { ErreurApi } from '@/lib/erreurs';
 import type { UserProfile, TokenResponse, LoginInput, RegisterInput } from '@shared/schema';
 
@@ -10,7 +11,9 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginInput) => Promise<UserProfile>;
   register: (data: RegisterInput) => Promise<void>;
-  logout: () => void;
+  /** Résout à false si le serveur n'a pas pu être joint : la session est
+   *  effacée de ce navigateur, mais pas fermée côté serveur. */
+  logout: () => Promise<boolean>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
 }
 
@@ -85,9 +88,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await login({ login: data.email, password: data.password });
   };
 
-  const logout = () => {
-    api.clearTokens();
+  const logout = async (): Promise<boolean> => {
+    const revoquee = await api.revoquerSession();
+    // Le cache garde les réponses du compte : messages, visites, profil. Sur
+    // un téléphone prêté, la personne suivante les verrait en revenant en
+    // arrière.
+    queryClient.clear();
     setUser(null);
+    return revoquee;
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {

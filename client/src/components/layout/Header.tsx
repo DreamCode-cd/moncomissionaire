@@ -30,7 +30,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { api, MESSAGE_DECONNEXION_HORS_LIGNE } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { PaginatedResponse, Notification, ChatRoom } from '@shared/schema';
 
@@ -119,13 +119,14 @@ export function Header() {
     return firstName?.[0]?.toUpperCase() || 'U';
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    const revoquee = await logout();
     setLocation('/');
-    toast({
-      title: "Déconnexion réussie",
-      description: "Vous avez été déconnecté avec succès.",
-    });
+    toast(
+      revoquee
+        ? { title: 'Vous êtes déconnecté' }
+        : { title: 'Déconnecté sans réseau', description: MESSAGE_DECONNEXION_HORS_LIGNE },
+    );
   };
 
 
