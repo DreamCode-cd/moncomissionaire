@@ -1825,10 +1825,22 @@
             "post": {
                 "operationId": "auth_password-reset_create",
                 "description": "",
-                "parameters": [],
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DemandeCode"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": ""
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/ReponseMessage"
+                        }
                     }
                 },
                 "tags": [
@@ -1840,11 +1852,24 @@
         "/auth/password-reset/confirm/": {
             "post": {
                 "operationId": "auth_password-reset_confirm_create",
-                "description": "",
-                "parameters": [],
+                "summary": "Change le mot de passe avec le code reçu par e-mail.",
+                "description": "Les erreurs arrivent sous le champ concerné (`email`, `code`,\n`new_password`), comme dans le reste de l'API : l'écran les place sous\nle bon champ au lieu d'une bulle générique.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/NouveauMotDePasse"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": ""
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/ReponseMessage"
+                        }
                     }
                 },
                 "tags": [
@@ -8744,6 +8769,61 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
+                }
+            }
+        },
+        "DemandeCode": {
+            "required": [
+                "email"
+            ],
+            "type": "object",
+            "properties": {
+                "email": {
+                    "title": "Email",
+                    "description": "L'adresse du compte.",
+                    "type": "string",
+                    "format": "email",
+                    "minLength": 1
+                }
+            }
+        },
+        "ReponseMessage": {
+            "required": [
+                "message"
+            ],
+            "type": "object",
+            "properties": {
+                "message": {
+                    "title": "Message",
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "NouveauMotDePasse": {
+            "required": [
+                "email",
+                "code",
+                "new_password"
+            ],
+            "type": "object",
+            "properties": {
+                "email": {
+                    "title": "Email",
+                    "type": "string",
+                    "format": "email",
+                    "minLength": 1
+                },
+                "code": {
+                    "title": "Code",
+                    "description": "Les six chiffres reçus par e-mail.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "new_password": {
+                    "title": "New password",
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         },
