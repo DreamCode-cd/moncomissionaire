@@ -18,7 +18,9 @@ export function auteurAnnonce(bien: Pick<BienList, 'proprietaire' | 'commissionn
   return { profil: bien.proprietaire, libelle: 'Propriétaire' };
 }
 
-export function initiale(profil?: ProfilPublic | null): string {
+/** L'initiale de l'avatar. Sert aussi pour les comptes d'une visite ou d'une
+ *  demande (CompteResume), qui ont eux aussi `full_name`. */
+export function initiale(profil?: Pick<ProfilPublic, 'full_name'> | null): string {
   return profil?.full_name?.[0]?.toUpperCase() || '?';
 }
 

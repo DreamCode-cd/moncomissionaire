@@ -60,7 +60,7 @@ import {
 } from '@/components/commission/commun';
 import { lieuAnnonce } from '@/lib/annonce';
 import { formaterDateCourte } from '@/lib/dates';
-import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, nomAffiche } from '@/lib/utils';
 import { messageErreur } from '@/lib/erreurs';
 import type {
   Bailleur,
@@ -442,7 +442,7 @@ function OngletDemandes({
               <div className="min-w-0">
                 <p className="font-medium leading-tight">{d.bien_detail?.titre}</p>
                 <p className="text-xs text-muted-foreground">
-                  {d.client?.full_name || `${d.client?.first_name ?? ''} ${d.client?.last_name ?? ''}`.trim()}
+                  {nomAffiche(d.client)}
                   {' · souhaitée le '}
                   {formaterDateCourte(d.date_souhaitee)} à {d.heure_souhaitee?.slice(0, 5)}
                 </p>

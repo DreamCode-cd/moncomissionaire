@@ -46,7 +46,10 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { Visite, RapportVisite, RapportVisiteCreate, PaginatedResponse, BienDetail } from '@shared/schema';
 import { generateVisiteReportPDF, generateVisiteSummaryPDF } from '@/lib/pdf-generator';
-import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { getDjangoImageUrl, nomAffiche } from '@/lib/utils';
+import { initiale } from '@/lib/annonce';
+import { lieuVisite } from '@/lib/visite';
+import { libelleRole } from '@/lib/roles';
 import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
 import { formaterPrix } from '@/lib/prix';
 
@@ -264,6 +267,7 @@ export default function AgentDashboard() {
   const renderVisiteCard = (visite: Visite) => {
     const bien = visite.demande_detail?.bien_detail;
     const client = visite.demande_detail?.client;
+    const lieu = lieuVisite(visite);
     const visitHasReport = hasReport(visite.id);
 
     return (
@@ -303,24 +307,28 @@ export default function AgentDashboard() {
                 {bien?.titre || 'Bien non spécifié'}
               </h3>
               
-              <div className="flex items-center text-sm text-muted-foreground mb-2">
-                <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-                <span className="truncate">
-                  {bien?.quartier}, {bien?.ville}
+              <div className="flex items-start text-sm text-muted-foreground mb-2">
+                <MapPin className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" />
+                <span data-testid={`visite-lieu-${visite.id}`}>
+                  {lieu.adresse && <span className="font-medium text-foreground">{lieu.adresse}, </span>}
+                  {lieu.secteur}
                 </span>
               </div>
 
               {client && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Avatar className="w-6 h-6">
-                    <AvatarImage src={client.photo} />
-                    <AvatarFallback className="text-xs">
-                      {client.first_name?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
+                    <AvatarImage src={getDjangoImageUrl(client.avatar) || undefined} />
+                    <AvatarFallback className="text-xs">{initiale(client)}</AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-muted-foreground">
-                    Client: {client.first_name} {client.last_name}
+                  <span className="text-sm text-muted-foreground" data-testid={`visite-client-${visite.id}`}>
+                    Client : {nomAffiche(client, 'non précisé')}
                   </span>
+                  {client.phone && (
+                    <a href={`tel:${client.phone}`} className="text-sm text-primary underline-offset-2 hover:underline">
+                      {client.phone}
+                    </a>
+                  )}
                 </div>
               )}
 
@@ -691,9 +699,13 @@ export default function AgentDashboard() {
                 ...(bien?.photo_principale ? [bien.photo_principale] : []),
                 ...(bien?.photos || [])
               ];
-              const lat = bien?.latitude ? parseFloat(bien.latitude) : null;
-              const lng = bien?.longitude ? parseFloat(bien.longitude) : null;
-              const hasCoordinates = lat && lng && !isNaN(lat) && !isNaN(lng);
+              // L'adresse et la position ne sont pas dans bien_detail (version
+              // publique de l'annonce) : elles arrivent dans visite.localisation.
+              const lieu = lieuVisite(selectedVisite);
+              const lat = lieu.latitude;
+              const lng = lieu.longitude;
+              const hasCoordinates = lat !== null && lng !== null;
+              const client = selectedVisite.demande_detail?.client;
 
               return (
                 <div className="flex-1 overflow-y-auto min-h-0 -mx-4 px-4 sm:-mx-6 sm:px-6">
@@ -867,25 +879,17 @@ export default function AgentDashboard() {
                       <Card>
                         <CardContent className="p-4 space-y-4">
                           <div className="space-y-2">
-                            {bien?.adresse && (
-                              <div className="flex items-start gap-2">
-                                <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                                <div>
-                                  <p className="font-medium">{bien.adresse}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {bien.quartier}, {bien.commune && `${bien.commune}, `}{getVilleName(bien.ville, bien.ville_nom, bien.ville_detail)}
-                                  </p>
-                                </div>
+                            <div className="flex items-start gap-2" data-testid="detail-lieu">
+                              <MapPin className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                              <div>
+                                {lieu.adresse ? (
+                                  <p className="font-medium">{lieu.adresse}</p>
+                                ) : (
+                                  <p className="font-medium text-muted-foreground">Adresse exacte non communiquée</p>
+                                )}
+                                <p className="text-sm text-muted-foreground">{lieu.secteur}</p>
                               </div>
-                            )}
-                            {!bien?.adresse && (
-                              <div className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-muted-foreground" />
-                                <p className="text-muted-foreground">
-                                  {bien?.quartier}, {bien?.commune && `${bien?.commune}, `}{bien?.ville}
-                                </p>
-                              </div>
-                            )}
+                            </div>
                           </div>
 
                           {hasCoordinates && (
@@ -904,7 +908,7 @@ export default function AgentDashboard() {
                                   <Popup>
                                     <div className="text-center">
                                       <p className="font-semibold">{bien?.titre}</p>
-                                      <p className="text-sm">{bien?.adresse || `${bien?.quartier}, ${bien?.ville}`}</p>
+                                      <p className="text-sm">{lieu.adresse || lieu.secteur}</p>
                                     </div>
                                   </Popup>
                                 </Marker>
@@ -973,17 +977,19 @@ export default function AgentDashboard() {
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             <Avatar className="w-12 h-12">
-                              <AvatarImage src={selectedVisite.demande_detail?.client?.photo} />
-                              <AvatarFallback>
-                                {selectedVisite.demande_detail?.client?.first_name?.[0]?.toUpperCase() || 'U'}
-                              </AvatarFallback>
+                              <AvatarImage src={getDjangoImageUrl(client?.avatar) || undefined} />
+                              <AvatarFallback>{initiale(client)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                              <p className="font-medium">
-                                {selectedVisite.demande_detail?.client?.first_name}{' '}
-                                {selectedVisite.demande_detail?.client?.last_name}
-                              </p>
+                              <p className="font-medium" data-testid="detail-client">{nomAffiche(client, 'Non précisé')}</p>
                             </div>
+                            {client?.phone && (
+                              <Button variant="outline" size="sm" asChild>
+                                <a href={`tel:${client.phone}`}>
+                                  <Phone className="w-4 h-4 mr-1" /> Appeler
+                                </a>
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -992,17 +998,24 @@ export default function AgentDashboard() {
                     {/* Commissionnaire Info */}
                     {selectedVisite.commissionnaire_detail && (
                       <div>
-                        <h4 className="font-semibold mb-3">Commissionnaire</h4>
-                        <div className="flex items-center gap-3">
+                        {/* Celui qui a fixé la visite : un commissionnaire, ou un
+                            membre de l'équipe pour un bien de propriétaire. */}
+                        <h4 className="font-semibold mb-3">Visite fixée par</h4>
+                        <div className="flex items-center gap-3 flex-wrap">
                           <Avatar className="w-8 h-8">
-                            <AvatarFallback className="text-xs">
-                              {selectedVisite.commissionnaire_detail.first_name?.[0]?.toUpperCase() || 'C'}
-                            </AvatarFallback>
+                            <AvatarFallback className="text-xs">{initiale(selectedVisite.commissionnaire_detail)}</AvatarFallback>
                           </Avatar>
-                          <span className="text-sm">
-                            {selectedVisite.commissionnaire_detail.first_name}{' '}
-                            {selectedVisite.commissionnaire_detail.last_name}
+                          <span className="text-sm" data-testid="detail-gestionnaire">
+                            {nomAffiche(selectedVisite.commissionnaire_detail)}
+                            {selectedVisite.commissionnaire_detail.user_type && (
+                              <span className="text-muted-foreground"> · {libelleRole(selectedVisite.commissionnaire_detail.user_type)}</span>
+                            )}
                           </span>
+                          {selectedVisite.commissionnaire_detail.phone && (
+                            <a href={`tel:${selectedVisite.commissionnaire_detail.phone}`} className="text-sm text-primary underline-offset-2 hover:underline">
+                              {selectedVisite.commissionnaire_detail.phone}
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}

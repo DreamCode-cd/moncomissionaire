@@ -39,6 +39,36 @@ export interface UserList {
   avatar?: string | null;
 }
 
+/** Un compte tel que l'API le décrit dans une visite ou une demande
+ *  (`UserList` dans swagger.json). Il n'a ni `first_name` ni `last_name` :
+ *  le nom arrive entier dans `full_name`. Les lire affichait des noms vides
+ *  et « U » à la place de l'initiale. Passer par `nomAffiche` et `initiale`
+ *  (lib/utils.ts). */
+export interface CompteResume {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  phone?: string | null;
+  avatar?: string | null;
+  user_type?: UserRole;
+  user_type_display?: string;
+  is_available?: boolean;
+  is_active?: boolean;
+}
+
+/** Où se trouve le bien d'une visite (`Localisation` dans swagger.json).
+ *  L'API ne l'envoie qu'à ceux qui doivent s'y rendre : l'agent affecté et
+ *  le gestionnaire de la demande. La fiche publique s'arrête au quartier. */
+export interface Localisation {
+  adresse: string;
+  quartier: string;
+  commune: string;
+  ville: string;
+  latitude: string | null;
+  longitude: string | null;
+}
+
 /** Ce que l'API publie d'un compte : ni téléphone ni e-mail. La mise en
  *  relation passe par une demande de visite, jamais par un appel direct. */
 export interface ProfilPublic {
@@ -407,7 +437,7 @@ export type StatutDemande = 'en_attente' | 'acceptee' | 'rejetee' | 'annulee';
 
 export interface DemandeVisite {
   id: number;
-  client: UserList;
+  client: CompteResume;
   bien: number;
   bien_detail: BienList;
   date_souhaitee: string;
@@ -416,7 +446,7 @@ export interface DemandeVisite {
   statut: StatutDemande;
   statut_display: string;
   traitee_par?: number;
-  traitee_par_detail?: UserList;
+  traitee_par_detail?: CompteResume | null;
   motif_rejet?: string;
   /** Client amené par un confrère : c'est le confrère qui est `client`. */
   prospect_nom?: string;
@@ -526,7 +556,7 @@ export interface Commission {
 
 export interface VisiteMini {
   id: number;
-  agent_detail?: UserList | null;
+  agent_detail?: CompteResume | null;
   date_visite: string;
   heure_visite: string;
   statut: StatutVisite;
@@ -550,10 +580,12 @@ export interface Visite {
   id: number;
   demande: number;
   demande_detail?: DemandeVisite;
+  /** Adresse exacte et position, pour l'agent et le gestionnaire. */
+  localisation?: Localisation | null;
   agent?: number;
-  agent_detail?: UserList;
+  agent_detail?: CompteResume | null;
   commissionnaire?: number;
-  commissionnaire_detail?: UserList;
+  commissionnaire_detail?: CompteResume | null;
   date_visite: string;
   heure_visite: string;
   statut: StatutVisite;
