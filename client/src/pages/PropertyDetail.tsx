@@ -666,21 +666,21 @@ export default function PropertyDetail() {
               <CardContent className="p-4 flex flex-col items-center">
                 <Bed className="w-6 h-6 mb-2 text-muted-foreground" />
                 <span className="text-xl font-bold">{property.nombre_chambres}</span>
-                <span className="text-xs text-muted-foreground">Chambres</span>
+                <span className="text-sm text-muted-foreground">Chambres</span>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 flex flex-col items-center">
                 <Bath className="w-6 h-6 mb-2 text-muted-foreground" />
                 <span className="text-xl font-bold">{property.nombre_salles_bain}</span>
-                <span className="text-xs text-muted-foreground">Salles de bain</span>
+                <span className="text-sm text-muted-foreground">Salles de bain</span>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 flex flex-col items-center">
                 <Maximize className="w-6 h-6 mb-2 text-muted-foreground" />
                 <span className="text-xl font-bold">{surface ?? '—'}</span>
-                <span className="text-xs text-muted-foreground">{surface ? 'Surface' : 'Surface non précisée'}</span>
+                <span className="text-sm text-muted-foreground">{surface ? 'Surface' : 'Surface non précisée'}</span>
               </CardContent>
             </Card>
           </div>
@@ -1073,14 +1073,14 @@ export default function PropertyDetail() {
               </DialogHeader>
               <div className="rounded-md bg-muted p-3">
                 <CoutsLocation bien={property} compact />
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
                 </p>
               </div>
               <div className="space-y-4 py-4">
                 <div>
                   <Label htmlFor="visit-date">Date souhaitée</Label>
-                  <p className="text-xs text-muted-foreground mb-1">Sélectionnez une date (jj/mm/aaaa)</p>
+                  <p className="text-sm text-muted-foreground mb-1">Sélectionnez une date (jj/mm/aaaa)</p>
                   <Input
                     id="visit-date"
                     type="date"
@@ -1092,7 +1092,7 @@ export default function PropertyDetail() {
                 </div>
                 <div>
                   <Label htmlFor="visit-time">Heure souhaitée</Label>
-                  <p className="text-xs text-muted-foreground mb-1">Sélectionnez une heure (hh:mm)</p>
+                  <p className="text-sm text-muted-foreground mb-1">Sélectionnez une heure (hh:mm)</p>
                   <Input
                     id="visit-time"
                     type="time"

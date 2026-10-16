@@ -277,7 +277,7 @@ export default function ProprietaireDashboard() {
                             value={property.statut_location}
                             onValueChange={(value) => updateStatusMutation.mutate({ id: property.id, status: value })}
                           >
-                            <SelectTrigger className="h-7 text-xs w-[110px]" data-testid={`select-status-${property.id}`}>
+                            <SelectTrigger className="w-[130px]" data-testid={`select-status-${property.id}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -292,7 +292,7 @@ export default function ProprietaireDashboard() {
                       </div>
                       
                       <Link href={`/property/${property.id}/edit`}>
-                        <Button variant="outline" size="sm" className="w-full h-8 text-xs">
+                        <Button variant="outline" size="sm" className="w-full">
                           <Pencil className="w-3 h-3 mr-1" />
                           Modifier
                         </Button>

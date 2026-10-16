@@ -52,7 +52,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                           libelle={property.statut_location_display}
                           compact
                         />
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 leading-none">
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 leading-none">
                         {property.type_bien_display}
                       </Badge>
                     </div>
@@ -85,7 +85,7 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-sm">
                     {formaterPrix(property.prix_mensuel, property.devise)}
-                    <span className="text-[10px] font-normal text-muted-foreground">/mois</span>
+                    <span className="text-xs font-normal text-muted-foreground">/mois</span>
                   </span>
                   {rating && (
                     <span className="flex items-center gap-0.5 text-xs">
@@ -128,13 +128,13 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
               libelle={property.statut_location_display}
               compact
             />
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 bg-background/80 backdrop-blur-sm">
+            <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-background/80 backdrop-blur-sm">
               {property.type_bien_display}
             </Badge>
           </div>
         </div>
         <CardContent className="p-2.5">
-          <h3 className="font-semibold text-xs line-clamp-1 mb-1">{property.titre}</h3>
+          <h3 className="font-semibold text-sm line-clamp-1 mb-1">{property.titre}</h3>
           <div className="flex items-center text-muted-foreground text-xs mb-2">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
             <span className="line-clamp-1">{lieu}</span>

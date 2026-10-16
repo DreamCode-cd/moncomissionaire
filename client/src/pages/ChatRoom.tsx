@@ -383,7 +383,7 @@ export default function ChatRoom() {
                           {message.content}
                         </p>
                         <p className={cn(
-                          'text-[10px] mt-1 flex items-center gap-1',
+                          'text-xs mt-1 flex items-center gap-1',
                           isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
                         )}>
                           {formaterHeure(message.created_at)}

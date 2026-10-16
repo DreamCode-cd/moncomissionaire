@@ -49,7 +49,7 @@ export function BadgeStatut({
       variant="outline"
       className={cn(
         'border-transparent font-medium',
-        compact ? 'px-1.5 py-0.5 text-[10px] leading-none' : '',
+        compact ? 'px-1.5 py-0.5 text-xs leading-none' : '',
         classesDuTon(statut.ton),
         className,
       )}

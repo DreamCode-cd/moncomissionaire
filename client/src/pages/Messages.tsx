@@ -178,7 +178,7 @@ export default function Messages() {
                                 {getParticipantName(otherParticipant)}
                               </h3>
                               {otherParticipant?.role_display && (
-                                <Badge variant="secondary" className="text-[10px] flex-shrink-0">
+                                <Badge variant="secondary" className="text-xs flex-shrink-0">
                                   {otherParticipant.role_display}
                                 </Badge>
                               )}
