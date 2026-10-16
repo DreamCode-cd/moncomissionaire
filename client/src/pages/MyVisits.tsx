@@ -21,7 +21,7 @@ import { DialogueAvis } from '@/components/confiance/DialogueAvis';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getDjangoImageUrl } from '@/lib/utils';
+import { getDjangoImageUrl, nomAffiche } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, RapportVisite, Visite } from '@shared/schema';
 
 
@@ -146,16 +146,20 @@ export default function MyVisits() {
             {demande.visite_detail?.agent_detail && (
               <div className="flex items-center gap-2 mt-3 p-2 bg-muted/50 rounded-lg">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={demande.visite_detail.agent_detail.photo} />
+                  <AvatarImage src={getDjangoImageUrl(demande.visite_detail.agent_detail.avatar) || undefined} />
                   <AvatarFallback>
                     <User className="w-4 h-4" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-sm">
-                  <p className="font-medium">
-                    {demande.visite_detail.agent_detail.first_name} {demande.visite_detail.agent_detail.last_name}
+                  <p className="font-medium">{nomAffiche(demande.visite_detail.agent_detail)}</p>
+                  {/* Un commissionnaire indépendant fait visiter lui-même : c'est
+                      lui qui figure comme accompagnateur de la visite. */}
+                  <p className="text-muted-foreground">
+                    {demande.visite_detail.agent_detail.user_type === 'agent'
+                      ? 'Agent VillaGo qui vous accompagne'
+                      : 'Vous accompagne pendant la visite'}
                   </p>
-                  <p className="text-muted-foreground">Agent assigné</p>
                 </div>
               </div>
             )}

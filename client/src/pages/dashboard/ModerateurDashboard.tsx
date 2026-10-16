@@ -47,7 +47,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formaterLoyer } from '@/lib/prix';
 import { auteurAnnonce, initiale } from '@/lib/annonce';
 import { api } from '@/lib/api';
-import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, nomAffiche } from '@/lib/utils';
+import { lieuVisite } from '@/lib/visite';
 import { queryClient } from '@/lib/queryClient';
 import type { 
   BienList, BienDetail, DemandeVisite, Visite, RapportVisite, UserList, UserProfile, PaginatedResponse 
@@ -785,19 +786,14 @@ export default function ModerateurDashboard() {
                       <CardContent className="p-4">
                         <div className="flex flex-col md:flex-row gap-4">
                           <Avatar className="w-12 h-12">
-                            <AvatarImage src={demande.client.photo} />
-                            <AvatarFallback>
-                              {demande.client.first_name?.[0]?.toUpperCase() || 'U'}
-                            </AvatarFallback>
+                            <AvatarImage src={getDjangoImageUrl(demande.client.avatar) || undefined} />
+                            <AvatarFallback>{initiale(demande.client)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div>
                                 <h4 className="font-medium">
-                                  {demande.client.full_name || 
-                                   (demande.client.first_name && demande.client.last_name 
-                                     ? `${demande.client.first_name} ${demande.client.last_name}`
-                                     : demande.client.username)}
+                                  {nomAffiche(demande.client)}
                                 </h4>
                                 <p className="text-sm text-muted-foreground">
                                   {demande.client.email}
@@ -815,7 +811,7 @@ export default function ModerateurDashboard() {
                               </p>
                               <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
-                                {demande.bien_detail?.quartier}, {demande.bien_detail?.ville}
+                                {[demande.bien_detail?.quartier, getVilleName(demande.bien_detail?.ville, demande.bien_detail?.ville_nom, demande.bien_detail?.ville_detail)].filter(Boolean).join(', ')}
                               </p>
                             </div>
                             <div className="flex flex-wrap gap-4 text-sm">
@@ -938,25 +934,19 @@ export default function ModerateurDashboard() {
                           </div>
                           <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            {visite.demande_detail?.bien_detail?.quartier}, {visite.demande_detail?.bien_detail?.ville}
+                            {[lieuVisite(visite).adresse, lieuVisite(visite).secteur].filter(Boolean).join(', ')}
                           </p>
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <p className="text-muted-foreground mb-1">Client</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-6 h-6">
-                                  <AvatarImage src={visite.demande_detail?.client?.photo} />
-                                  <AvatarFallback className="text-xs">
-                                    {visite.demande_detail?.client?.full_name?.[0]?.toUpperCase() || 
-                                     visite.demande_detail?.client?.first_name?.[0]?.toUpperCase() || 'U'}
-                                  </AvatarFallback>
+                                  <AvatarImage src={getDjangoImageUrl(visite.demande_detail?.client?.avatar) || undefined} />
+                                  <AvatarFallback className="text-xs">{initiale(visite.demande_detail?.client)}</AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0">
                                   <p className="font-medium line-clamp-1">
-                                    {visite.demande_detail?.client?.full_name || 
-                                     (visite.demande_detail?.client?.first_name && visite.demande_detail?.client?.last_name 
-                                       ? `${visite.demande_detail.client.first_name} ${visite.demande_detail.client.last_name}`
-                                       : visite.demande_detail?.client?.username || 'Client inconnu')}
+                                    {nomAffiche(visite.demande_detail?.client, 'Client inconnu')}
                                   </p>
                                 </div>
                               </div>
@@ -966,18 +956,12 @@ export default function ModerateurDashboard() {
                               {visite.agent_detail ? (
                                 <div className="flex items-center gap-2">
                                   <Avatar className="w-6 h-6">
-                                    <AvatarImage src={visite.agent_detail.photo} />
-                                    <AvatarFallback className="text-xs">
-                                      {visite.agent_detail.full_name?.[0]?.toUpperCase() || 
-                                       visite.agent_detail.first_name?.[0]?.toUpperCase() || 'A'}
-                                    </AvatarFallback>
+                                    <AvatarImage src={getDjangoImageUrl(visite.agent_detail.avatar) || undefined} />
+                                    <AvatarFallback className="text-xs">{initiale(visite.agent_detail)}</AvatarFallback>
                                   </Avatar>
                                   <div className="min-w-0">
                                     <p className="font-medium line-clamp-1">
-                                      {visite.agent_detail.full_name || 
-                                       (visite.agent_detail.first_name && visite.agent_detail.last_name 
-                                         ? `${visite.agent_detail.first_name} ${visite.agent_detail.last_name}`
-                                         : visite.agent_detail.username || 'Agent inconnu')}
+                                      {nomAffiche(visite.agent_detail, 'Agent inconnu')}
                                     </p>
                                   </div>
                                 </div>
@@ -1272,7 +1256,7 @@ export default function ModerateurDashboard() {
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="font-medium">{selectedDemande.bien_detail?.titre}</p>
                   <p className="text-sm text-muted-foreground">
-                    Demande de {selectedDemande.client.first_name} {selectedDemande.client.last_name}
+                    Demande de {nomAffiche(selectedDemande.client)}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Pour le {formaterDateCourte(selectedDemande.date_souhaitee)} a {selectedDemande.heure_souhaitee}
@@ -1329,7 +1313,7 @@ export default function ModerateurDashboard() {
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="font-medium">{selectedDemandeForVisite.bien_detail?.titre}</p>
                   <p className="text-sm text-muted-foreground">
-                    Client: {selectedDemandeForVisite.client.first_name} {selectedDemandeForVisite.client.last_name}
+                    Client : {nomAffiche(selectedDemandeForVisite.client)}
                   </p>
                 </div>
               )}
@@ -1415,7 +1399,7 @@ export default function ModerateurDashboard() {
                   </p>
                   {selectedVisite.agent_detail && (
                     <p className="text-sm text-muted-foreground">
-                      Agent actuel: {selectedVisite.agent_detail.first_name} {selectedVisite.agent_detail.last_name}
+                      Agent actuel : {nomAffiche(selectedVisite.agent_detail)}
                     </p>
                   )}
                 </div>
@@ -1657,7 +1641,7 @@ export default function ModerateurDashboard() {
                 <Label htmlFor="new-agent-username">Nom d'utilisateur</Label>
                 <Input
                   id="new-agent-username"
-                  placeholder="nom.utilisateur"
+                 
                   value={newAgentUsername}
                   onChange={(e) => setNewAgentUsername(e.target.value)}
                   data-testid="input-new-agent-username"
@@ -1668,7 +1652,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="new-agent-email"
                   type="email"
-                  placeholder="agent@exemple.com"
+                 
                   value={newAgentEmail}
                   onChange={(e) => setNewAgentEmail(e.target.value)}
                   data-testid="input-new-agent-email"
@@ -1679,7 +1663,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="new-agent-phone"
                   type="tel"
-                  placeholder="+225 00 00 00 00"
+                  placeholder="+243 …"
                   value={newAgentPhone}
                   onChange={(e) => setNewAgentPhone(e.target.value)}
                   data-testid="input-new-agent-phone"
@@ -1787,7 +1771,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="edit-agent-email"
                   type="email"
-                  placeholder="agent@exemple.com"
+                 
                   value={editAgentEmail}
                   onChange={(e) => setEditAgentEmail(e.target.value)}
                   data-testid="input-edit-agent-email"
@@ -1798,7 +1782,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="edit-agent-phone"
                   type="tel"
-                  placeholder="+225 00 00 00 00"
+                  placeholder="+243 …"
                   value={editAgentPhone}
                   onChange={(e) => setEditAgentPhone(e.target.value)}
                   data-testid="input-edit-agent-phone"

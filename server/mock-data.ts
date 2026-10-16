@@ -10,6 +10,7 @@ import type {
   RapportVisite,
   PaginatedResponse,
   ProfilPublic,
+  CompteResume,
 } from '@shared/schema';
 
 const mockUsers: UserProfile[] = [
@@ -85,6 +86,23 @@ function profilPublic(u: UserProfile): ProfilPublic {
     user_type: u.role,
     user_type_display: u.role_display,
     identite_verifiee: false,
+  };
+}
+
+/** Un compte sous la forme où l'API le met dans une visite ou une demande
+ *  (`UserList` dans swagger.json) : nom entier, sans prénom ni nom séparés. */
+export function compteResume(u: UserProfile): CompteResume {
+  return {
+    id: u.id,
+    username: u.username,
+    email: u.email,
+    full_name: `${u.first_name} ${u.last_name}`.trim(),
+    phone: u.phone,
+    avatar: u.avatar ?? null,
+    user_type: u.role,
+    user_type_display: u.role_display,
+    is_available: u.is_available,
+    is_active: u.is_active,
   };
 }
 
@@ -334,7 +352,7 @@ const mockBiens: BienDetail[] = [
 const mockDemandesVisite: DemandeVisite[] = [
   {
     id: 1,
-    client: mockUsers[0],
+    client: compteResume(mockUsers[0]),
     bien: 1,
     bien_detail: mockBiens[0] as BienList,
     date_souhaitee: '2024-12-10',
@@ -343,12 +361,12 @@ const mockDemandesVisite: DemandeVisite[] = [
     statut: 'acceptee',
     statut_display: 'Acceptée',
     traitee_par: 3,
-    traitee_par_detail: mockUsers[2],
+    traitee_par_detail: compteResume(mockUsers[2]),
     created_at: '2024-12-01T14:00:00Z'
   },
   {
     id: 2,
-    client: mockUsers[0],
+    client: compteResume(mockUsers[0]),
     bien: 2,
     bien_detail: mockBiens[1] as BienList,
     date_souhaitee: '2024-12-12',
@@ -366,9 +384,9 @@ const mockVisites: Visite[] = [
     demande: 1,
     demande_detail: mockDemandesVisite[0],
     agent: 4,
-    agent_detail: mockUsers[3],
+    agent_detail: compteResume(mockUsers[3]),
     commissionnaire: 3,
-    commissionnaire_detail: mockUsers[2],
+    commissionnaire_detail: compteResume(mockUsers[2]),
     date_visite: '2024-12-10',
     heure_visite: '10:00',
     statut: 'planifiee',
@@ -381,9 +399,9 @@ const mockVisites: Visite[] = [
     demande: 1,
     demande_detail: mockDemandesVisite[0],
     agent: 4,
-    agent_detail: mockUsers[3],
+    agent_detail: compteResume(mockUsers[3]),
     commissionnaire: 3,
-    commissionnaire_detail: mockUsers[2],
+    commissionnaire_detail: compteResume(mockUsers[2]),
     date_visite: '2024-11-28',
     heure_visite: '14:00',
     statut: 'terminee',
@@ -396,9 +414,9 @@ const mockVisites: Visite[] = [
     demande: 1,
     demande_detail: mockDemandesVisite[0],
     agent: 4,
-    agent_detail: mockUsers[3],
+    agent_detail: compteResume(mockUsers[3]),
     commissionnaire: 3,
-    commissionnaire_detail: mockUsers[2],
+    commissionnaire_detail: compteResume(mockUsers[2]),
     date_visite: '2024-11-20',
     heure_visite: '10:30',
     statut: 'terminee',
