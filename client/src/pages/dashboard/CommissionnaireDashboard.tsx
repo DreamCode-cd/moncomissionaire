@@ -441,7 +441,7 @@ function OngletDemandes({
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-medium leading-tight">{d.bien_detail?.titre}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {nomAffiche(d.client)}
                   {' · souhaitée le '}
                   {formaterDateCourte(d.date_souhaitee)} à {d.heure_souhaitee?.slice(0, 5)}
