@@ -16,6 +16,10 @@ interface RequestOptions {
   isFormData?: boolean;
 }
 
+/** Ce que voit l'utilisateur qui se déconnecte sans réseau. */
+export const MESSAGE_DECONNEXION_HORS_LIGNE =
+  "Déconnecté de cet appareil. Sans réseau, la session n’a pas pu être fermée sur le serveur : elle expirera d’elle-même dans sept jours au plus.";
+
 class ApiClient {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -48,6 +52,49 @@ class ApiClient {
     this.refreshToken = null;
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+  }
+
+  /** Ferme la session sur le serveur, puis l'efface de ce navigateur.
+   *
+   *  Effacer seulement les jetons locaux laissait le jeton de
+   *  rafraîchissement valable sept jours : copié depuis un téléphone prêté,
+   *  il rouvrait la session. Le serveur doit le révoquer.
+   *
+   *  Pourquoi pas `this.post` : si le jeton d'accès a expiré, la requête est
+   *  rejouée après un rafraîchissement, qui remplace le jeton de
+   *  rafraîchissement. Le corps rejoué porterait l'ancien, déjà invalidé, et
+   *  le nouveau resterait actif. Ici, le corps est refait à chaque envoi.
+   *
+   *  Renvoie false si le serveur n'a pas pu être joint : la session est
+   *  effacée ici quand même, et le jeton expirera de lui-même. */
+  async revoquerSession(): Promise<boolean> {
+    if (!this.refreshToken) {
+      this.clearTokens();
+      return true;
+    }
+    const fermer = () =>
+      this.envoyer(`${API_URL}/api/v1/auth/logout/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}),
+        },
+        body: JSON.stringify({ refresh: this.refreshToken }),
+      });
+    try {
+      let reponse = await fermer();
+      if (reponse.status === 401) {
+        // Jeton d'accès expiré. Si le rafraîchissement échoue, le jeton de
+        // rafraîchissement ne vaut déjà plus rien : rien à révoquer.
+        if (!(await this.refreshAccessToken())) return true;
+        reponse = await fermer();
+      }
+      return reponse.ok;
+    } catch {
+      return false;
+    } finally {
+      this.clearTokens();
+    }
   }
 
   getAccessToken() {

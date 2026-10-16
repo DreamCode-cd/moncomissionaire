@@ -29,6 +29,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { MESSAGE_DECONNEXION_HORS_LIGNE } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
@@ -129,9 +130,14 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    const revoquee = await logout();
     setLocation('/');
+    toast(
+      revoquee
+        ? { title: 'Vous êtes déconnecté' }
+        : { title: 'Déconnecté sans réseau', description: MESSAGE_DECONNEXION_HORS_LIGNE },
+    );
   };
 
   const getInitials = () => {
