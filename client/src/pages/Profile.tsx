@@ -1,7 +1,7 @@
 import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, User, SquarePen, Eye, EyeOff, FileText, CircleCheck } from 'lucide-react';
+import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, SquarePen, Eye, EyeOff, FileText, CircleCheck } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -191,7 +191,6 @@ export default function Profile() {
                   <h1 className="text-xl font-bold" data-testid="text-user-name">
                     {user.first_name} {user.last_name}
                   </h1>
-                  <p className="text-muted-foreground text-sm">@{user.username}</p>
                   <Badge variant="secondary" className="mt-2">
                     <Shield className="w-3 h-3 mr-1" />
                     {getRoleLabel(user.role)}
@@ -400,14 +399,6 @@ export default function Profile() {
             <CardDescription>Vos informations personnelles et de contact</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Nom d'utilisateur</p>
-                <p className="font-medium" data-testid="text-user-username">@{user.username}</p>
-              </div>
-            </div>
-            <Separator />
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-muted-foreground" />
               <div>

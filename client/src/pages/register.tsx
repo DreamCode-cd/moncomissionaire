@@ -57,7 +57,6 @@ const CHAMPS_DU_FORMULAIRE: (keyof RegisterInput)[] = [
   'last_name',
   'phone',
   'email',
-  'username',
   'password',
   'password2',
   'terms_accepted',
@@ -91,7 +90,6 @@ export default function Register() {
       last_name: '',
       phone: '',
       email: '',
-      username: '',
       password: '',
       password2: '',
       terms_accepted: false,
@@ -172,7 +170,7 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>Prénom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Grâce" autoComplete="given-name" {...field} data-testid="input-firstname" />
+                          <Input autoComplete="given-name" {...field} data-testid="input-firstname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -185,7 +183,7 @@ export default function Register() {
                       <FormItem>
                         <FormLabel>Nom</FormLabel>
                         <FormControl>
-                          <Input placeholder="Mbuyi" autoComplete="family-name" {...field} data-testid="input-lastname" />
+                          <Input autoComplete="family-name" {...field} data-testid="input-lastname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -204,12 +202,14 @@ export default function Register() {
                           type="tel"
                           inputMode="tel"
                           autoComplete="tel"
-                          placeholder="+243 99 123 4567"
                           {...field}
                           data-testid="input-phone"
                         />
                       </FormControl>
                       <FormDescription>
+                        {/* Le format en aide, pas dans le champ : un faux numéro
+                            dans le champ se lisait comme déjà rempli. */}
+                        {'+243 suivi de 9 chiffres. '}
                         {role === 'commissionnaire'
                           ? 'C’est par ce numéro que bailleurs et clients vous joindront.'
                           : role === 'client'
@@ -232,32 +232,12 @@ export default function Register() {
                           type="email"
                           inputMode="email"
                           autoComplete="email"
-                          placeholder="grace.mbuyi@exemple.cd"
+                          autoCapitalize="none"
                           {...field}
                           data-testid="input-email"
                         />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom d’utilisateur</FormLabel>
-                      <FormControl>
-                        <Input
-                          autoCapitalize="none"
-                          autoComplete="username"
-                          placeholder="grace.mbuyi"
-                          {...field}
-                          data-testid="input-username"
-                        />
-                      </FormControl>
-                      <FormDescription>Pour vous connecter, avec votre e-mail. 5 caractères au moins.</FormDescription>
+                      <FormDescription>C’est avec lui que vous vous connecterez.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

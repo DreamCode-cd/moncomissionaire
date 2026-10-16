@@ -1657,7 +1657,7 @@ export default function ModerateurDashboard() {
                 <Label htmlFor="new-agent-username">Nom d'utilisateur</Label>
                 <Input
                   id="new-agent-username"
-                  placeholder="nom.utilisateur"
+                 
                   value={newAgentUsername}
                   onChange={(e) => setNewAgentUsername(e.target.value)}
                   data-testid="input-new-agent-username"
@@ -1668,7 +1668,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="new-agent-email"
                   type="email"
-                  placeholder="agent@exemple.com"
+                 
                   value={newAgentEmail}
                   onChange={(e) => setNewAgentEmail(e.target.value)}
                   data-testid="input-new-agent-email"
@@ -1679,7 +1679,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="new-agent-phone"
                   type="tel"
-                  placeholder="+225 00 00 00 00"
+                  placeholder="+243 …"
                   value={newAgentPhone}
                   onChange={(e) => setNewAgentPhone(e.target.value)}
                   data-testid="input-new-agent-phone"
@@ -1787,7 +1787,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="edit-agent-email"
                   type="email"
-                  placeholder="agent@exemple.com"
+                 
                   value={editAgentEmail}
                   onChange={(e) => setEditAgentEmail(e.target.value)}
                   data-testid="input-edit-agent-email"
@@ -1798,7 +1798,7 @@ export default function ModerateurDashboard() {
                 <Input
                   id="edit-agent-phone"
                   type="tel"
-                  placeholder="+225 00 00 00 00"
+                  placeholder="+243 …"
                   value={editAgentPhone}
                   onChange={(e) => setEditAgentPhone(e.target.value)}
                   data-testid="input-edit-agent-phone"

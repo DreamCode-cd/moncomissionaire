@@ -699,21 +699,21 @@ export interface PaginatedResponse<T> {
 }
 
 export const loginSchema = z.object({
-  login: z.string().min(1, "Nom d'utilisateur ou email requis"),
+  login: z.string().trim().min(1, "Indiquez votre e-mail"),
   password: z.string().min(1, "Mot de passe requis"),
 });
 
 /* Les règles reprennent EXACTEMENT celles du serveur (accounts/serializers.py
  * et AUTH_PASSWORD_VALIDATORS). Le formulaire annonçait 6 caractères pour le
- * mot de passe et 3 pour l'identifiant quand le serveur en exige 8 et 5 : on
- * remplissait, le formulaire acceptait, le serveur refusait. */
+ * mot de passe quand le serveur en exige 8 : on remplissait, le formulaire
+ * acceptait, le serveur refusait. Pas de nom d'utilisateur : on s'inscrit et
+ * on se connecte avec l'e-mail, le serveur fabrique le reste. */
 export const registerSchema = z.object({
   user_type: z.enum(['client', 'proprietaire', 'commissionnaire']),
   first_name: z.string().trim().min(1, "Indiquez votre prénom"),
   last_name: z.string().trim().min(1, "Indiquez votre nom"),
   phone: z.string().trim().min(9, "Numéro incomplet : +243 suivi de 9 chiffres"),
   email: z.string().trim().email("Adresse e-mail invalide"),
-  username: z.string().trim().min(5, "5 caractères au moins"),
   password: z
     .string()
     .min(8, "8 caractères au moins")

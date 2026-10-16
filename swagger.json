@@ -1926,10 +1926,22 @@
             "post": {
                 "operationId": "auth_register_create",
                 "description": "",
-                "parameters": [],
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserRegistration"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/UserRegistration"
+                        }
                     }
                 },
                 "tags": [
@@ -8864,6 +8876,85 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
+                }
+            }
+        },
+        "UserRegistration": {
+            "required": [
+                "email",
+                "password",
+                "password2",
+                "first_name",
+                "last_name",
+                "terms_accepted",
+                "consentement_donnees"
+            ],
+            "type": "object",
+            "properties": {
+                "username": {
+                    "title": "Nom d’utilisateur",
+                    "description": "Facultatif : sans lui, le serveur en fabrique un à partir du prénom. On se connecte avec l'e-mail.",
+                    "type": "string",
+                    "pattern": "^[\\w.@+-]+$",
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "email": {
+                    "title": "Adresse électronique",
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254
+                },
+                "password": {
+                    "title": "Password",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "password2": {
+                    "title": "Password2",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "first_name": {
+                    "title": "Prénom",
+                    "type": "string",
+                    "maxLength": 150
+                },
+                "last_name": {
+                    "title": "Nom",
+                    "type": "string",
+                    "maxLength": 150
+                },
+                "phone": {
+                    "title": "Téléphone",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "address": {
+                    "title": "Adresse",
+                    "type": "string"
+                },
+                "user_type": {
+                    "title": "Type d'utilisateur",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "client",
+                        "proprietaire",
+                        "agent",
+                        "commissionnaire",
+                        "agence",
+                        "moderateur"
+                    ]
+                },
+                "terms_accepted": {
+                    "title": "Terms accepted",
+                    "type": "boolean"
+                },
+                "consentement_donnees": {
+                    "title": "Consentement donnees",
+                    "description": "Consentement au traitement des données personnelles, distinct de l'acceptation des conditions (Code du numérique, article 196).",
+                    "type": "boolean"
                 }
             }
         },
