@@ -9126,6 +9126,45 @@
                 }
             }
         },
+        "Photo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "image": {
+                    "title": "Image",
+                    "type": "string",
+                    "readOnly": true,
+                    "format": "uri"
+                },
+                "vignette": {
+                    "title": "Vignette",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "is_principale": {
+                    "title": "Photo principale",
+                    "type": "boolean"
+                },
+                "ordre": {
+                    "title": "Ordre d'affichage",
+                    "type": "integer",
+                    "maximum": 2147483647,
+                    "minimum": 0
+                },
+                "created_at": {
+                    "title": "Date d'ajout",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
         "BienList": {
             "required": [
                 "titre",
@@ -9385,9 +9424,7 @@
                     "$ref": "#/definitions/Agency"
                 },
                 "photo_principale": {
-                    "title": "Photo principale",
-                    "type": "string",
-                    "readOnly": true
+                    "$ref": "#/definitions/Photo"
                 },
                 "created_at": {
                     "title": "Date de création",
@@ -9854,9 +9891,7 @@
                     "$ref": "#/definitions/Agency"
                 },
                 "photo_principale": {
-                    "title": "Photo principale",
-                    "type": "string",
-                    "readOnly": true
+                    "$ref": "#/definitions/Photo"
                 },
                 "created_at": {
                     "title": "Date de création",
@@ -10057,38 +10092,6 @@
                     "title": "Photo principale index",
                     "type": "integer",
                     "default": 0
-                }
-            }
-        },
-        "Photo": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "title": "ID",
-                    "type": "integer",
-                    "readOnly": true
-                },
-                "image": {
-                    "title": "Image",
-                    "type": "string",
-                    "readOnly": true,
-                    "format": "uri"
-                },
-                "is_principale": {
-                    "title": "Photo principale",
-                    "type": "boolean"
-                },
-                "ordre": {
-                    "title": "Ordre d'affichage",
-                    "type": "integer",
-                    "maximum": 2147483647,
-                    "minimum": 0
-                },
-                "created_at": {
-                    "title": "Date d'ajout",
-                    "type": "string",
-                    "format": "date-time",
-                    "readOnly": true
                 }
             }
         },
@@ -10919,9 +10922,7 @@
                     "$ref": "#/definitions/Agency"
                 },
                 "photo_principale": {
-                    "title": "Photo principale",
-                    "type": "string",
-                    "readOnly": true
+                    "$ref": "#/definitions/Photo"
                 },
                 "created_at": {
                     "title": "Date de création",

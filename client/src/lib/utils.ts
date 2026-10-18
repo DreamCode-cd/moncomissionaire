@@ -27,6 +27,14 @@ export function getDjangoImageUrl(imagePath?: string | null): string | null {
   return `${DJANGO_MEDIA_URL}${imagePath}`;
 }
 
+/** L'image d'une miniature (carte, liste, tableau de bord) : la vignette
+ *  de 480 px, ou la photo pleine pour une photo qui n'en a pas encore.
+ *  La photo pleine pèse dix fois plus pour une image qui n'en montre pas
+ *  davantage. Les pages de détail gardent la photo pleine. */
+export function vignetteDe(photo?: { image?: string | null; vignette?: string | null } | null): string | null {
+  return getDjangoImageUrl(photo?.vignette || photo?.image);
+}
+
 export function getVilleName(ville: string | number | { id?: number; nom?: string } | null | undefined, villeNom?: string, villeDetail?: { id?: number; nom?: string } | null): string {
   if (villeNom) return villeNom;
   if (villeDetail?.nom) return villeDetail.nom;

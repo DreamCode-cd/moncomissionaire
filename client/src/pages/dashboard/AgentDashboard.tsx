@@ -46,7 +46,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { Visite, RapportVisite, RapportVisiteCreate, PaginatedResponse, BienDetail } from '@shared/schema';
 import { generateVisiteReportPDF, generateVisiteSummaryPDF } from '@/lib/pdf-generator';
-import { getDjangoImageUrl, nomAffiche } from '@/lib/utils';
+import { getDjangoImageUrl, nomAffiche, vignetteDe } from '@/lib/utils';
 import { initiale } from '@/lib/annonce';
 import { lieuVisite } from '@/lib/visite';
 import { libelleRole } from '@/lib/roles';
@@ -278,7 +278,7 @@ export default function AgentDashboard() {
             <div className="w-full md:w-32 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
               {bien?.photo_principale?.image ? (
                 <img
-                  src={getDjangoImageUrl(bien.photo_principale.image) || undefined}
+                  src={vignetteDe(bien.photo_principale) || undefined}
                   alt={bien?.titre}
                   className="w-full h-full object-cover"
                 />

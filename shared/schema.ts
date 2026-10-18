@@ -126,6 +126,8 @@ export type StatutLocation = 'disponible' | 'en_visite' | 'loue' | 'indisponible
 export interface Photo {
   id: number;
   image: string;
+  /** 480 px, pour les listes. Absente pour une photo antérieure aux vignettes. */
+  vignette?: string | null;
   is_principale: boolean;
   ordre: number;
   created_at: string;

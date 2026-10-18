@@ -21,7 +21,7 @@ import { DialogueAvis } from '@/components/confiance/DialogueAvis';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getDjangoImageUrl, nomAffiche } from '@/lib/utils';
+import { getDjangoImageUrl, nomAffiche, vignetteDe } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, RapportVisite, Visite } from '@shared/schema';
 
 
@@ -99,7 +99,7 @@ export default function MyVisits() {
             <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0 cursor-pointer">
               {demande.bien_detail?.photo_principale?.image ? (
                 <img
-                  src={getDjangoImageUrl(demande.bien_detail.photo_principale.image) || undefined}
+                  src={vignetteDe(demande.bien_detail.photo_principale) || undefined}
                   alt={demande.bien_detail.titre}
                   className="w-full h-full object-cover"
                   onError={(e) => {

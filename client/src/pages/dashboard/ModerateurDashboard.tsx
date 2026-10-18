@@ -48,7 +48,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formaterLoyer } from '@/lib/prix';
 import { auteurAnnonce, initiale } from '@/lib/annonce';
 import { api } from '@/lib/api';
-import { getDjangoImageUrl, getVilleName, nomAffiche } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { lieuVisite } from '@/lib/visite';
 import { queryClient } from '@/lib/queryClient';
 import type { 
@@ -658,7 +658,7 @@ export default function ModerateurDashboard() {
                         >
                           {property.photo_principale?.image ? (
                             <img
-                              src={getDjangoImageUrl(property.photo_principale.image) || undefined}
+                              src={vignetteDe(property.photo_principale) || undefined}
                               alt={property.titre}
                               className="w-full h-full object-cover"
                               onError={(e) => {

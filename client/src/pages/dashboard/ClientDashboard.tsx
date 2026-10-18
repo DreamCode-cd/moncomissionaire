@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDjangoImageUrl } from '@/lib/utils';
+import { getDjangoImageUrl, vignetteDe } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, BienList, RapportVisite, Visite } from '@shared/schema';
 
 
@@ -199,7 +199,7 @@ export default function ClientDashboard() {
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                           {demande.bien_detail?.photo_principale?.image ? (
                             <img
-                              src={getDjangoImageUrl(demande.bien_detail.photo_principale.image) || undefined}
+                              src={vignetteDe(demande.bien_detail.photo_principale) || undefined}
                               alt={demande.bien_detail.titre}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -295,7 +295,7 @@ export default function ClientDashboard() {
                       <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                         {demande.bien_detail?.photo_principale?.image ? (
                           <img
-                            src={getDjangoImageUrl(demande.bien_detail.photo_principale.image) || undefined}
+                            src={vignetteDe(demande.bien_detail.photo_principale) || undefined}
                             alt={demande.bien_detail.titre}
                             className="w-full h-full object-cover"
                             onError={(e) => {

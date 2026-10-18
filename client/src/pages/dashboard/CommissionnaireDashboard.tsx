@@ -61,7 +61,7 @@ import {
 } from '@/components/commission/commun';
 import { lieuAnnonce } from '@/lib/annonce';
 import { formaterDateCourte } from '@/lib/dates';
-import { getDjangoImageUrl, getVilleName, nomAffiche } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { messageErreur } from '@/lib/erreurs';
 import type {
   Bailleur,
@@ -238,7 +238,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
           <CardContent className="p-3 flex gap-3">
             {bien.photo_principale?.image ? (
               <img
-                src={getDjangoImageUrl(bien.photo_principale.image) || ''}
+                src={vignetteDe(bien.photo_principale) || ''}
                 alt=""
                 loading="lazy"
                 className="w-20 h-20 rounded-md object-cover bg-muted shrink-0"

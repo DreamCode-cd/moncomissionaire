@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LazyImage } from '@/components/ui/lazy-image';
 import type { BienList } from '@shared/schema';
-import { cn, getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { cn, getDjangoImageUrl, getVilleName, vignetteDe } from '@/lib/utils';
 import { formaterPrix } from '@/lib/prix';
 import { formaterSurface, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
@@ -17,7 +17,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, variant = 'default', rating }: PropertyCardProps) {
-  const photoUrl = getDjangoImageUrl(property.photo_principale?.image);
+  const photoUrl = vignetteDe(property.photo_principale);
   const surface = formaterSurface(property.superficie);
   const lieu = lieuAnnonce([
     property.quartier,
