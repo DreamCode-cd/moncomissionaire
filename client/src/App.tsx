@@ -16,6 +16,7 @@ import Search from "@/pages/Search";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import MotDePasseOublie from "@/pages/MotDePasseOublie";
+import SupprimerCompte from "@/pages/SupprimerCompte";
 import NotFound from "@/pages/not-found";
 
 function lazyWithRetry(importFn: () => Promise<{ default: React.ComponentType<any> }>) {
@@ -110,6 +111,8 @@ function Router() {
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/mot-de-passe-oublie" component={MotDePasseOublie} />
+          {/* Publique : c'est l'adresse déclarée à Google Play pour la suppression de compte. */}
+          <Route path="/supprimer-mon-compte" component={SupprimerCompte} />
           <Route path="/property/:id" component={PropertyDetail} />
           <Route path="/profile">
             <ProtectedRoute><Profile /></ProtectedRoute>

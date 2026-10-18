@@ -38,6 +38,14 @@ function getRedirectPath(role: UserRole): string {
   }
 }
 
+/** La page où revenir après la connexion, si elle est demandée par
+ *  `?suite=` (ex. /supprimer-mon-compte). Seulement un chemin de ce site :
+ *  « //exemple.com » ou « https://… » renverraient vers un autre site. */
+function pageDeSuite(): string | null {
+  const suite = new URLSearchParams(window.location.search).get('suite');
+  return suite && suite.startsWith('/') && !suite.startsWith('//') ? suite : null;
+}
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
@@ -55,7 +63,7 @@ export default function Login() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      const redirectPath = getRedirectPath(user.role);
+      const redirectPath = pageDeSuite() ?? getRedirectPath(user.role);
       setLocation(redirectPath);
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
@@ -89,7 +97,7 @@ export default function Login() {
         title: 'Connexion réussie',
         description: 'Bienvenue sur VillaGo !',
       });
-      const redirectPath = getRedirectPath(profile.role);
+      const redirectPath = pageDeSuite() ?? getRedirectPath(profile.role);
       // Use window.location for more reliable navigation after login
       window.location.href = redirectPath;
     } catch (error) {
