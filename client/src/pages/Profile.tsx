@@ -532,6 +532,11 @@ export default function Profile() {
               <LogOut className="mr-2 h-4 w-4" />
               Se déconnecter
             </Button>
+            <Button asChild variant="ghost" className="w-full mt-2 text-muted-foreground">
+              <a href="/supprimer-mon-compte" data-testid="link-supprimer-compte">
+                Supprimer mon compte
+              </a>
+            </Button>
           </CardContent>
         </Card>
 

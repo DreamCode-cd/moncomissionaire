@@ -1975,6 +1975,35 @@
             },
             "parameters": []
         },
+        "/auth/supprimer-compte/": {
+            "post": {
+                "operationId": "auth_supprimer-compte_create",
+                "summary": "Supprime le compte connecté, à la demande de son titulaire.",
+                "description": "Irréversible. Le compte est anonymisé plutôt qu'effacé : voir\n`accounts/suppression.py` pour ce qui disparaît et ce qui reste.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SuppressionCompte"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/ReponseMessage"
+                        }
+                    }
+                },
+                "tags": [
+                    "auth"
+                ]
+            },
+            "parameters": []
+        },
         "/auth/token/refresh/": {
             "post": {
                 "operationId": "auth_token_refresh_create",
@@ -7941,6 +7970,7 @@
                         "mandat",
                         "avis",
                         "etat_des_lieux",
+                        "suppression_compte",
                         "autre"
                     ],
                     "readOnly": true
@@ -9035,6 +9065,20 @@
                     "title": "Consentement donnees",
                     "description": "Consentement au traitement des données personnelles, distinct de l'acceptation des conditions (Code du numérique, article 196).",
                     "type": "boolean"
+                }
+            }
+        },
+        "SuppressionCompte": {
+            "required": [
+                "mot_de_passe"
+            ],
+            "type": "object",
+            "properties": {
+                "mot_de_passe": {
+                    "title": "Mot de passe",
+                    "description": "Le mot de passe du compte, ressaisi : un téléphone déverrouillé oublié sur une table ne doit pas suffire à supprimer un compte.",
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         },
@@ -10561,7 +10605,8 @@
                         "accepte",
                         "refuse",
                         "annule",
-                        "retire"
+                        "retire",
+                        "clos"
                     ],
                     "readOnly": true
                 },
