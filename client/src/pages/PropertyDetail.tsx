@@ -38,7 +38,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
-import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, vignetteDe } from '@/lib/utils';
 import type { BienDetail, BienList, AvisBien, PaginatedResponse } from '@shared/schema';
 import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -1011,7 +1011,7 @@ export default function PropertyDetail() {
                 <h2 className="text-lg font-semibold mb-4">Biens similaires</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {suggestions.results.slice(0, 4).map((bien) => {
-                    const image = getDjangoImageUrl(bien.photo_principale?.image);
+                    const image = vignetteDe(bien.photo_principale);
                     return (
                       <Link key={bien.id} href={`/property/${bien.id}`}>
                         <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">

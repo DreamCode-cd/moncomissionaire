@@ -22,7 +22,7 @@ import { queryClient } from '@/lib/queryClient';
 import { lieuAnnonce } from '@/lib/annonce';
 import { formaterDateCourte } from '@/lib/dates';
 import { formaterLoyer, formaterMontant } from '@/lib/prix';
-import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, vignetteDe } from '@/lib/utils';
 import type { BienPartage, DemandeVisite, PaginatedResponse } from '@shared/schema';
 import { CLE_PARTAGES, CLE_PRESENTATIONS, aujourdhui, messageErreur } from './commun';
 
@@ -99,7 +99,7 @@ export function OngletPartages() {
               <CardContent className="p-3 flex gap-3">
                 {bien.photo_principale?.image ? (
                   <img
-                    src={getDjangoImageUrl(bien.photo_principale.image) || ''}
+                    src={vignetteDe(bien.photo_principale) || ''}
                     alt=""
                     loading="lazy"
                     className="w-20 h-20 rounded-md object-cover bg-muted shrink-0"

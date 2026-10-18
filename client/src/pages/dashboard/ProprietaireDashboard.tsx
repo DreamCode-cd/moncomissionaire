@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
-import { getDjangoImageUrl, getVilleName } from '@/lib/utils';
+import { getDjangoImageUrl, getVilleName, vignetteDe } from '@/lib/utils';
 import type { BienList, Commission, PaginatedResponse } from '@shared/schema';
 import { formaterLoyer, formaterMontant } from '@/lib/prix';
 import { formaterDateCourte } from '@/lib/dates';
@@ -243,7 +243,7 @@ export default function ProprietaireDashboard() {
                       <div className="relative aspect-[16/10]">
                         {property.photo_principale?.image ? (
                           <img
-                            src={getDjangoImageUrl(property.photo_principale.image) || undefined}
+                            src={vignetteDe(property.photo_principale) || undefined}
                             alt={property.titre}
                             className="w-full h-full object-cover"
                             onError={(e) => {
