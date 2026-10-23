@@ -210,7 +210,11 @@ export function Header() {
 
             {isAuthenticated ? (
               <>
-                <Link href="/messages">
+                {/* Sur téléphone, Messages et Profil sont déjà dans la barre du
+                    bas (MobileNav) : les montrer aussi ici faisait deux icônes
+                    pour la même page. Il reste les notifications, qui n'ont
+                    pas de place en bas. */}
+                <Link href="/messages" className="hidden md:inline-flex">
                   <Button variant="ghost" size="icon" className="relative" data-testid="button-messages">
                     <MessageCircle className="h-5 w-5" />
                     {totalUnreadMessages > 0 && (
@@ -313,7 +317,7 @@ export function Header() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full" data-testid="button-profile-menu">
+                    <Button variant="ghost" className="relative hidden h-9 w-9 rounded-full md:inline-flex" data-testid="button-profile-menu">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user?.photo} alt={user?.username} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
@@ -333,6 +337,11 @@ export function Header() {
                     <Link href="/profile">
                       <DropdownMenuItem data-testid="menu-profile">
                         Mon profil
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/favoris">
+                      <DropdownMenuItem data-testid="menu-favoris">
+                        Mes favoris
                       </DropdownMenuItem>
                     </Link>
                     {user?.role === 'proprietaire' && (

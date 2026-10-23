@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { erreurTelephone } from "./telephone";
 
 /** Devises acceptées pour un loyer. Le dollar domine la location à
  *  Kinshasa et Lubumbashi ; le franc sert les montants plus petits. */
@@ -745,12 +746,37 @@ export const loginSchema = z.object({
  * mot de passe quand le serveur en exige 8 : on remplissait, le formulaire
  * acceptait, le serveur refusait. Pas de nom d'utilisateur : on s'inscrit et
  * on se connecte avec l'e-mail, le serveur fabrique le reste. */
+// Mêmes règles que le serveur (accounts/serializers.py, NOM_DE_PERSONNE) :
+// lettres de toutes les langues, espaces, trait d'union, apostrophes, point.
+// Construite par RegExp : la cible TypeScript du dépôt refuse le drapeau
+// `u` en littéral, que tous les navigateurs visés savent pourtant lire.
+const NOM_DE_PERSONNE = new RegExp("^[\\p{L}\\p{M}]+(?:[ '’.-]+[\\p{L}\\p{M}]+)*\\.?$", "u");
+
+const nomDePersonne = (libelle: string) =>
+  z
+    .string()
+    .transform((v) => v.trim().replace(/\s+/g, ' '))
+    .pipe(
+      z
+        .string()
+        .min(1, `Indiquez votre ${libelle}`)
+        .max(60, `60 caractères au plus`)
+        .regex(NOM_DE_PERSONNE, 'Des lettres seulement, avec espaces, traits d’union ou apostrophes'),
+    );
+
 export const registerSchema = z.object({
   user_type: z.enum(['client', 'proprietaire', 'commissionnaire']),
-  first_name: z.string().trim().min(1, "Indiquez votre prénom"),
-  last_name: z.string().trim().min(1, "Indiquez votre nom"),
-  phone: z.string().trim().min(9, "Numéro incomplet : +243 suivi de 9 chiffres"),
-  email: z.string().trim().email("Adresse e-mail invalide"),
+  first_name: nomDePersonne('prénom'),
+  last_name: nomDePersonne('nom'),
+  // Le numéro arrive assemblé (« +243812345678 ») par ChampTelephone.
+  phone: z
+    .string()
+    .min(1, 'Indiquez votre numéro de téléphone')
+    .superRefine((numero, ctx) => {
+      const erreur = erreurTelephone(numero);
+      if (erreur) ctx.addIssue({ code: z.ZodIssueCode.custom, message: erreur });
+    }),
+  email: z.string().trim().toLowerCase().email("Adresse e-mail invalide"),
   password: z
     .string()
     .min(8, "8 caractères au moins")

@@ -136,30 +136,12 @@ export default function PropertyDetail() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: isFavorite, refetch: refetchFavorite } = useQuery({
+  // Le serveur répond `{ is_favori }` (biens/views.py, FavoriViewSet.check).
+  const { data: isFavorite } = useQuery({
     queryKey: ['/api/v1/biens/favoris/check/', propertyId],
     queryFn: async (): Promise<{ is_favorite: boolean }> => {
-      const response = await api.get(`/api/v1/biens/favoris/check/?bien_id=${propertyId}`) as any;
-      console.log('Favorite check response:', response);
-      let isFav = false;
-      if (typeof response === 'boolean') {
-        isFav = response;
-      } else if (response?.is_favori !== undefined) {
-        isFav = response.is_favori;
-      } else if (response?.is_favorite !== undefined) {
-        isFav = response.is_favorite;
-      } else if (response?.is_favoris !== undefined) {
-        isFav = response.is_favoris;
-      } else if (response?.favorited !== undefined) {
-        isFav = response.favorited;
-      } else if (response?.favorite !== undefined) {
-        isFav = response.favorite;
-      } else if (response?.exists !== undefined) {
-        isFav = response.exists;
-      } else if (response?.result !== undefined) {
-        isFav = response.result;
-      }
-      return { is_favorite: isFav };
+      const reponse = await api.get<{ is_favori: boolean }>(`/api/v1/biens/favoris/check/?bien_id=${propertyId}`);
+      return { is_favorite: Boolean(reponse.is_favori) };
     },
     enabled: !!propertyId && isAuthenticated,
   });
@@ -175,18 +157,12 @@ export default function PropertyDetail() {
   });
 
   const toggleFavoriteMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/v1/biens/favoris/toggle/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify({ bien_id: parseInt(propertyId!) }),
-      });
-      const data = await response.json();
-      return { status: response.status, data };
-    },
+    // Par le client d'API, pas par `fetch('/api/…')` : sur Vercel il n'y a pas
+    // de proxy Express, l'adresse relative partait vers Vercel et l'ajout aux
+    // favoris échouait toujours. Le client sait aussi rafraîchir un jeton
+    // expiré.
+    mutationFn: () =>
+      api.post<{ is_favori: boolean }>('/api/v1/biens/favoris/toggle/', { bien_id: Number(propertyId) }),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ['/api/v1/biens/favoris/check/', propertyId] });
       const previousFavorite = queryClient.getQueryData(['/api/v1/biens/favoris/check/', propertyId]);
@@ -195,15 +171,16 @@ export default function PropertyDetail() {
       }));
       return { previousFavorite };
     },
-    onSuccess: (response) => {
-      const isNowFavorite = response.status === 201;
+    onSuccess: (reponse) => {
+      const isNowFavorite = reponse.is_favori;
       queryClient.setQueryData(['/api/v1/biens/favoris/check/', propertyId], {
         is_favorite: isNowFavorite
       });
+      void queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/favoris/'] });
       toast({
         title: isNowFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris',
         description: isNowFavorite 
-          ? 'Ce bien a été ajouté à vos favoris'
+          ? 'Retrouvez-le dans « Mes favoris », depuis votre profil.'
           : 'Ce bien a été retiré de vos favoris',
       });
     },
