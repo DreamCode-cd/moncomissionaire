@@ -507,13 +507,16 @@ function SaisieGarantie({
   const [motif, setMotif] = useState(etat.motif_retenue ?? '');
   const symbole = symboleDevise(etat.devise);
   const degradees = etat.pieces.filter((p) => p.degradee).map((p) => p.nom);
+  // Sans état des lieux d'entrée validé par le locataire, rien ne prouve
+  // l'état du logement à son arrivée : le serveur refuse toute retenue.
+  const retenuePossible = !!etat.entree_validee_le;
 
   const enregistrer = useMutation({
     mutationFn: () =>
       api.patch(base, {
         garantie_versee: garantie === '' ? null : String(garantie).replace(',', '.'),
-        retenue_garantie: retenue === '' ? '0' : retenue.replace(',', '.'),
-        motif_retenue: motif,
+        retenue_garantie: !retenuePossible || retenue === '' ? '0' : retenue.replace(',', '.'),
+        motif_retenue: retenuePossible ? motif : '',
       }),
     onSuccess: onChange,
     onError: onErreur,
@@ -526,16 +529,25 @@ function SaisieGarantie({
         {degradees.length > 0 && (
           <p className="text-sm text-statut-defavorable">Dégradé depuis l’entrée : {degradees.join(', ')}.</p>
         )}
-        <div className="grid grid-cols-2 gap-3">
+        <div className={retenuePossible ? 'grid grid-cols-2 gap-3' : 'space-y-1'}>
           <div className="space-y-1">
             <Label htmlFor="garantie-versee">Versée ({symbole})</Label>
             <Input id="garantie-versee" type="number" inputMode="decimal" min="0" step="any" value={garantie} onChange={(e) => setGarantie(e.target.value)} />
           </div>
+          {retenuePossible && (
           <div className="space-y-1">
             <Label htmlFor="garantie-retenue">Retenue ({symbole})</Label>
             <Input id="garantie-retenue" type="number" inputMode="decimal" min="0" step="any" value={retenue} onChange={(e) => setRetenue(e.target.value)} placeholder="0" data-testid="input-retenue" />
           </div>
+          )}
         </div>
+        {!retenuePossible && (
+          <p className="text-sm text-muted-foreground" data-testid="text-retenue-impossible">
+            Aucune retenue possible : l’état des lieux d’entrée n’a pas été validé par le locataire, donc rien ne prouve
+            l’état du logement à son arrivée. La garantie lui revient en entier.
+          </p>
+        )}
+        {retenuePossible && (
         <div className="space-y-1">
           <Label htmlFor="garantie-motif">Motif de la retenue</Label>
           <Textarea
@@ -548,6 +560,7 @@ function SaisieGarantie({
             Obligatoire dès qu’il y a une retenue. Le locataire le lira avant de valider, et pourra le contester dans ses réserves.
           </p>
         </div>
+        )}
         <Button variant="outline" disabled={enregistrer.isPending} onClick={() => enregistrer.mutate()} data-testid="button-enregistrer-garantie">
           Enregistrer la garantie
         </Button>
