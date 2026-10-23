@@ -4747,6 +4747,13 @@
                 "description": "Les commissions dont l'utilisateur est titulaire ou confrère, et\ncelles des biens dont il est le propriétaire inscrit — il est le bailleur,\nil a le droit de savoir ce qui a été conclu chez lui.\n\nL'équipe VillaGo les voit toutes, en lecture : c'est elle qui arbitrera\nun litige. Elle n'en crée ni n'en annule aucune — ce sont les affaires\ndes commissionnaires, pas les siennes.",
                 "parameters": [
                     {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Un terme de recherche.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
                         "name": "ordering",
                         "in": "query",
                         "description": "Quel champ utiliser pour classer les résultats.",
@@ -7756,6 +7763,135 @@
                     "type": "string"
                 }
             ]
+        },
+        "/visites/equipe/signalements/": {
+            "get": {
+                "operationId": "visites_equipe_signalements_list",
+                "summary": "Les signalements des clients, pour l'équipe VillaGo.",
+                "description": "Ceux qui attendent d'abord, les plus anciens en tête : un client qui a\npayé des frais en trop attend depuis le plus longtemps. `?traite=true`\npour relire ceux qui sont clos.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Un terme de recherche.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Quel champ utiliser pour classer les résultats.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/SignalementEquipe"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": []
+        },
+        "/visites/equipe/signalements/{id}/": {
+            "get": {
+                "operationId": "visites_equipe_signalements_read",
+                "summary": "Les signalements des clients, pour l'équipe VillaGo.",
+                "description": "Ceux qui attendent d'abord, les plus anciens en tête : un client qui a\npayé des frais en trop attend depuis le plus longtemps. `?traite=true`\npour relire ceux qui sont clos.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/SignalementEquipe"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/visites/equipe/signalements/{id}/traiter/": {
+            "post": {
+                "operationId": "visites_equipe_signalements_traiter",
+                "description": "Clore un signalement en disant ce qui a été fait. Le client est\nprévenu et lit la réponse sous sa demande. Un signalement traité ne\nse rouvre ni ne se réécrit.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/TraitementSignalement"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/TraitementSignalement"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
         }
     },
     "definitions": {
@@ -7965,6 +8101,7 @@
                         "gestion_villes",
                         "gestion_pages",
                         "signalement",
+                        "signalement_traite",
                         "commission",
                         "reglement",
                         "mandat",
@@ -12340,6 +12477,7 @@
                         "rapport_disponible",
                         "agent_ajoute_chat",
                         "signalement",
+                        "signalement_traite",
                         "commission",
                         "mandat",
                         "avis",
@@ -12838,6 +12976,20 @@
                     "format": "date-time",
                     "readOnly": true,
                     "x-nullable": true
+                },
+                "signalement_traite_le": {
+                    "title": "Signalement traité le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "signalement_suite": {
+                    "title": "Suite donnée au signalement",
+                    "description": "Ce que l'équipe a fait. Le client le lit.",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
                 }
             }
         },
@@ -13108,6 +13260,112 @@
                 "notes_commissionnaire": {
                     "title": "Notes du commissionnaire",
                     "type": "string"
+                }
+            }
+        },
+        "SignalementEquipe": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "client": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "bien": {
+                    "title": "Bien",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "bien_detail": {
+                    "$ref": "#/definitions/BienList"
+                },
+                "gestionnaire": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "statut": {
+                    "title": "Statut",
+                    "type": "string",
+                    "enum": [
+                        "en_attente",
+                        "acceptee",
+                        "rejetee",
+                        "annulee"
+                    ],
+                    "readOnly": true
+                },
+                "statut_display": {
+                    "title": "Statut display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "visite": {
+                    "$ref": "#/definitions/VisiteMini"
+                },
+                "frais_visite": {
+                    "title": "Frais de visite",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "frais_visite_devise": {
+                    "title": "Devise des frais de visite",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "frais_visite_regles": {
+                    "title": "Frais visite regles",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "signalement_motif": {
+                    "title": "Signalement du client",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "signale_le": {
+                    "title": "Signalé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "signalement_traite_le": {
+                    "title": "Signalement traité le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "signalement_traite_par_detail": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "signalement_suite": {
+                    "title": "Suite donnée au signalement",
+                    "description": "Ce que l'équipe a fait. Le client le lit.",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                }
+            }
+        },
+        "TraitementSignalement": {
+            "required": [
+                "suite"
+            ],
+            "type": "object",
+            "properties": {
+                "suite": {
+                    "title": "Suite",
+                    "description": "Ce que l'équipe a fait : appel au commissionnaire, remboursement obtenu, avertissement… Le client le lira.",
+                    "type": "string",
+                    "maxLength": 2000,
+                    "minLength": 10
                 }
             }
         }

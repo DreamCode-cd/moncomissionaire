@@ -2,6 +2,7 @@ import {
   Bell,
   Calendar,
   FileText,
+  Flag,
   House,
   MessageCircle,
   Users,
@@ -50,6 +51,10 @@ const APPARENCES: Record<string, Apparence> = {
 
   // Rapports
   rapport_disponible: { icone: FileText, ton: 'information' },
+
+  // Signalements : l'alerte pour l'équipe, la réponse pour le client
+  signalement: { icone: Flag, ton: 'defavorable' },
+  signalement_traite: { icone: Flag, ton: 'favorable' },
 };
 
 const PAR_DEFAUT: Apparence = { icone: Bell, ton: 'neutre' };

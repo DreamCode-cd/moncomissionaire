@@ -465,6 +465,9 @@ export interface DemandeVisite {
   frais_visite_regles?: string;
   signalement_motif?: string;
   signale_le?: string | null;
+  /** La réponse de l'équipe VillaGo au signalement, une fois traité. */
+  signalement_traite_le?: string | null;
+  signalement_suite?: string;
   chatroom_id?: number | null;
   /** La visite fixée pour cette demande, s'il y en a une. */
   visite?: VisiteMini | null;
@@ -849,3 +852,25 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type BienCreateInput = z.infer<typeof bienCreateSchema>;
 export type DemandeVisiteInput = z.infer<typeof demandeVisiteSchema>;
 export type AvisInput = z.infer<typeof avisSchema>;
+
+/** Un signalement de client, tel que l'équipe VillaGo le traite
+ *  (`/api/v1/visites/equipe/signalements/`). */
+export interface SignalementEquipe {
+  id: number;
+  client: CompteResume;
+  bien: number;
+  bien_detail: BienList;
+  /** Le commissionnaire du bien ; null si l'équipe suit le bien elle-même. */
+  gestionnaire: CompteResume | null;
+  statut: string;
+  statut_display: string;
+  visite: VisiteMini | null;
+  frais_visite: string | null;
+  frais_visite_devise: Devise | '';
+  frais_visite_regles: string;
+  signalement_motif: string;
+  signale_le: string;
+  signalement_traite_le: string | null;
+  signalement_traite_par_detail: CompteResume | null;
+  signalement_suite: string;
+}

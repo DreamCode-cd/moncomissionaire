@@ -51,8 +51,10 @@ import { api } from '@/lib/api';
 import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { lieuVisite } from '@/lib/visite';
 import { queryClient } from '@/lib/queryClient';
+import { CLE_SIGNALEMENTS, OngletSignalements } from '@/components/equipe/OngletSignalements';
+import { OngletCommissions } from '@/components/equipe/OngletCommissions';
 import type { 
-  BienList, BienDetail, DemandeVisite, Visite, RapportVisite, UserList, UserProfile, PaginatedResponse 
+  BienList, BienDetail, DemandeVisite, Visite, RapportVisite, UserList, UserProfile, PaginatedResponse, SignalementEquipe
 } from '@shared/schema';
 
 type AgentDetail = UserList & Partial<UserProfile>;
@@ -150,6 +152,11 @@ export default function ModerateurDashboard() {
     queryKey: ['/api/v1/visites/commissionnaire/rapports/'],
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
+  });
+
+  // Même clé que la première page de l'onglet : un seul appel au chargement.
+  const { data: signalementsEnAttente } = useQuery<PaginatedResponse<SignalementEquipe>>({
+    queryKey: [CLE_SIGNALEMENTS, { traite: 'false', page: '1' }],
   });
 
   const { data: agents, isLoading: agentsLoading, error: erreurAgents, refetch: rechargerAgents } = useQuery<PaginatedResponse<UserList>>({
@@ -613,7 +620,21 @@ export default function ModerateurDashboard() {
             <TabsTrigger value="agents" data-testid="tab-agents">
               Agents ({agents?.count || 0})
             </TabsTrigger>
+            <TabsTrigger value="signalements" data-testid="tab-signalements">
+              Signalements ({signalementsEnAttente?.count ?? 0})
+            </TabsTrigger>
+            <TabsTrigger value="commissions" data-testid="tab-commissions">
+              Commissions
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="signalements">
+            <OngletSignalements />
+          </TabsContent>
+
+          <TabsContent value="commissions">
+            <OngletCommissions />
+          </TabsContent>
 
           <TabsContent value="properties">
             {erreurPendingProperties && !pendingProperties ? (
