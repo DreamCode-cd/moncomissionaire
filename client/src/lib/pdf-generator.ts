@@ -145,7 +145,7 @@ export function generateVisiteReportPDF(visite: Visite, rapport?: RapportVisite)
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('État général:', margin, y);
+    doc.text('Appréciation générale :', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.text(etatGeneralLabels[rapport.etat_general] || rapport.etat_general, margin + 50, y);
     y += 6;

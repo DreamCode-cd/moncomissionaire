@@ -1075,7 +1075,7 @@ export default function AgentDashboard() {
                   </h4>
                   
                   <div>
-                    <Label>État général du bien *</Label>
+                    <Label>Appréciation générale *</Label>
                     <Select
                       value={reportData.etat_general}
                       onValueChange={(value) => setReportData({ ...reportData, etat_general: value as any })}

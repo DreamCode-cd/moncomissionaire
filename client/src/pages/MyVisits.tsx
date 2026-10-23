@@ -340,7 +340,7 @@ export default function MyVisits() {
               <ScrollArea className="max-h-[60vh]">
                 <div className="space-y-6 pr-4">
                   <div>
-                    <Label className="text-muted-foreground">État général du bien</Label>
+                    <Label className="text-muted-foreground">Appréciation générale</Label>
                     <div className="mt-1">
                       <BadgeStatut famille="appreciation" valeur={selectedReport.etat_general} />
                     </div>
