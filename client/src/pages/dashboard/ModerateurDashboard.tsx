@@ -165,8 +165,8 @@ export default function ModerateurDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/moderation/'] });
       toast({
-        title: 'Bien valide',
-        description: 'Le bien a ete valide avec succes.',
+        title: 'Bien validé',
+        description: 'Le bien est validé et visible dans les annonces.',
       });
     },
     onError: (error) => {
@@ -189,8 +189,8 @@ export default function ModerateurDashboard() {
       setRejectPropertyDialogOpen(false);
       setPropertyRejectReason('');
       toast({
-        title: 'Bien rejete',
-        description: 'Le bien a ete rejete.',
+        title: 'Bien refusé',
+        description: 'Le bien est refusé.',
       });
     },
     onError: (error) => {
@@ -213,10 +213,10 @@ export default function ModerateurDashboard() {
       setProcessDemandeDialogOpen(false);
       setDemandeRejectReason('');
       toast({
-        title: variables.statut === 'acceptee' ? 'Demande acceptee' : 'Demande rejetee',
+        title: variables.statut === 'acceptee' ? 'Demande acceptée' : 'Demande refusée',
         description: variables.statut === 'acceptee' 
-          ? 'La demande de visite a ete acceptee. Vous pouvez maintenant planifier la visite.'
-          : 'La demande de visite a ete rejetee.',
+          ? 'La demande de visite est acceptée. Vous pouvez maintenant planifier la visite.'
+          : 'La demande de visite est refusée.',
       });
     },
     onError: (error) => {
@@ -239,8 +239,8 @@ export default function ModerateurDashboard() {
       setVisiteHeure('');
       setSelectedAgentId('');
       toast({
-        title: 'Visite planifiee',
-        description: 'La visite a ete creee avec succes.',
+        title: 'Visite planifiée',
+        description: 'La visite est planifiée.',
       });
     },
     onError: (error) => {
@@ -260,8 +260,8 @@ export default function ModerateurDashboard() {
       setReassignDialogOpen(false);
       setNewAgentId('');
       toast({
-        title: 'Agent reassigne',
-        description: "L'agent a ete reassigne a cette visite.",
+        title: 'Agent réaffecté',
+        description: "L'agent est affecté à cette visite.",
       });
     },
     onError: (error) => {
@@ -281,8 +281,8 @@ export default function ModerateurDashboard() {
       setDeleteAgentDialogOpen(false);
       setAgentToDelete(null);
       toast({
-        title: 'Agent supprime',
-        description: "L'agent a ete supprime avec succes.",
+        title: 'Agent supprimé',
+        description: "Le compte de l'agent est supprimé.",
       });
     },
     onError: (error) => {
@@ -308,8 +308,8 @@ export default function ModerateurDashboard() {
       setNewAgentPassword('');
       setNewAgentPassword2('');
       toast({
-        title: 'Agent cree',
-        description: "L'agent a ete cree avec succes.",
+        title: 'Agent créé',
+        description: "Le compte de l'agent est créé.",
       });
     },
     onError: (error) => {
@@ -329,8 +329,8 @@ export default function ModerateurDashboard() {
       setEditAgentDialogOpen(false);
       setAgentToEdit(null);
       toast({
-        title: 'Agent modifie',
-        description: "L'agent a ete modifie avec succes.",
+        title: 'Agent modifié',
+        description: "Les informations de l'agent sont enregistrées.",
       });
     },
     onError: (error) => {
@@ -478,11 +478,11 @@ export default function ModerateurDashboard() {
               <h1 className="text-2xl font-bold" data-testid="text-dashboard-title">
                 {user?.first_name} {user?.last_name}
               </h1>
-              <p className="text-muted-foreground">Commissionnaire</p>
+              <p className="text-muted-foreground">Équipe VillaGo</p>
             </div>
           </div>
           <p className="text-muted-foreground">
-            Gerez les validations de biens, les demandes de visite et les agents
+            Validez les annonces, traitez les demandes de visite et gérez les agents
           </p>
         </div>
 
@@ -534,7 +534,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-properties-count">{pendingCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">A valider</p>
+                  <p className="text-xs text-muted-foreground truncate">À valider</p>
                 </div>
               </div>
             </CardContent>
@@ -563,7 +563,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-accepted-demandes-count">{acceptedDemandesWithoutVisite}</p>
-                  <p className="text-xs text-muted-foreground truncate">A planifier</p>
+                  <p className="text-xs text-muted-foreground truncate">À planifier</p>
                 </div>
               </div>
             </CardContent>
@@ -714,7 +714,7 @@ export default function ModerateurDashboard() {
                             data-testid={`button-view-property-${property.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
-                            Details
+                            Détails
                           </Button>
                           <Button 
                             size="sm"
@@ -1001,7 +1001,7 @@ export default function ModerateurDashboard() {
                               data-testid={`button-reassign-${visite.id}`}
                             >
                               <RefreshCw className="w-4 h-4 mr-1" />
-                              {visite.agent_detail ? 'Reassigner' : 'Assigner agent'}
+                              {visite.agent_detail ? 'Changer d’agent' : 'Affecter un agent'}
                             </Button>
                           )}
                           <Link href={`/messages?demande=${(visite as any).demande_visite || (visite as any).demande}`}>
@@ -1044,7 +1044,7 @@ export default function ModerateurDashboard() {
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <h4 className="font-medium">Rapport de visite #{rapport.visite}</h4>
                             <Badge variant={rapport.client_interesse ? 'default' : 'secondary'}>
-                              {rapport.client_interesse ? 'Client interesse' : 'Client non interesse'}
+                              {rapport.client_interesse ? 'Client intéressé' : 'Client non intéressé'}
                             </Badge>
                           </div>
                           {rapport.agent_detail && (
@@ -1086,7 +1086,7 @@ export default function ModerateurDashboard() {
                             data-testid={`button-view-rapport-${rapport.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
-                            Details
+                            Détails
                           </Button>
                         </div>
                       </div>
@@ -1213,7 +1213,7 @@ export default function ModerateurDashboard() {
                 <Label htmlFor="property-reject-reason">Motif du rejet</Label>
                 <Textarea
                   id="property-reject-reason"
-                  placeholder="Expliquez pourquoi ce bien ne peut pas etre valide..."
+                  placeholder="Expliquez pourquoi ce bien ne peut pas être validé…"
                   value={propertyRejectReason}
                   onChange={(e) => setPropertyRejectReason(e.target.value)}
                   data-testid="input-property-reject-reason"
@@ -1270,7 +1270,7 @@ export default function ModerateurDashboard() {
                   <Label htmlFor="demande-reject-reason">Motif du rejet</Label>
                   <Textarea
                     id="demande-reject-reason"
-                    placeholder="Expliquez pourquoi cette demande est rejetee..."
+                    placeholder="Expliquez pourquoi cette demande est refusée…"
                     value={demandeRejectReason}
                     onChange={(e) => setDemandeRejectReason(e.target.value)}
                     data-testid="input-demande-reject-reason"
@@ -1345,7 +1345,7 @@ export default function ModerateurDashboard() {
                 <Label htmlFor="agent-select">Agent (optionnel)</Label>
                 <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
                   <SelectTrigger data-testid="select-agent">
-                    <SelectValue placeholder="Selectionner un agent" />
+                    <SelectValue placeholder="Sélectionner un agent" />
                   </SelectTrigger>
                   <SelectContent>
                     {agents?.results?.map((agent) => (
@@ -1386,10 +1386,10 @@ export default function ModerateurDashboard() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {selectedVisite?.agent_detail ? 'Reassigner un agent' : 'Assigner un agent'}
+                {selectedVisite?.agent_detail ? 'Changer d’agent' : 'Assigner un agent'}
               </DialogTitle>
               <DialogDescription>
-                Selectionnez un agent pour cette visite
+                Sélectionnez un agent pour cette visite
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -1410,7 +1410,7 @@ export default function ModerateurDashboard() {
                 <Label htmlFor="new-agent-select">Nouvel agent</Label>
                 <Select value={newAgentId} onValueChange={setNewAgentId}>
                   <SelectTrigger data-testid="select-new-agent">
-                    <SelectValue placeholder="Selectionner un agent" />
+                    <SelectValue placeholder="Sélectionner un agent" />
                   </SelectTrigger>
                   <SelectContent>
                     {agents?.results?.map((agent) => (
@@ -1448,13 +1448,13 @@ export default function ModerateurDashboard() {
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Details du rapport</DialogTitle>
+              <DialogTitle>Détails du rapport</DialogTitle>
             </DialogHeader>
             {selectedReport && (
               <div className="space-y-6 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Etat general</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Appréciation générale</h4>
                     <Badge variant="outline">{selectedReport.etat_general_display}</Badge>
                   </div>
                   <div>
@@ -1468,7 +1468,7 @@ export default function ModerateurDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {selectedReport.etat_electricite && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Electricite</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Électricité</h4>
                       <p className="text-sm">{selectedReport.etat_electricite}</p>
                     </div>
                   )}
@@ -1492,7 +1492,7 @@ export default function ModerateurDashboard() {
                   )}
                   {selectedReport.etat_fenetres && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Fenetres</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Fenêtres</h4>
                       <p className="text-sm">{selectedReport.etat_fenetres}</p>
                     </div>
                   )}
@@ -1527,7 +1527,7 @@ export default function ModerateurDashboard() {
 
                 {selectedReport.points_negatifs && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Points negatifs</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Points négatifs</h4>
                     <p className="text-sm whitespace-pre-wrap">{selectedReport.points_negatifs}</p>
                   </div>
                 )}
@@ -1548,7 +1548,7 @@ export default function ModerateurDashboard() {
 
                 <div className="flex items-center gap-2 pt-4 border-t">
                   <Badge variant={selectedReport.client_interesse ? 'default' : 'secondary'}>
-                    {selectedReport.client_interesse ? 'Client interesse par le bien' : 'Client non interesse'}
+                    {selectedReport.client_interesse ? 'Client intéressé par le bien' : 'Client non intéressé'}
                   </Badge>
                 </div>
               </div>
@@ -1580,7 +1580,7 @@ export default function ModerateurDashboard() {
                 </div>
               )}
               <p className="text-sm text-muted-foreground">
-                Cette action est irreversible. L'agent ne pourra plus acceder a son compte.
+                Cette action est irréversible. L'agent ne pourra plus accéder à son compte.
               </p>
               <div className="flex gap-2">
                 <Button 
@@ -1613,16 +1613,16 @@ export default function ModerateurDashboard() {
             <DialogHeader>
               <DialogTitle>Ajouter un agent</DialogTitle>
               <DialogDescription>
-                Creez un nouveau compte agent pour votre equipe
+                Créez un compte agent pour votre équipe
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="new-agent-first-name">Prenom</Label>
+                  <Label htmlFor="new-agent-first-name">Prénom</Label>
                   <Input
                     id="new-agent-first-name"
-                    placeholder="Prenom"
+                    placeholder="Prénom"
                     value={newAgentFirstName}
                     onChange={(e) => setNewAgentFirstName(e.target.value)}
                     data-testid="input-new-agent-first-name"
@@ -1661,7 +1661,7 @@ export default function ModerateurDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="new-agent-phone">Telephone (optionnel)</Label>
+                <Label htmlFor="new-agent-phone">Téléphone (facultatif)</Label>
                 <Input
                   id="new-agent-phone"
                   type="tel"
@@ -1748,10 +1748,10 @@ export default function ModerateurDashboard() {
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-agent-first-name">Prenom</Label>
+                  <Label htmlFor="edit-agent-first-name">Prénom</Label>
                   <Input
                     id="edit-agent-first-name"
-                    placeholder="Prenom"
+                    placeholder="Prénom"
                     value={editAgentFirstName}
                     onChange={(e) => setEditAgentFirstName(e.target.value)}
                     data-testid="input-edit-agent-first-name"
@@ -1780,7 +1780,7 @@ export default function ModerateurDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-agent-phone">Telephone</Label>
+                <Label htmlFor="edit-agent-phone">Téléphone</Label>
                 <Input
                   id="edit-agent-phone"
                   type="tel"
@@ -1823,9 +1823,9 @@ export default function ModerateurDashboard() {
         }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Details du bien</DialogTitle>
+              <DialogTitle>Détails du bien</DialogTitle>
               <DialogDescription>
-                Informations completes sur le bien a valider
+                Informations complètes sur le bien à valider
               </DialogDescription>
             </DialogHeader>
             {propertyDetailLoading ? (
@@ -1846,9 +1846,9 @@ export default function ModerateurDashboard() {
             ) : propertyDetailError && !selectedPropertyFromList ? (
               <div className="py-8 text-center">
                 <CircleAlert className="w-16 h-16 mx-auto mb-4 text-destructive" />
-                <h3 className="text-lg font-semibold mb-2">Impossible de charger les details</h3>
+                <h3 className="text-lg font-semibold mb-2">Impossible de charger les détails</h3>
                 <p className="text-muted-foreground mb-4">
-                  Les informations de ce bien n'ont pas pu etre recuperees. Le bien n'existe peut-etre plus.
+                  Les informations de ce bien n'ont pas pu être récupérées. Le bien n'existe peut-être plus.
                 </p>
                 <Button 
                   variant="outline" 
@@ -2041,7 +2041,7 @@ export default function ModerateurDashboard() {
         <Dialog open={agentDetailDialogOpen} onOpenChange={setAgentDetailDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Details de l'agent</DialogTitle>
+              <DialogTitle>Détails de l'agent</DialogTitle>
               <DialogDescription>
                 Informations completes sur l'agent
               </DialogDescription>
@@ -2080,7 +2080,7 @@ export default function ModerateurDashboard() {
                     <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                       <Phone className="w-5 h-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Telephone</p>
+                        <p className="text-sm text-muted-foreground">Téléphone</p>
                         <p className="font-medium" data-testid="text-agent-detail-phone">{selectedAgentForDetail.phone}</p>
                       </div>
                     </div>
