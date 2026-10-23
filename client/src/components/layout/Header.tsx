@@ -53,6 +53,7 @@ export function Header() {
     
     switch (user?.role) {
       case 'proprietaire':
+      case 'agence':
         return [
           { href: '/', icon: House, label: 'Accueil' },
           { href: '/search', icon: Search, label: 'Recherche' },
@@ -344,7 +345,7 @@ export function Header() {
                         Mes favoris
                       </DropdownMenuItem>
                     </Link>
-                    {user?.role === 'proprietaire' && (
+                    {(user?.role === 'proprietaire' || user?.role === 'agence') && (
                       <Link href="/my-properties">
                         <DropdownMenuItem data-testid="menu-my-properties">
                           Mes biens
@@ -386,7 +387,7 @@ export function Header() {
                         </DropdownMenuItem>
                       </Link>
                     )}
-                    {(user?.role === 'commissionnaire' || user?.role === 'moderateur' || user?.role === 'proprietaire') && (
+                    {(user?.role === 'commissionnaire' || user?.role === 'moderateur' || user?.role === 'proprietaire' || user?.role === 'agence') && (
                       <Link href="/">
                         <DropdownMenuItem data-testid="menu-home">
                           <House className="mr-2 h-4 w-4" />

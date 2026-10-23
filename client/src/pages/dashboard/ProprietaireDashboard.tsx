@@ -108,7 +108,8 @@ export default function ProprietaireDashboard() {
                 <h1 className="text-xl md:text-2xl font-bold">
                   {user?.first_name} {user?.last_name}
                 </h1>
-                <p className="text-sm text-muted-foreground">Propriétaire</p>
+                {/* L'agence partage cet espace (décision du 24/10/2026). */}
+                <p className="text-sm text-muted-foreground">{user?.role === 'agence' ? 'Agence' : 'Propriétaire'}</p>
               </div>
             </div>
             <Link href="/add-property">

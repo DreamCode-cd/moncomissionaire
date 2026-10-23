@@ -771,7 +771,9 @@ const nomDePersonne = (libelle: string) =>
     );
 
 export const registerSchema = z.object({
-  user_type: z.enum(['client', 'proprietaire', 'commissionnaire']),
+  user_type: z.enum(['client', 'proprietaire', 'commissionnaire', 'agence']),
+  /** Seulement pour une agence : le nom affiché sur ses annonces. */
+  nom_agence: z.string().optional(),
   first_name: nomDePersonne('prénom'),
   last_name: nomDePersonne('nom'),
   // Le numéro arrive assemblé (« +243812345678 ») par ChampTelephone.
@@ -799,6 +801,9 @@ export const registerSchema = z.object({
 }).refine((data) => data.password === data.password2, {
   message: "Les deux mots de passe ne correspondent pas",
   path: ["password2"],
+}).refine((data) => data.user_type !== 'agence' || Boolean(data.nom_agence?.trim()), {
+  message: "Indiquez le nom de l’agence",
+  path: ["nom_agence"],
 });
 
 export const bienCreateSchema = z.object({

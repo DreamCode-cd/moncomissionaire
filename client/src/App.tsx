@@ -128,13 +128,15 @@ function Router() {
             <ProtectedRoute><ChatRoom /></ProtectedRoute>
           </Route>
           <Route path="/add-property">
-            <ProtectedRoute allowedRoles={['proprietaire', 'commissionnaire']}><AddProperty /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['proprietaire', 'agence', 'commissionnaire']}><AddProperty /></ProtectedRoute>
           </Route>
           <Route path="/property/:id/edit">
-            <ProtectedRoute allowedRoles={['proprietaire', 'commissionnaire']}><EditProperty /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['proprietaire', 'agence', 'commissionnaire']}><EditProperty /></ProtectedRoute>
           </Route>
           <Route path="/my-properties">
-            <ProtectedRoute allowedRoles={['proprietaire']}><ProprietaireDashboard /></ProtectedRoute>
+            {/* En v1, l'agence travaille comme un propriétaire de plusieurs biens
+                (décision du 24/10/2026). */}
+            <ProtectedRoute allowedRoles={['proprietaire', 'agence']}><ProprietaireDashboard /></ProtectedRoute>
           </Route>
           <Route path="/favoris">
             <ProtectedRoute><MesFavoris /></ProtectedRoute>
@@ -201,6 +203,7 @@ function DashboardRouter() {
     case 'moderateur':
       return <Redirect to="/moderation" />;
     case 'proprietaire':
+    case 'agence':
       return <Redirect to="/my-properties" />;
     case 'agent':
       return <Redirect to="/agent-dashboard" />;

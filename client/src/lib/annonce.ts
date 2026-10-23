@@ -10,12 +10,22 @@ import type { BienList, ProfilPublic } from '@shared/schema';
  */
 export function auteurAnnonce(bien: Pick<BienList, 'proprietaire' | 'commissionnaire_detail'>): {
   profil: ProfilPublic | null;
-  libelle: 'Commissionnaire' | 'Propriétaire';
+  libelle: 'Commissionnaire' | 'Propriétaire' | 'Agence';
 } {
   if (bien.commissionnaire_detail) {
     return { profil: bien.commissionnaire_detail, libelle: 'Commissionnaire' };
   }
-  return { profil: bien.proprietaire, libelle: 'Propriétaire' };
+  // Une agence publie comme un propriétaire ; le serveur envoie déjà le nom
+  // de l'agence dans `full_name`.
+  return { profil: bien.proprietaire, libelle: bien.proprietaire?.user_type === 'agence' ? 'Agence' : 'Propriétaire' };
+}
+
+/** Ce que l'équipe a vérifié : la pièce d'identité d'une personne, ou le
+ *  RCCM et le gérant d'une agence. */
+export function libelleVerification(profil?: Pick<ProfilPublic, 'user_type'> | null): string {
+  return profil?.user_type === 'agence'
+    ? 'Agence vérifiée par l’équipe VillaGo'
+    : 'Identité vérifiée par l’équipe VillaGo';
 }
 
 /** L'initiale de l'avatar. Sert aussi pour les comptes d'une visite ou d'une

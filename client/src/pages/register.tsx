@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation, useSearch } from 'wouter';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldErrors, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Briefcase, Eye, EyeOff, House, Search, UserPlus } from 'lucide-react';
+import { Briefcase, Building2, Eye, EyeOff, House, Search, UserPlus } from 'lucide-react';
 import { pageDeSuite, versConnexion } from '@/lib/suite';
 import { ChampTelephone } from '@/components/ChampTelephone';
 import { Layout } from '@/components/layout/Layout';
@@ -51,10 +51,17 @@ const ROLES: { valeur: Role; titre: string; detail: string; icone: typeof House 
     detail: 'Je publie moi-même la maison que je mets en location.',
     icone: House,
   },
+  {
+    valeur: 'agence',
+    titre: 'Je représente une agence',
+    detail: 'Nous publions plusieurs biens, sous le nom de l’agence.',
+    icone: Building2,
+  },
 ];
 
 const CHAMPS_DU_FORMULAIRE: (keyof RegisterInput)[] = [
   'user_type',
+  'nom_agence',
   'first_name',
   'last_name',
   'phone',
@@ -64,6 +71,24 @@ const CHAMPS_DU_FORMULAIRE: (keyof RegisterInput)[] = [
   'terms_accepted',
   'consentement_donnees',
 ];
+
+/**
+ * Le nom d'agence dépend du rôle choisi : c'est un `.refine` sur l'objet, que
+ * Zod n'exécute qu'une fois tous les autres champs valides. Sur un formulaire
+ * vide, l'erreur n'arrivait qu'après toutes les autres. On l'ajoute ici, en
+ * même temps qu'elles.
+ */
+const resoudre: Resolver<RegisterInput> = async (valeurs, contexte, options) => {
+  const resultat = await zodResolver(registerSchema)(valeurs, contexte, options);
+  const erreurs = resultat.errors as FieldErrors<RegisterInput>;
+  if (valeurs.user_type === 'agence' && !valeurs.nom_agence?.trim() && !erreurs.nom_agence) {
+    return {
+      values: {},
+      errors: { ...erreurs, nom_agence: { type: 'required', message: 'Indiquez le nom de l’agence' } },
+    };
+  }
+  return resultat;
+};
 
 /** Les messages du serveur vont sous le champ concerné ; le reste en bulle. */
 function repartirErreurs(
@@ -82,12 +107,13 @@ export default function Register() {
 
   const roleDemande = new URLSearchParams(searchParams).get('role');
   const roleParDefaut: Role =
-    roleDemande === 'proprietaire' || roleDemande === 'commissionnaire' ? roleDemande : 'client';
+    roleDemande === 'proprietaire' || roleDemande === 'commissionnaire' || roleDemande === 'agence' ? roleDemande : 'client';
 
   const form = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: resoudre,
     defaultValues: {
       user_type: roleParDefaut,
+      nom_agence: '',
       first_name: '',
       last_name: '',
       phone: '',
@@ -106,8 +132,10 @@ export default function Register() {
       toast({ title: 'Compte créé', description: 'Bienvenue sur VillaGo.' });
       // Venu d'une page (une demande de visite, par exemple) : on y retourne.
       // Sinon, le commissionnaire vient pour travailler : droit à son
-      // portefeuille.
-      setLocation(pageDeSuite(searchParams) ?? (data.user_type === 'commissionnaire' ? '/dashboard' : '/'));
+      // portefeuille ; l'agence, à ses biens, pour publier.
+      const accueil =
+        data.user_type === 'commissionnaire' ? '/dashboard' : data.user_type === 'agence' ? '/my-properties' : '/';
+      setLocation(pageDeSuite(searchParams) ?? accueil);
     } catch (erreur) {
       const reste = repartirErreurs(erreur, (champ, message) => form.setError(champ, { message }));
       if (reste) {
@@ -166,6 +194,26 @@ export default function Register() {
                   )}
                 />
 
+                {role === 'agence' && (
+                  <FormField
+                    control={form.control}
+                    name="nom_agence"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom de l’agence</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="organization" {...field} data-testid="input-nom-agence" />
+                        </FormControl>
+                        <FormDescription>
+                          C’est lui qui apparaît sur vos annonces. Le badge « Agence vérifiée » s’ajoute quand l’équipe
+                          VillaGo a vu votre RCCM et la pièce d’identité du gérant.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <div className="grid grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
@@ -212,7 +260,9 @@ export default function Register() {
                           ? 'C’est par ce numéro que bailleurs et clients vous joindront.'
                           : role === 'client'
                             ? 'Communiqué au commissionnaire seulement quand il accepte votre demande de visite.'
-                            : 'Pour que l’équipe VillaGo puisse vous joindre au sujet de vos annonces.'}
+                            : role === 'agence'
+                              ? 'Le numéro de l’agence, pour que l’équipe VillaGo vous joigne au sujet de vos annonces.'
+                              : 'Pour que l’équipe VillaGo puisse vous joindre au sujet de vos annonces.'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

@@ -63,6 +63,7 @@ export function MobileNav() {
     
     switch (user?.role) {
       case 'proprietaire':
+      case 'agence':
         return proprietaireNavItems;
       case 'commissionnaire':
         return commissionnaireNavItems;

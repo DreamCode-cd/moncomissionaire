@@ -9224,6 +9224,13 @@
                     "title": "Consentement donnees",
                     "description": "Consentement au traitement des données personnelles, distinct de l'acceptation des conditions (Code du numérique, article 196).",
                     "type": "boolean"
+                },
+                "nom_agence": {
+                    "title": "Nom agence",
+                    "description": "Obligatoire pour une agence : le nom affiché sur ses annonces.",
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
                 }
             }
         },

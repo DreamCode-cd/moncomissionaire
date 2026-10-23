@@ -44,7 +44,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterLoyer, formaterPrix } from '@/lib/prix';
-import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, lieuAnnonce } from '@/lib/annonce';
+import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, libelleVerification, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
@@ -805,7 +805,7 @@ export default function PropertyDetail() {
                       <p className="font-semibold" data-testid="text-owner-name">{nom}</p>
                       {profil?.identite_verifiee && (
                         <p className="flex items-center gap-1 text-sm font-medium text-statut-favorable" data-testid="badge-identite-verifiee">
-                          <ShieldCheck className="h-4 w-4" /> Identité vérifiée par l’équipe VillaGo
+                          <ShieldCheck className="h-4 w-4" /> {libelleVerification(profil)}
                         </p>
                       )}
                       {property.commissionnaire && <NoteCommissionnaire commissionnaireId={property.commissionnaire} />}
