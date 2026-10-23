@@ -1,7 +1,7 @@
 import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, SquarePen, Eye, EyeOff, FileText, CircleCheck } from 'lucide-react';
+import { Mail, Phone, Calendar, Shield, LogOut, Bell, BellOff, MapPin, SquarePen, Eye, EyeOff, FileText, CircleCheck, Heart } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,9 +29,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { ChampTelephone } from '@/components/ChampTelephone';
+import { erreurTelephone } from '@shared/telephone';
 import { MESSAGE_DECONNEXION_HORS_LIGNE } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 interface ProfileFormData {
@@ -88,6 +90,11 @@ export default function Profile() {
         description: 'Les mots de passe ne correspondent pas',
         variant: 'destructive',
       });
+      return;
+    }
+    const erreurNumero = erreurTelephone(data.phone);
+    if (erreurNumero) {
+      form.setError('phone', { message: erreurNumero });
       return;
     }
 
@@ -148,7 +155,8 @@ export default function Profile() {
 
   const getRoleLabel = (role?: string) => {
     switch (role) {
-      case 'client': return 'Locataire';
+      // Pas « Locataire » : on peut chercher un logement sans louer encore.
+      case 'client': return 'Client';
       case 'proprietaire': return 'Propriétaire';
       case 'commissionnaire': return 'Commissionnaire';
       case 'moderateur': return 'Modérateur VillaGo';
@@ -255,7 +263,7 @@ export default function Profile() {
                           <FormItem>
                             <FormLabel>Téléphone</FormLabel>
                             <FormControl>
-                              <Input type="tel" {...field} data-testid="input-edit-phone" />
+                              <ChampTelephone {...field} data-testid="input-edit-phone" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -520,6 +528,19 @@ export default function Profile() {
             </CardContent>
           </Card>
         )}
+
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            {/* Sur téléphone, l'en-tête n'a plus de menu de profil : c'est
+                d'ici qu'on retrouve ses favoris. */}
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/favoris" data-testid="link-favoris">
+                <Heart className="mr-2 h-4 w-4" />
+                Mes favoris
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="pt-6">

@@ -12,6 +12,9 @@ const clientNavItems = [
   { href: '/', icon: House, label: 'Accueil' },
   { href: '/search', icon: Search, label: 'Recherche' },
   { href: '/my-visits', icon: Building2, label: 'Visites' },
+  // Seule entrée vers la messagerie sur téléphone : l'icône de l'en-tête y
+  // est masquée pour ne pas doublonner.
+  { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];
 

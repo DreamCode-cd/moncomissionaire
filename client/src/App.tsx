@@ -37,6 +37,7 @@ const AddProperty = lazyWithRetry(() => import("@/pages/AddProperty"));
 const EditProperty = lazyWithRetry(() => import("@/pages/EditProperty"));
 const ClientDashboard = lazyWithRetry(() => import("@/pages/dashboard/ClientDashboard"));
 const MyVisits = lazyWithRetry(() => import("@/pages/MyVisits"));
+const MesFavoris = lazyWithRetry(() => import("@/pages/MesFavoris"));
 const ProprietaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/ProprietaireDashboard"));
 const CommissionnaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/CommissionnaireDashboard"));
 const ModerateurDashboard = lazyWithRetry(() => import("@/pages/dashboard/ModerateurDashboard"));
@@ -134,6 +135,9 @@ function Router() {
           </Route>
           <Route path="/my-properties">
             <ProtectedRoute allowedRoles={['proprietaire']}><ProprietaireDashboard /></ProtectedRoute>
+          </Route>
+          <Route path="/favoris">
+            <ProtectedRoute><MesFavoris /></ProtectedRoute>
           </Route>
           <Route path="/my-visits">
             <ProtectedRoute allowedRoles={['client']}><ClientDashboard /></ProtectedRoute>

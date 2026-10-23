@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, SlidersHorizontal, X, Droplet, Zap, Car, Trees, Sofa, Snowflake, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Sheet,
@@ -86,25 +85,72 @@ const ECHELLE: Record<Devise, { max: number; pas: number }> = {
   CDF: { max: 5000000, pas: 100000 },
 };
 
+/** Délai avant de lancer la recherche pendant la frappe. */
+const ATTENTE_FRAPPE_MS = 400;
+
+/**
+ * Barre de recherche et panneau de filtres.
+ *
+ * Le panneau travaille sur un brouillon : rien ne part au serveur avant
+ * « Appliquer ». Auparavant, le type, la ville et les équipements
+ * s'appliquaient dès qu'on y touchait (derrière le panneau, sans qu'on le
+ * voie), le prix seulement sur « Appliquer », et le curseur gardait un prix
+ * qu'on venait de retirer : le prochain « Appliquer » le remettait.
+ */
 export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const devise: Devise = filters.devise ?? 'USD';
+  const [brouillon, setBrouillon] = useState<SearchFilters>(filters);
+  const devise: Devise = brouillon.devise ?? 'USD';
   const echelle = ECHELLE[devise];
-  const [priceRange, setPriceRange] = useState<[number, number]>([
-    filters.min_price || 0,
-    filters.max_price || echelle.max,
-  ]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, echelle.max]);
+
+  // Le texte part après une courte pause, pas à chaque lettre : sur une
+  // connexion lente, chaque lettre lançait une requête et la liste sautait
+  // pendant la frappe.
+  const [texte, setTexte] = useState(filters.query);
+  const filtresCourants = useRef(filters);
+  filtresCourants.current = filters;
+  const appliquer = useRef(onFiltersChange);
+  appliquer.current = onFiltersChange;
+  // Le dernier texte envoyé : quand l'adresse se met à jour avec lui, il ne
+  // faut pas écraser les lettres tapées entre-temps.
+  const dernierEnvoi = useRef(filters.query);
+  const envoyerTexte = (valeur: string) => {
+    dernierEnvoi.current = valeur;
+    appliquer.current({ ...filtresCourants.current, query: valeur });
+  };
+  useEffect(() => {
+    // Changement venu d'ailleurs (lien, retour arrière, « Tout effacer »).
+    if (filters.query !== dernierEnvoi.current) {
+      dernierEnvoi.current = filters.query;
+      setTexte(filters.query);
+    }
+  }, [filters.query]);
+  useEffect(() => {
+    if (texte === dernierEnvoi.current) return;
+    const minuterie = setTimeout(() => envoyerTexte(texte), ATTENTE_FRAPPE_MS);
+    return () => clearTimeout(minuterie);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [texte]);
+
+  const ouvrir = (ouvert: boolean) => {
+    if (ouvert) {
+      // Le brouillon repart des filtres réellement appliqués.
+      const devisePosee = filters.devise ?? 'USD';
+      setBrouillon(filters);
+      setPriceRange([filters.min_price ?? 0, filters.max_price ?? ECHELLE[devisePosee].max]);
+    }
+    setIsOpen(ouvert);
+  };
+
+  const modifier = (changement: Partial<SearchFilters>) =>
+    setBrouillon((actuel) => ({ ...actuel, ...changement }));
 
   // Changer de devise remet l'intervalle à zéro : conserver « 0 à 5 000 »
   // en passant du dollar au franc produirait un filtre absurde.
   const changerDevise = (nouvelle: Devise) => {
     setPriceRange([0, ECHELLE[nouvelle].max]);
-    onFiltersChange({
-      ...filters,
-      devise: nouvelle,
-      min_price: undefined,
-      max_price: undefined,
-    });
+    modifier({ devise: nouvelle, min_price: undefined, max_price: undefined });
   };
 
   const { data: villesData } = useQuery<VillesResponse | Ville[]>({
@@ -122,13 +168,10 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
     filters.min_chambres,
   ].filter(Boolean).length + activeAmenitiesCount;
 
-  const handleSearchChange = (value: string) => {
-    onFiltersChange({ ...filters, query: value });
-  };
-
   const handleApplyFilters = () => {
     onFiltersChange({
-      ...filters,
+      ...brouillon,
+      query: texte,
       devise,
       min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
       max_price: priceRange[1] < echelle.max ? priceRange[1] : undefined,
@@ -137,8 +180,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
   };
 
   const handleResetFilters = () => {
-    setPriceRange([0, echelle.max]);
-    onFiltersChange({ query: filters.query });
+    onFiltersChange({ query: texte });
     setIsOpen(false);
   };
 
@@ -148,23 +190,36 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
     onFiltersChange(newFilters);
   };
 
+  const deviseAppliquee = filters.devise ?? 'USD';
+
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
+      <form
+        className="flex gap-2"
+        role="search"
+        onSubmit={(e) => {
+          // « Entrée » ou « Rechercher » du clavier : on n'attend pas.
+          e.preventDefault();
+          envoyerTexte(texte);
+          (document.activeElement as HTMLElement | null)?.blur();
+        }}
+      >
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Rechercher un bien..."
+            enterKeyHint="search"
+            placeholder="Quartier, commune, type de bien…"
+            aria-label="Rechercher un quartier, une commune ou un type de bien"
             className="pl-10 h-12"
-            value={filters.query}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={texte}
+            onChange={(e) => setTexte(e.target.value)}
             data-testid="input-search"
           />
         </div>
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <Sheet open={isOpen} onOpenChange={ouvrir}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="lg" className="relative" data-testid="button-filters">
+            <Button type="button" variant="outline" size="lg" className="relative h-12" aria-label="Filtres" data-testid="button-filters">
               <SlidersHorizontal className="w-5 h-5" />
               {activeFiltersCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
@@ -173,20 +228,17 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh] rounded-t-xl">
+          <SheetContent side="bottom" className="h-[85dvh] rounded-t-xl flex flex-col">
             <SheetHeader>
               <SheetTitle>Filtres</SheetTitle>
             </SheetHeader>
-            <ScrollArea className="h-[calc(80vh-140px)]">
+            <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-6 py-6 pr-4">
               <div className="space-y-2">
                 <Label>Type de bien</Label>
                 <Select
-                  value={filters.type_bien || 'all'}
-                  onValueChange={(value) => onFiltersChange({ 
-                    ...filters, 
-                    type_bien: value === 'all' ? undefined : value 
-                  })}
+                  value={brouillon.type_bien || 'all'}
+                  onValueChange={(value) => modifier({ type_bien: value === 'all' ? undefined : value })}
                 >
                   <SelectTrigger data-testid="select-type-bien">
                     <SelectValue />
@@ -204,11 +256,8 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               <div className="space-y-2">
                 <Label>Ville</Label>
                 <Select
-                  value={filters.ville || 'all'}
-                  onValueChange={(value) => onFiltersChange({ 
-                    ...filters, 
-                    ville: value === 'all' ? undefined : value 
-                  })}
+                  value={brouillon.ville || 'all'}
+                  onValueChange={(value) => modifier({ ville: value === 'all' ? undefined : value })}
                 >
                   <SelectTrigger data-testid="select-ville">
                     <SelectValue />
@@ -242,8 +291,9 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
 
               <div className="space-y-4">
                 <Label>
-                  Prix mensuel : {formaterPrix(priceRange[0], devise)} –{' '}
+                  Loyer par mois : {formaterPrix(priceRange[0], devise)} –{' '}
                   {formaterPrix(priceRange[1], devise)}
+                  {priceRange[1] >= echelle.max ? ' et plus' : ''}
                 </Label>
                 <Slider
                   min={0}
@@ -259,11 +309,8 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               <div className="space-y-2">
                 <Label>Chambres minimum</Label>
                 <Select
-                  value={filters.min_chambres?.toString() || 'any'}
-                  onValueChange={(value) => onFiltersChange({ 
-                    ...filters, 
-                    min_chambres: value === 'any' ? undefined : parseInt(value) 
-                  })}
+                  value={brouillon.min_chambres?.toString() || 'any'}
+                  onValueChange={(value) => modifier({ min_chambres: value === 'any' ? undefined : parseInt(value) })}
                 >
                   <SelectTrigger data-testid="select-chambres">
                     <SelectValue />
@@ -280,32 +327,27 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               </div>
 
               <div className="space-y-3">
-                <Label>Equipements</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <Label>Équipements</Label>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                   {amenities.map((amenity) => {
                     const Icon = amenity.icon;
                     return (
-                      <div
+                      // Toute la ligne est cliquable, 44 px de haut : la case
+                      // seule faisait 16 px sous le doigt.
+                      <label
                         key={amenity.key}
-                        className="flex items-center gap-2"
+                        htmlFor={amenity.key}
+                        className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-md px-1 text-sm"
                       >
                         <Checkbox
                           id={amenity.key}
-                          checked={filters[amenity.key] || false}
-                          onCheckedChange={(checked) => onFiltersChange({
-                            ...filters,
-                            [amenity.key]: checked === true ? true : undefined
-                          })}
+                          checked={brouillon[amenity.key] || false}
+                          onCheckedChange={(checked) => modifier({ [amenity.key]: checked === true ? true : undefined })}
                           data-testid={`checkbox-${amenity.key}`}
                         />
-                        <label
-                          htmlFor={amenity.key}
-                          className="flex items-center gap-2 text-sm cursor-pointer"
-                        >
-                          <Icon className="w-4 h-4 text-muted-foreground" />
-                          {amenity.label}
-                        </label>
-                      </div>
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                        {amenity.label}
+                      </label>
                     );
                   })}
                 </div>
@@ -314,61 +356,66 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
             </ScrollArea>
 
             <div className="flex gap-3 pt-4 border-t">
-              <Button variant="outline" className="flex-1" onClick={handleResetFilters} data-testid="button-reset-filters">
-                Réinitialiser
+              <Button type="button" variant="outline" className="flex-1" onClick={handleResetFilters} data-testid="button-reset-filters">
+                Tout effacer
               </Button>
-              <Button className="flex-1" onClick={handleApplyFilters} data-testid="button-apply-filters">
+              <Button type="button" className="flex-1" onClick={handleApplyFilters} data-testid="button-apply-filters">
                 Appliquer
               </Button>
             </div>
           </SheetContent>
         </Sheet>
-      </div>
+      </form>
 
       {activeFiltersCount > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
           {filters.type_bien && filters.type_bien !== 'all' && (
-            <Badge variant="secondary" className="flex-shrink-0 gap-1">
-              {propertyTypes.find(t => t.value === filters.type_bien)?.label}
-              <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('type_bien')} />
-            </Badge>
+            <PastilleFiltre libelle={propertyTypes.find(t => t.value === filters.type_bien)?.label ?? filters.type_bien} onRetirer={() => removeFilter('type_bien')} />
           )}
           {filters.ville && filters.ville !== 'all' && (
-            <Badge variant="secondary" className="flex-shrink-0 gap-1">
-              {villes.find(v => v.id.toString() === filters.ville)?.nom || filters.ville}
-              <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('ville')} />
-            </Badge>
+            <PastilleFiltre libelle={villes.find(v => v.id.toString() === filters.ville)?.nom || filters.ville} onRetirer={() => removeFilter('ville')} />
           )}
-          {filters.min_price && (
-            <Badge variant="secondary" className="flex-shrink-0 gap-1">
-              Min: ${filters.min_price}
-              <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('min_price')} />
-            </Badge>
-          )}
-          {filters.max_price && (
-            <Badge variant="secondary" className="flex-shrink-0 gap-1">
-              Max: ${filters.max_price}
-              <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('max_price')} />
-            </Badge>
-          )}
-          {filters.min_chambres && (
-            <Badge variant="secondary" className="flex-shrink-0 gap-1">
-              {filters.min_chambres}+ ch.
-              <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter('min_chambres')} />
-            </Badge>
-          )}
-          {amenities.filter(a => filters[a.key]).map((amenity) => {
-            const Icon = amenity.icon;
-            return (
-              <Badge key={amenity.key} variant="secondary" className="flex-shrink-0 gap-1">
-                <Icon className="w-3 h-3" />
-                {amenity.label}
-                <X className="w-3 h-3 cursor-pointer" onClick={() => removeFilter(amenity.key)} />
-              </Badge>
-            );
-          })}
+          {filters.min_price ? (
+            <PastilleFiltre libelle={`À partir de ${formaterPrix(filters.min_price, deviseAppliquee)}`} onRetirer={() => removeFilter('min_price')} />
+          ) : null}
+          {filters.max_price ? (
+            <PastilleFiltre libelle={`Jusqu’à ${formaterPrix(filters.max_price, deviseAppliquee)}`} onRetirer={() => removeFilter('max_price')} />
+          ) : null}
+          {filters.min_chambres ? (
+            <PastilleFiltre libelle={`${filters.min_chambres} ch. et plus`} onRetirer={() => removeFilter('min_chambres')} />
+          ) : null}
+          {amenities.filter(a => filters[a.key]).map((amenity) => (
+            <PastilleFiltre key={amenity.key} libelle={amenity.label} icone={amenity.icon} onRetirer={() => removeFilter(amenity.key)} />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Un filtre appliqué. Toute la pastille retire le filtre : la croix seule
+ * faisait 12 px, impossible à viser au doigt.
+ */
+function PastilleFiltre({
+  libelle,
+  icone: Icone,
+  onRetirer,
+}: {
+  libelle: string;
+  icone?: typeof Search;
+  onRetirer: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRetirer}
+      aria-label={`Retirer le filtre « ${libelle} »`}
+      className="flex min-h-[44px] flex-shrink-0 items-center gap-1.5 rounded-full bg-secondary px-3 text-xs font-medium text-secondary-foreground"
+    >
+      {Icone ? <Icone className="h-3.5 w-3.5" aria-hidden /> : null}
+      {libelle}
+      <X className="h-3.5 w-3.5" aria-hidden />
+    </button>
   );
 }

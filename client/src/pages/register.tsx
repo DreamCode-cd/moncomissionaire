@@ -3,6 +3,7 @@ import { Link, useLocation, useSearch } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Briefcase, Eye, EyeOff, House, Search, UserPlus } from 'lucide-react';
+import { ChampTelephone } from '@/components/ChampTelephone';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -198,18 +199,12 @@ export default function Register() {
                     <FormItem>
                       <FormLabel>Téléphone</FormLabel>
                       <FormControl>
-                        <Input
-                          type="tel"
-                          inputMode="tel"
-                          autoComplete="tel"
-                          {...field}
-                          data-testid="input-phone"
-                        />
+                        <ChampTelephone {...field} data-testid="input-phone" />
                       </FormControl>
                       <FormDescription>
                         {/* Le format en aide, pas dans le champ : un faux numéro
                             dans le champ se lisait comme déjà rempli. */}
-                        {'+243 suivi de 9 chiffres. '}
+                        {'Par exemple 81 234 56 78. '}
                         {role === 'commissionnaire'
                           ? 'C’est par ce numéro que bailleurs et clients vous joindront.'
                           : role === 'client'

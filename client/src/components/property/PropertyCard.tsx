@@ -18,6 +18,10 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, variant = 'default', rating }: PropertyCardProps) {
   const photoUrl = vignetteDe(property.photo_principale);
+  // Les listes publiques ne montrent que des biens disponibles : un badge
+  // « Disponible » sur chaque carte ne disait rien. Seuls « En visite » ou
+  // « Loué » (un favori ancien, par exemple) méritent d'être signalés.
+  const estDisponible = property.statut_location === 'disponible';
   const surface = formaterSurface(property.superficie);
   const lieu = lieuAnnonce([
     property.quartier,
@@ -46,12 +50,14 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
                   <div className="flex items-start justify-between gap-3 mb-1">
                     <h3 className="font-semibold text-sm line-clamp-1">{property.titre}</h3>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <BadgeStatut
+                      {!estDisponible && (
+                        <BadgeStatut
                           famille="location"
                           valeur={property.statut_location}
                           libelle={property.statut_location_display}
                           compact
                         />
+                      )}
                       <Badge variant="outline" className="text-xs px-1.5 py-0.5 leading-none">
                         {property.type_bien_display}
                       </Badge>
@@ -122,12 +128,14 @@ export function PropertyCard({ property, variant = 'default', rating }: Property
             <VignetteSansPhoto />
           )}
           <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-1">
-            <BadgeStatut
-              famille="location"
-              valeur={property.statut_location}
-              libelle={property.statut_location_display}
-              compact
-            />
+            {estDisponible ? <span /> : (
+              <BadgeStatut
+                famille="location"
+                valeur={property.statut_location}
+                libelle={property.statut_location_display}
+                compact
+              />
+            )}
             <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-background/80 backdrop-blur-sm">
               {property.type_bien_display}
             </Badge>
