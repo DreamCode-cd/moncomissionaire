@@ -3,7 +3,7 @@ import { ErreurApi } from '@/lib/erreurs';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { useRoute, useLocation, Link } from 'wouter';
+import { useRoute, useLocation, useSearch, Link } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   MapPin, Bed, Bath, Maximize, Calendar, User, ChevronLeft, ChevronRight, X,
@@ -48,6 +48,7 @@ import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, lieuAnnonce 
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
+import { garderBrouillonVisite, oublierBrouillonVisite, reprendreBrouillonVisite, versConnexion } from '@/lib/suite';
 
 // Plus de photo d'illustration à la place d'une vraie : voir VignetteSansPhoto.
 
@@ -82,6 +83,23 @@ export default function PropertyDetail() {
   const [isZoomed, setIsZoomed] = useState(false);
 
   const propertyId = params?.id;
+  const recherche = useSearch();
+  const ficheSeule = `/property/${propertyId}`;
+
+  // Retour de la connexion avec `?visite=1` : on rouvre la demande, remplie
+  // comme le visiteur l'avait laissée.
+  useEffect(() => {
+    if (!propertyId || !isAuthenticated || user?.role !== 'client') return;
+    if (new URLSearchParams(recherche).get('visite') !== '1') return;
+    const brouillon = reprendreBrouillonVisite(propertyId);
+    if (brouillon) {
+      setVisitDate(brouillon.date);
+      setVisitTime(brouillon.heure);
+      setVisitMessage(brouillon.message);
+    }
+    setVisitDialogOpen(true);
+    setLocation(ficheSeule, { replace: true });
+  }, [propertyId, isAuthenticated, user?.role, recherche, ficheSeule, setLocation]);
 
   useEffect(() => {
     if (!carouselApi) return;
@@ -258,7 +276,10 @@ export default function PropertyDetail() {
 
   const handleRequestVisit = async () => {
     if (!isAuthenticated) {
-      setLocation('/login');
+      // La saisie survit à la connexion : le visiteur revient ici, le
+      // formulaire rouvert et rempli.
+      garderBrouillonVisite(propertyId!, { date: visitDate, heure: visitTime, message: visitMessage });
+      setLocation(versConnexion(`${ficheSeule}?visite=1`));
       return;
     }
 
@@ -283,6 +304,7 @@ export default function PropertyDetail() {
         title: 'Demande envoyée',
         description: 'Votre demande de visite a été envoyée avec succès.',
       });
+      oublierBrouillonVisite(propertyId!);
       setVisitDialogOpen(false);
       setVisitDate('');
       setVisitTime('');
@@ -300,7 +322,7 @@ export default function PropertyDetail() {
 
   const handleToggleFavorite = () => {
     if (!isAuthenticated) {
-      setLocation('/login');
+      setLocation(versConnexion(ficheSeule));
       return;
     }
     toggleFavoriteMutation.mutate();
@@ -372,7 +394,7 @@ export default function PropertyDetail() {
 
   const handleSubmitReview = () => {
     if (!isAuthenticated) {
-      setLocation('/login');
+      setLocation(versConnexion(ficheSeule));
       return;
     }
 
@@ -1034,7 +1056,14 @@ export default function PropertyDetail() {
           </div>
           
           {property.statut_location !== 'loue' ? (
-            <Dialog open={visitDialogOpen} onOpenChange={setVisitDialogOpen}>
+            <Dialog
+              open={visitDialogOpen}
+              onOpenChange={(ouvert) => {
+                setVisitDialogOpen(ouvert);
+                // Fermé à la main : la personne renonce, le brouillon aussi.
+                if (!ouvert && propertyId) oublierBrouillonVisite(propertyId);
+              }}
+            >
               <DialogTrigger asChild>
                 <Button size="lg" data-testid="button-request-visit">
                   <Calendar className="mr-2 h-5 w-5" />

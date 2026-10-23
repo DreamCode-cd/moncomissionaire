@@ -22,6 +22,11 @@ const SUJETS = {
     titreParDefaut: 'le commissionnaire',
     consigne: 'Ponctualité, honnêteté sur l’état de la maison, frais annoncés respectés…',
   },
+  agent: {
+    route: '/api/v1/biens/avis-agents/',
+    titreParDefaut: 'l’agent qui vous a fait visiter',
+    consigne: 'Ponctualité, politesse, réponses claires sur la maison et le quartier…',
+  },
   bien: {
     route: '/api/v1/biens/avis-biens/',
     titreParDefaut: 'ce bien',
@@ -30,7 +35,7 @@ const SUJETS = {
 } as const;
 
 /**
- * Noter un commissionnaire ou un bien. On ne note que ce qu'on a vu : une
+ * Noter un commissionnaire, un agent ou un bien. On ne note que ce qu'on a vu : une
  * visite terminée (client) ou un bail signé chez soi (propriétaire). Le
  * serveur déduit qui ou quoi est noté et refuse une seconde note.
  */

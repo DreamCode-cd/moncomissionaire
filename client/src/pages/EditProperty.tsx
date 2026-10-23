@@ -121,6 +121,7 @@ export default function EditProperty() {
     queryKey: [routeApi, propertyId],
     enabled: !!propertyId,
   });
+  const estConfie = estCommissionnaire && !!property?.proprietaire;
 
   const { data: villesData } = useQuery<VillesResponse | Ville[]>({
     queryKey: ['/api/v1/biens/villes/'],
@@ -431,6 +432,10 @@ export default function EditProperty() {
             <h1 className="text-2xl font-bold">Modifier le bien</h1>
           </div>
           
+          {/* Le bien d'un propriétaire inscrit lui appartient : le serveur refuse
+              que le commissionnaire le supprime (403). On ne propose donc pas
+              un bouton qui échouerait. */}
+          {!estConfie && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" data-testid="button-delete-property">
@@ -465,7 +470,13 @@ export default function EditProperty() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          )}
         </div>
+        {estConfie && (
+          <p className="-mt-4 mb-6 text-sm text-muted-foreground" data-testid="text-bien-confie">
+            Bien confié par son propriétaire : vous pouvez le modifier, lui seul peut le supprimer.
+          </p>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

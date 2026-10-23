@@ -12468,7 +12468,7 @@
                     "$ref": "#/definitions/UserList"
                 },
                 "etat_general": {
-                    "title": "État général du bien",
+                    "title": "Appréciation générale",
                     "type": "string",
                     "enum": [
                         "tres_interessant",
@@ -12567,7 +12567,7 @@
             "type": "object",
             "properties": {
                 "etat_general": {
-                    "title": "État général du bien",
+                    "title": "Appréciation générale",
                     "type": "string",
                     "enum": [
                         "tres_interessant",
@@ -12691,6 +12691,12 @@
                 "avis_bien_donne": {
                     "title": "Avis bien donne",
                     "description": "Le client a déjà donné son avis sur ce bien, lors de cette visite ou d'une précédente : un seul avis par bien.",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "agent_a_noter": {
+                    "title": "Agent a noter",
+                    "description": "Un agent, autre que le commissionnaire, a fait visiter et le client ne l'a pas encore noté pour cette visite.",
                     "type": "boolean",
                     "readOnly": true
                 }
