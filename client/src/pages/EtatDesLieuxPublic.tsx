@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
@@ -22,10 +22,25 @@ import { BilanGarantie, PieceLecture } from './EtatDesLieuxEdition';
  * restent attachées à l'état des lieux. C'est sa protection au départ, quand
  * il faudra parler de la garantie.
  */
+const CHEMIN = '/api/v1/commissions/etat-des-lieux-public/';
+
 export default function EtatDesLieuxPublic() {
-  const { jeton } = useParams<{ jeton: string }>();
-  const chemin = `/api/v1/commissions/etat-des-lieux-public/${jeton}/`;
-  const etat = useQuery<EtatDesLieux>({ queryKey: [chemin] });
+  const { jeton: jetonDansLeChemin } = useParams<{ jeton?: string }>();
+  // Après « # » : un navigateur n'envoie jamais cette partie de l'adresse, ni
+  // au site ni à l'API. Le jeton voyage ensuite dans le corps des requêtes.
+  const [jeton] = useState(() => jetonDansLeChemin ?? decodeURIComponent(window.location.hash.slice(1)));
+
+  // Ancien lien (jeton dans le chemin) : on remet l'adresse dans la forme
+  // nouvelle, pour que le locataire garde et repartage la bonne.
+  useEffect(() => {
+    if (jetonDansLeChemin) window.history.replaceState(null, '', `/etat-des-lieux#${jetonDansLeChemin}`);
+  }, [jetonDansLeChemin]);
+
+  const etat = useQuery<EtatDesLieux>({
+    queryKey: [CHEMIN, 'jeton', jeton],
+    queryFn: () => api.post<EtatDesLieux>(CHEMIN, { jeton }),
+    enabled: Boolean(jeton),
+  });
   // Seul un 404 veut dire que le lien n'est plus bon. Une coupure de réseau
   // ne doit pas faire croire au locataire qu'il faut un nouveau lien.
   const lienInvalide = etat.error instanceof ErreurApi && etat.error.statut === 404;
@@ -34,7 +49,7 @@ export default function EtatDesLieuxPublic() {
   const [erreur, setErreur] = useState<string | null>(null);
 
   const valider = useMutation({
-    mutationFn: () => api.post<EtatDesLieux>(`${chemin}valider/`, { nom, reserves }),
+    mutationFn: () => api.post<EtatDesLieux>(`${CHEMIN}valider/`, { jeton, nom, reserves }),
     onSuccess: () => etat.refetch(),
     onError: (e) => setErreur(messageErreur(e)),
   });
@@ -45,7 +60,12 @@ export default function EtatDesLieuxPublic() {
         <h1 className="text-xl font-bold">
           État des lieux {etat.data?.type === 'sortie' ? 'de sortie' : etat.data ? 'd’entrée' : ''}
         </h1>
-        {etat.isLoading ? (
+        {!jeton ? (
+          <EtatVide
+            titre="Lien incomplet"
+            description="Il manque la fin du lien. Ouvrez le message du commissionnaire et touchez le lien entier, ou demandez-lui de vous le renvoyer."
+          />
+        ) : etat.isLoading ? (
           <EtatChargement texte="Chargement…" />
         ) : etat.error && !etat.data && !lienInvalide ? (
           <ErreurRequete erreur={etat.error} onReessayer={() => void etat.refetch()} />
