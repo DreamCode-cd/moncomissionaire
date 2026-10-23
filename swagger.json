@@ -3533,22 +3533,28 @@
         "/biens/favoris/toggle/": {
             "post": {
                 "operationId": "biens_favoris_toggle",
-                "description": "",
+                "description": "Ajoute ou retire un favori. Avec `favori`, fixe l'état voulu ;\nsans, l'inverse.",
                 "parameters": [
                     {
                         "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Favori"
+                            "$ref": "#/definitions/FavoriBascule"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/FavoriEtat"
+                        }
+                    },
                     "201": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/Favori"
+                            "$ref": "#/definitions/FavoriEtat"
                         }
                     }
                 },
@@ -10693,6 +10699,42 @@
                 "bien": {
                     "title": "Bien",
                     "type": "integer"
+                }
+            }
+        },
+        "FavoriBascule": {
+            "required": [
+                "bien_id"
+            ],
+            "type": "object",
+            "properties": {
+                "bien_id": {
+                    "title": "Bien id",
+                    "description": "Le bien concerné.",
+                    "type": "integer"
+                },
+                "favori": {
+                    "title": "Favori",
+                    "description": "L'état voulu. Avec lui, l'envoi peut être rejoué sans effet de bord : c'est ce qu'envoie le mobile, dont la file hors ligne peut renvoyer une requête après une coupure. Sans lui, l'état s'inverse (comportement historique du site).",
+                    "type": "boolean"
+                }
+            }
+        },
+        "FavoriEtat": {
+            "required": [
+                "message",
+                "is_favori"
+            ],
+            "type": "object",
+            "properties": {
+                "message": {
+                    "title": "Message",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "is_favori": {
+                    "title": "Is favori",
+                    "type": "boolean"
                 }
             }
         },
