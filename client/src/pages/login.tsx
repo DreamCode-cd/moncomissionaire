@@ -18,6 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { loginSchema, type LoginInput, type UserRole } from '@shared/schema';
+import { pageDeSuite, versConnexion } from '@/lib/suite';
 
 function getRedirectPath(role: UserRole): string {
   switch (role) {
@@ -38,13 +39,6 @@ function getRedirectPath(role: UserRole): string {
   }
 }
 
-/** La page où revenir après la connexion, si elle est demandée par
- *  `?suite=` (ex. /supprimer-mon-compte). Seulement un chemin de ce site :
- *  « //exemple.com » ou « https://… » renverraient vers un autre site. */
-function pageDeSuite(): string | null {
-  const suite = new URLSearchParams(window.location.search).get('suite');
-  return suite && suite.startsWith('/') && !suite.startsWith('//') ? suite : null;
-}
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -205,7 +199,9 @@ export default function Login() {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Pas encore de compte ? </span>
-              <Link href="/register">
+              {/* La page de suite suit vers l'inscription : celui qui n'a pas
+                  encore de compte revient lui aussi là où il était. */}
+              <Link href={pageDeSuite() ? versConnexion(pageDeSuite()!, '/register') : '/register'}>
                 <span className="text-primary font-medium cursor-pointer" data-testid="link-register">
                   S'inscrire
                 </span>

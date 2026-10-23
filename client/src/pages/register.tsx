@@ -3,6 +3,7 @@ import { Link, useLocation, useSearch } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Briefcase, Eye, EyeOff, House, Search, UserPlus } from 'lucide-react';
+import { pageDeSuite, versConnexion } from '@/lib/suite';
 import { ChampTelephone } from '@/components/ChampTelephone';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -103,8 +104,10 @@ export default function Register() {
     try {
       await register(data);
       toast({ title: 'Compte créé', description: 'Bienvenue sur VillaGo.' });
-      // Le commissionnaire vient pour travailler : droit à son portefeuille.
-      setLocation(data.user_type === 'commissionnaire' ? '/dashboard' : '/');
+      // Venu d'une page (une demande de visite, par exemple) : on y retourne.
+      // Sinon, le commissionnaire vient pour travailler : droit à son
+      // portefeuille.
+      setLocation(pageDeSuite(searchParams) ?? (data.user_type === 'commissionnaire' ? '/dashboard' : '/'));
     } catch (erreur) {
       const reste = repartirErreurs(erreur, (champ, message) => form.setError(champ, { message }));
       if (reste) {
@@ -359,7 +362,7 @@ export default function Register() {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Déjà un compte ? </span>
-              <Link href="/login">
+              <Link href={pageDeSuite(searchParams) ? versConnexion(pageDeSuite(searchParams)!) : "/login"}>
                 <span className="cursor-pointer font-medium text-primary" data-testid="link-login">
                   Se connecter
                 </span>
