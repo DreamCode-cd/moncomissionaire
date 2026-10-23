@@ -712,7 +712,9 @@ ${commissionnerName}`;
           // le corps des réponses de /auth/agents, /messaging/chatrooms et
           // /favoris/check dans les journaux : coordonnées d'agents et
           // conversations privées en clair.
-          const chemin = (req as any).originalUrl || req.url;
+          // Le chemin sans les paramètres : `?search=` porte des noms de
+          // locataires, et un paramètre peut porter un ticket ou un code.
+          const chemin = ((req as any).originalUrl || req.url || '').split('?')[0];
           console.log(`[proxy] ${req.method} ${chemin} -> ${proxyRes.statusCode}`);
         },
         error: (err, req, res) => {

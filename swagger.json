@@ -2032,6 +2032,25 @@
             },
             "parameters": []
         },
+        "/auth/ws-ticket/": {
+            "post": {
+                "operationId": "auth_ws-ticket_create",
+                "description": "Un ticket à usage unique pour ouvrir une WebSocket (notifications,\nmessagerie), valable 30 secondes.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/TicketWebSocket"
+                        }
+                    }
+                },
+                "tags": [
+                    "auth"
+                ]
+            },
+            "parameters": []
+        },
         "/biens/": {
             "get": {
                 "operationId": "biens_list",
@@ -9241,6 +9260,26 @@
                     "type": "string",
                     "readOnly": true,
                     "minLength": 1
+                }
+            }
+        },
+        "TicketWebSocket": {
+            "required": [
+                "ticket",
+                "expire_dans"
+            ],
+            "type": "object",
+            "properties": {
+                "ticket": {
+                    "title": "Ticket",
+                    "description": "À passer en `?ticket=` à l'ouverture de la WebSocket.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "expire_dans": {
+                    "title": "Expire dans",
+                    "description": "Secondes de validité.",
+                    "type": "integer"
                 }
             }
         },
