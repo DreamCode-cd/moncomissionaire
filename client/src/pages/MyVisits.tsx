@@ -47,7 +47,7 @@ export default function MyVisits() {
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
   const [aSignaler, setASignaler] = useState<DemandeWithVisite | null>(null);
   const [motifSignalement, setMotifSignalement] = useState('');
-  const [aNoter, setANoter] = useState<{ demande: DemandeWithVisite; sujet: 'commissionnaire' | 'bien' } | null>(null);
+  const [aNoter, setANoter] = useState<{ demande: DemandeWithVisite; sujet: 'commissionnaire' | 'agent' | 'bien' } | null>(null);
   const { toast } = useToast();
 
   // Un abus (frais exigés au-delà de l'annonce, commissionnaire injoignable
@@ -184,7 +184,7 @@ export default function MyVisits() {
             )}
             {demande.visite?.statut === 'terminee' && (
               // Après la visite, et seulement après : c'est elle qui donne le
-              // droit de noter le bien comme le commissionnaire.
+              // droit de noter le bien, le commissionnaire et l'agent.
               <div className="flex flex-wrap gap-2 mt-2">
                 {!demande.visite.avis_bien_donne && (
                   <Button
@@ -203,6 +203,18 @@ export default function MyVisits() {
                     data-testid={`button-noter-${demande.id}`}
                   >
                     Noter le commissionnaire
+                  </Button>
+                )}
+                {/* Seulement quand un agent, et non le commissionnaire
+                    lui-même, a fait visiter : le serveur le dit. */}
+                {demande.visite.agent_a_noter && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setANoter({ demande, sujet: 'agent' })}
+                    data-testid={`button-noter-agent-${demande.id}`}
+                  >
+                    Noter l’agent
                   </Button>
                 )}
               </div>
@@ -386,7 +398,9 @@ export default function MyVisits() {
             nom={
               aNoter.sujet === 'bien'
                 ? aNoter.demande.bien_detail?.titre
-                : aNoter.demande.bien_detail?.commissionnaire_detail?.full_name
+                : aNoter.sujet === 'agent'
+                  ? aNoter.demande.visite.agent_detail?.full_name
+                  : aNoter.demande.bien_detail?.commissionnaire_detail?.full_name
             }
             clesARafraichir={[['/api/v1/visites/client/demandes/']]}
             onFermer={() => setANoter(null)}

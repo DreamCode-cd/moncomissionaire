@@ -571,6 +571,9 @@ export interface VisiteMini {
   avis_commissionnaire_donne: boolean;
   /** Le client a déjà donné son avis sur ce bien (un seul par bien). */
   avis_bien_donne: boolean;
+  /** Un agent, autre que le commissionnaire, a fait visiter, et le client
+   *  ne l'a pas encore noté. */
+  agent_a_noter: boolean;
 }
 
 export interface DemandeVisiteCreate {
