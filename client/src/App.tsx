@@ -155,6 +155,10 @@ function Router() {
             <ProtectedRoute allowedRoles={['commissionnaire']}><EtatDesLieuxEdition /></ProtectedRoute>
           </Route>
           {/* Public : le locataire n'a pas besoin de compte. */}
+          {/* Le jeton est après « # » (jamais envoyé au serveur, donc absent
+              des journaux). L'ancienne forme, dans le chemin, reste lue pour
+              les liens déjà partis par WhatsApp. */}
+          <Route path="/etat-des-lieux" component={EtatDesLieuxPublic} />
           <Route path="/etat-des-lieux/:jeton" component={EtatDesLieuxPublic} />
           <Route path="/moderation">
             <ProtectedRoute allowedRoles={['moderateur', 'admin']}><ModerateurDashboard /></ProtectedRoute>

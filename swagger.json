@@ -4986,64 +4986,61 @@
                 }
             ]
         },
-        "/commissions/etat-des-lieux-public/{jeton}/": {
-            "get": {
-                "operationId": "commissions_etat-des-lieux-public_read",
-                "description": "Le locataire consulte et valide l'état des lieux par son lien, sans\ncompte. Le jeton ne se devine pas ; il n'est stocké que sous forme\nd'empreinte.",
-                "parameters": [],
+        "/commissions/etat-des-lieux-public/": {
+            "post": {
+                "operationId": "commissions_etat-des-lieux-public_create",
+                "description": "Lire l'état des lieux. POST et non GET : le jeton est dans le\ncorps, que les journaux d'accès n'enregistrent pas.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/JetonEtatDesLieux"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieuxPublic"
+                        }
                     }
                 },
                 "tags": [
                     "commissions"
                 ]
             },
-            "parameters": [
-                {
-                    "name": "jeton",
-                    "in": "path",
-                    "required": true,
-                    "type": "string"
-                }
-            ]
+            "parameters": []
         },
-        "/commissions/etat-des-lieux-public/{jeton}/valider/": {
-            "get": {
-                "operationId": "commissions_etat-des-lieux-public_valider_list",
-                "description": "",
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "commissions"
-                ]
-            },
+        "/commissions/etat-des-lieux-public/valider/": {
             "post": {
                 "operationId": "commissions_etat-des-lieux-public_valider_create",
-                "description": "",
-                "parameters": [],
+                "description": "Le locataire valide, avec ses réserves éventuelles.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ValidationLocataire"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": ""
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/EtatDesLieuxPublic"
+                        }
                     }
                 },
                 "tags": [
                     "commissions"
                 ]
             },
-            "parameters": [
-                {
-                    "name": "jeton",
-                    "in": "path",
-                    "required": true,
-                    "type": "string"
-                }
-            ]
+            "parameters": []
         },
         "/commissions/etats-des-lieux/": {
             "get": {
@@ -11938,6 +11935,21 @@
                 }
             }
         },
+        "JetonEtatDesLieux": {
+            "required": [
+                "jeton"
+            ],
+            "type": "object",
+            "properties": {
+                "jeton": {
+                    "title": "Jeton",
+                    "description": "Le jeton du lien envoyé au locataire. Dans le corps, jamais dans l'adresse : une adresse finit dans les journaux d'accès.",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                }
+            }
+        },
         "PhotoEtatDesLieux": {
             "type": "object",
             "properties": {
@@ -12049,6 +12061,167 @@
                     "description": "Sortie seulement : l'état est pire qu'à l'entrée.",
                     "type": "boolean",
                     "readOnly": true
+                }
+            }
+        },
+        "EtatDesLieuxPublic": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "type": "string",
+                    "enum": [
+                        "entree",
+                        "sortie"
+                    ],
+                    "readOnly": true
+                },
+                "type_display": {
+                    "title": "Type display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "date": {
+                    "title": "Date de l'état des lieux",
+                    "type": "string",
+                    "format": "date",
+                    "readOnly": true
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "bien_quartier": {
+                    "title": "Bien quartier",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "locataire_nom": {
+                    "title": "Locataire nom",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "etabli_par_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "releves_compteurs": {
+                    "title": "Relevés des compteurs",
+                    "description": "Index ou crédit restant : SNEL, REGIDESO.",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "observations": {
+                    "title": "Observations générales",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "pieces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PieceEtatDesLieux"
+                    },
+                    "readOnly": true
+                },
+                "est_valide": {
+                    "title": "Est valide",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "valide_le": {
+                    "title": "Validé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "valide_par_nom": {
+                    "title": "Validé par (nom saisi)",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "reserves_locataire": {
+                    "title": "Réserves du locataire",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "devise": {
+                    "title": "Devise",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "garantie_versee": {
+                    "title": "Garantie versée à l'entrée",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "retenue_garantie": {
+                    "title": "Retenue sur la garantie",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true
+                },
+                "motif_retenue": {
+                    "title": "Motif de la retenue",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "garantie_restituee": {
+                    "title": "Garantie restituee",
+                    "description": "Garantie versée moins la retenue. Sortie seulement.",
+                    "type": "string",
+                    "format": "decimal",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "entree_validee_le": {
+                    "title": "Entree validee le",
+                    "description": "Sortie seulement : validation de l'état des lieux d'entrée.",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                }
+            }
+        },
+        "ValidationLocataire": {
+            "required": [
+                "jeton",
+                "nom"
+            ],
+            "type": "object",
+            "properties": {
+                "jeton": {
+                    "title": "Jeton",
+                    "description": "Le jeton du lien envoyé au locataire. Dans le corps, jamais dans l'adresse : une adresse finit dans les journaux d'accès.",
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "nom": {
+                    "title": "Nom",
+                    "description": "Le locataire écrit son nom, en guise de signature.",
+                    "type": "string",
+                    "maxLength": 150,
+                    "minLength": 1
+                },
+                "reserves": {
+                    "title": "Reserves",
+                    "description": "Ce que le locataire conteste ou veut ajouter.",
+                    "type": "string",
+                    "maxLength": 3000
                 }
             }
         },
