@@ -220,9 +220,18 @@ export default function MyVisits() {
               </div>
             )}
             {demande.signale_le ? (
-              <p className="text-sm text-muted-foreground mt-2">
-                Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue.
-              </p>
+              demande.signalement_traite_le ? (
+                <div className="mt-2 rounded-md bg-muted p-3 text-sm" data-testid={`reponse-signalement-${demande.id}`}>
+                  <p className="text-xs text-muted-foreground">
+                    Réponse de l’équipe VillaGo, le {formaterDateLongue(demande.signalement_traite_le)}
+                  </p>
+                  <p className="whitespace-pre-line">{demande.signalement_suite}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue et vous répondra ici.
+                </p>
+              )
             ) : (
               demande.statut !== 'en_attente' && (
                 <Button
