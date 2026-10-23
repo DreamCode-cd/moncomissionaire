@@ -158,6 +158,7 @@ export default function Profile() {
       // Pas « Locataire » : on peut chercher un logement sans louer encore.
       case 'client': return 'Client';
       case 'proprietaire': return 'Propriétaire';
+      case 'agence': return 'Agence';
       case 'commissionnaire': return 'Commissionnaire';
       case 'moderateur': return 'Modérateur VillaGo';
       case 'agent': return 'Agent';

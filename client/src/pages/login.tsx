@@ -29,6 +29,7 @@ function getRedirectPath(role: UserRole): string {
     case 'admin':
       return '/administration';
     case 'proprietaire':
+    case 'agence':
       return '/my-properties';
     case 'agent':
       return '/agent-dashboard';

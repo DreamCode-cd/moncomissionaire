@@ -254,8 +254,8 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
               <Tuile
                 icone={BadgeCheck}
                 libelle="Identités à vérifier"
-                valeur={aTraiter.commissionnaires_a_verifier}
-                ton={aTraiter.commissionnaires_a_verifier > 0 ? 'attente' : 'neutre'}
+                valeur={aTraiter.commissionnaires_a_verifier + aTraiter.agences_non_verifiees}
+                ton={aTraiter.commissionnaires_a_verifier + aTraiter.agences_non_verifiees > 0 ? 'attente' : 'neutre'}
               />
             </button>
             <Link href="/moderation">
@@ -266,12 +266,15 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
                 ton={aTraiter.demandes_en_attente > 0 ? 'attente' : 'neutre'}
               />
             </Link>
-            <Tuile
-              icone={Building2}
-              libelle="Agences à vérifier"
-              valeur={aTraiter.agences_non_verifiees}
-              ton={aTraiter.agences_non_verifiees > 0 ? 'attente' : 'neutre'}
-            />
+            {/* La file « à vérifier » réunit commissionnaires et agences. */}
+            <button type="button" className="text-left" onClick={onVoirIdentites} data-testid="tuile-agences">
+              <Tuile
+                icone={Building2}
+                libelle="Agences à vérifier"
+                valeur={aTraiter.agences_non_verifiees}
+                ton={aTraiter.agences_non_verifiees > 0 ? 'attente' : 'neutre'}
+              />
+            </button>
           </div>
         )}
       </section>
@@ -385,7 +388,7 @@ function GestionDesComptes({ filtre, onFiltre }: { filtre: string; onFiltre: (f:
           titre={filtre === 'a_verifier' ? 'Toutes les identités sont vérifiées' : 'Aucun compte'}
           description={
             filtre === 'a_verifier'
-              ? 'Aucun commissionnaire actif n’attend de vérification.'
+              ? 'Aucun commissionnaire ni aucune agence n’attend de vérification.'
               : 'Aucun compte ne correspond à cette recherche.'
           }
         />
@@ -432,7 +435,10 @@ function CarteCompte({
   // Le champ est optionnel au contrat : absent, on considère le compte actif,
   // ce qui est le défaut côté Django.
   const actif = compte.is_active !== false;
-  const estCommissionnaire = compte.user_type === 'commissionnaire';
+  // L'équipe vérifie la pièce d'identité d'un commissionnaire, et pour une
+  // agence son RCCM et l'identité de son gérant.
+  const aVerifier = compte.user_type === 'commissionnaire' || compte.user_type === 'agence';
+  const estAgence = compte.user_type === 'agence';
   const verifie = Boolean(compte.identite_verifiee_le);
 
   return (
@@ -446,14 +452,14 @@ function CarteCompte({
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge variant="secondary">{libelleRole(compte.user_type ?? compte.role, compte.user_type_display)}</Badge>
             {!actif && <BadgeStatut valeur="rejete" libelle="Désactivé" famille="validation" compact />}
-            {estCommissionnaire &&
+            {aVerifier &&
               (verifie ? (
                 <Badge variant="outline" className="gap-1 border-transparent bg-statut-favorable-fond text-statut-favorable">
-                  <BadgeCheck className="h-3 w-3" /> Identité vérifiée
+                  <BadgeCheck className="h-3 w-3" /> {estAgence ? 'Agence vérifiée' : 'Identité vérifiée'}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="border-transparent bg-statut-attente-fond text-statut-attente">
-                  Identité à vérifier
+                  {estAgence ? 'Agence à vérifier' : 'Identité à vérifier'}
                 </Badge>
               ))}
           </div>
@@ -482,14 +488,14 @@ function CarteCompte({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {estCommissionnaire &&
+              {aVerifier &&
                 (verifie ? (
                   <DropdownMenuItem onClick={() => onAction('retirer-verification')}>
                     Retirer la vérification
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem onClick={onVerifier} data-testid={`verifier-${compte.id}`}>
-                    Vérifier l’identité
+                    {estAgence ? 'Vérifier l’agence' : 'Vérifier l’identité'}
                   </DropdownMenuItem>
                 ))}
               <DropdownMenuItem onClick={onChangerRole} data-testid={`changer-role-${compte.id}`}>
@@ -583,12 +589,16 @@ function DialogueChangerRole({ compte, onFermer }: { compte: CompteAdmin; onFerm
 function DialogueVerifierIdentite({ compte, onFermer }: { compte: CompteAdmin; onFermer: () => void }) {
   const { toast } = useToast();
   const [note, setNote] = useState('');
+  const estAgence = compte.user_type === 'agence';
 
   const verifier = useMutation({
     mutationFn: () => api.post(`${CHEMIN_COMPTES}${compte.id}/verifier-identite/`, { note }),
     onSuccess: () => {
       invaliderAdministration();
-      toast({ title: 'Identité vérifiée', description: 'Le badge apparaît désormais sur ses annonces.' });
+      toast({
+        title: estAgence ? 'Agence vérifiée' : 'Identité vérifiée',
+        description: 'Le badge apparaît désormais sur ses annonces.',
+      });
       onFermer();
     },
     onError: (erreur: Error) =>
@@ -599,9 +609,12 @@ function DialogueVerifierIdentite({ compte, onFermer }: { compte: CompteAdmin; o
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Vérifier l’identité</DialogTitle>
+          <DialogTitle>{estAgence ? 'Vérifier l’agence' : 'Vérifier l’identité'}</DialogTitle>
           <DialogDescription>
-            {compte.full_name || compte.username}. Ne validez que si vous avez vu sa pièce d’identité, en personne ou en appel vidéo.
+            {compte.full_name || compte.username}.{' '}
+            {estAgence
+              ? 'Ne validez que si vous avez vu le RCCM de l’agence et la pièce d’identité de son gérant, en personne ou en appel vidéo.'
+              : 'Ne validez que si vous avez vu sa pièce d’identité, en personne ou en appel vidéo.'}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1">
@@ -610,16 +623,16 @@ function DialogueVerifierIdentite({ compte, onFermer }: { compte: CompteAdmin; o
             id="note-identite"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Ex : carte d’électeur vue au bureau"
+            placeholder={estAgence ? 'Ex : RCCM et carte d’électeur du gérant vus au bureau' : 'Ex : carte d’électeur vue au bureau'}
             maxLength={200}
             data-testid="input-note-identite"
           />
-          <p className="text-xs text-muted-foreground">N’écrivez jamais le numéro de la pièce : VillaGo n’a pas à le conserver.</p>
+          <p className="text-xs text-muted-foreground">N’écrivez jamais le numéro d’une pièce : VillaGo n’a pas à le conserver.</p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onFermer}>Annuler</Button>
           <Button onClick={() => verifier.mutate()} disabled={!note.trim() || verifier.isPending} data-testid="bouton-confirmer-identite">
-            Identité vérifiée
+            {estAgence ? 'Agence vérifiée' : 'Identité vérifiée'}
           </Button>
         </DialogFooter>
       </DialogContent>

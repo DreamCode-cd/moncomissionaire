@@ -222,6 +222,7 @@ export default function ChatRoom() {
       'moderateur': 'Modérateur VillaGo',
       'agent': 'Agent',
       'proprietaire': 'Propriétaire',
+      'agence': 'Agence',
     };
     return typeLabels[participant.user_type] || participant.role_display || '';
   };
