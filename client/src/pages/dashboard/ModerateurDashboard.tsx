@@ -1,7 +1,8 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
+import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
-import { formaterDateCourte } from '@/lib/dates';
+import { formaterDateCourte, jourLocalIso } from '@/lib/dates';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -1010,7 +1011,8 @@ export default function ModerateurDashboard() {
                           )}
                         </div>
                         <div className="flex flex-row md:flex-col gap-2 justify-end">
-                          {(visite.statut === 'planifiee' || visite.statut === 'en_cours') && (
+                          <ConfirmerVisite visite={visite} cle={['/api/v1/visites/commissionnaire/visites/']} />
+                          {(visite.statut === 'planifiee' || visite.statut === 'en_cours') && !visite.a_confirmer && (
                             <Button 
                               variant="outline"
                               size="sm"
@@ -1348,6 +1350,7 @@ export default function ModerateurDashboard() {
                     type="date"
                     value={visiteDate}
                     onChange={(e) => setVisiteDate(e.target.value)}
+                    min={jourLocalIso()}
                     data-testid="input-visite-date"
                   />
                 </div>

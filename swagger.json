@@ -6911,6 +6911,41 @@
                 }
             ]
         },
+        "/visites/agent/visites/{id}/confirmer/": {
+            "post": {
+                "operationId": "visites_agent_visites_confirmer",
+                "description": "Dire si une visite dont l'heure est passée a eu lieu.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/visites/agent/visites/{id}/terminer/": {
             "post": {
                 "operationId": "visites_agent_visites_terminer",
@@ -6949,7 +6984,8 @@
         "/visites/client/demandes/": {
             "get": {
                 "operationId": "visites_client_demandes_list",
-                "description": "",
+                "summary": "Les demandes de visite du client.",
+                "description": "Ni modification ni suppression : une demande se crée, s'annule\n(`annuler`) ou se signale. Avant, la route acceptait PATCH et DELETE : un\nclient pouvait déplacer une demande acceptée vers un autre bien, ou\nl'effacer avec sa trace.",
                 "parameters": [
                     {
                         "name": "ordering",
@@ -7005,7 +7041,8 @@
             },
             "post": {
                 "operationId": "visites_client_demandes_create",
-                "description": "",
+                "summary": "Les demandes de visite du client.",
+                "description": "Ni modification ni suppression : une demande se crée, s'annule\n(`annuler`) ou se signale. Avant, la route acceptait PATCH et DELETE : un\nclient pouvait déplacer une demande acceptée vers un autre bien, ou\nl'effacer avec sa trace.",
                 "parameters": [
                     {
                         "name": "data",
@@ -7033,7 +7070,8 @@
         "/visites/client/demandes/{id}/": {
             "get": {
                 "operationId": "visites_client_demandes_read",
-                "description": "",
+                "summary": "Les demandes de visite du client.",
+                "description": "Ni modification ni suppression : une demande se crée, s'annule\n(`annuler`) ou se signale. Avant, la route acceptait PATCH et DELETE : un\nclient pouvait déplacer une demande acceptée vers un autre bien, ou\nl'effacer avec sa trace.",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -7047,9 +7085,20 @@
                     "visites"
                 ]
             },
-            "put": {
-                "operationId": "visites_client_demandes_update",
-                "description": "",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/visites/client/demandes/{id}/annuler/": {
+            "post": {
+                "operationId": "visites_client_demandes_annuler",
+                "summary": "Le client annule sa demande, jusqu'à la visite.",
+                "description": "Possible en attente de réponse, acceptée, ou avec une visite fixée\ndont l'heure n'est pas passée. Le commissionnaire et l'agent sont\nprévenus. Les frais de visite déjà réglés ne sont pas touchés : ils\nse règlent hors de l'application, comme ils ont été payés.",
                 "parameters": [
                     {
                         "name": "data",
@@ -7061,49 +7110,11 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "",
                         "schema": {
                             "$ref": "#/definitions/DemandeVisite"
                         }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "patch": {
-                "operationId": "visites_client_demandes_partial_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "delete": {
-                "operationId": "visites_client_demandes_delete",
-                "description": "",
-                "parameters": [],
-                "responses": {
-                    "204": {
-                        "description": ""
                     }
                 },
                 "tags": [
@@ -7157,7 +7168,8 @@
         "/visites/commissionnaire/demandes/": {
             "get": {
                 "operationId": "visites_commissionnaire_demandes_list",
-                "description": "",
+                "summary": "Les demandes reçues sur les biens gérés : lecture, et `traiter`.",
+                "description": "En lecture seule : la route acceptait aussi création, modification et\nsuppression, qu'aucun écran n'utilisait.",
                 "parameters": [
                     {
                         "name": "search",
@@ -7218,37 +7230,13 @@
                     "visites"
                 ]
             },
-            "post": {
-                "operationId": "visites_commissionnaire_demandes_create",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
             "parameters": []
         },
         "/visites/commissionnaire/demandes/{id}/": {
             "get": {
                 "operationId": "visites_commissionnaire_demandes_read",
-                "description": "",
+                "summary": "Les demandes reçues sur les biens gérés : lecture, et `traiter`.",
+                "description": "En lecture seule : la route acceptait aussi création, modification et\nsuppression, qu'aucun écran n'utilisait.",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -7256,69 +7244,6 @@
                         "schema": {
                             "$ref": "#/definitions/DemandeVisite"
                         }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "put": {
-                "operationId": "visites_commissionnaire_demandes_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "patch": {
-                "operationId": "visites_commissionnaire_demandes_partial_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/DemandeVisite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "delete": {
-                "operationId": "visites_commissionnaire_demandes_delete",
-                "description": "",
-                "parameters": [],
-                "responses": {
-                    "204": {
-                        "description": ""
                     }
                 },
                 "tags": [
@@ -7337,7 +7262,8 @@
         "/visites/commissionnaire/demandes/{id}/traiter/": {
             "post": {
                 "operationId": "visites_commissionnaire_demandes_traiter",
-                "description": "",
+                "summary": "Les demandes reçues sur les biens gérés : lecture, et `traiter`.",
+                "description": "En lecture seule : la route acceptait aussi création, modification et\nsuppression, qu'aucun écran n'utilisait.",
                 "parameters": [
                     {
                         "name": "data",
@@ -7751,6 +7677,41 @@
                 }
             ]
         },
+        "/visites/commissionnaire/visites/{id}/confirmer/": {
+            "post": {
+                "operationId": "visites_commissionnaire_visites_confirmer",
+                "description": "Dire si une visite dont l'heure est passée a eu lieu.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/visites/commissionnaire/visites/{id}/reassigner/": {
             "post": {
                 "operationId": "visites_commissionnaire_visites_reassigner",
@@ -8110,6 +8071,9 @@
                         "demande_visite",
                         "acceptation_visite",
                         "rejet_visite",
+                        "annulation_visite",
+                        "expiration_demande",
+                        "confirmation_visite",
                         "assignation_agent",
                         "rapport_visite",
                         "envoi_message",
@@ -12731,6 +12695,9 @@
                         "nouvelle_demande",
                         "demande_acceptee",
                         "demande_rejetee",
+                        "demande_expiree",
+                        "demande_annulee",
+                        "visite_non_faite",
                         "visite_assignee",
                         "visite_retiree",
                         "visite_terminee",
@@ -13072,7 +13039,8 @@
                         "en_cours",
                         "terminee",
                         "annulee",
-                        "reportee"
+                        "reportee",
+                        "non_faite"
                     ]
                 },
                 "statut_display": {
@@ -13096,6 +13064,12 @@
                 "agent_a_noter": {
                     "title": "Agent a noter",
                     "description": "Un agent, autre que le commissionnaire, a fait visiter et le client ne l'a pas encore noté pour cette visite.",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "a_confirmer": {
+                    "title": "A confirmer",
+                    "description": "L'heure de la visite est passée et ni le commissionnaire ni l'agent n'ont dit si elle a eu lieu.",
                     "type": "boolean",
                     "readOnly": true
                 }
@@ -13144,7 +13118,8 @@
                         "en_attente",
                         "acceptee",
                         "rejetee",
-                        "annulee"
+                        "annulee",
+                        "expiree"
                     ],
                     "readOnly": true
                 },
@@ -13165,6 +13140,19 @@
                 },
                 "motif_rejet": {
                     "title": "Motif de rejet",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "annulee_le": {
+                    "title": "Annulée par le client le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "motif_annulation": {
+                    "title": "Motif d'annulation du client",
                     "type": "string",
                     "readOnly": true,
                     "minLength": 1
@@ -13355,7 +13343,8 @@
                         "en_cours",
                         "terminee",
                         "annulee",
-                        "reportee"
+                        "reportee",
+                        "non_faite"
                     ]
                 },
                 "statut_display": {
@@ -13371,6 +13360,12 @@
                 "rapport": {
                     "title": "Rapport",
                     "type": "string",
+                    "readOnly": true
+                },
+                "a_confirmer": {
+                    "title": "A confirmer",
+                    "description": "L'heure de la visite est passée et personne n'a dit si elle a eu lieu : le commissionnaire ou l'agent doit le confirmer.",
+                    "type": "boolean",
                     "readOnly": true
                 },
                 "created_at": {
@@ -13398,7 +13393,8 @@
                         "en_cours",
                         "terminee",
                         "annulee",
-                        "reportee"
+                        "reportee",
+                        "non_faite"
                     ]
                 },
                 "notes_commissionnaire": {
@@ -13435,16 +13431,17 @@
             }
         },
         "DemandeVisiteTraitement": {
+            "required": [
+                "statut"
+            ],
             "type": "object",
             "properties": {
                 "statut": {
                     "title": "Statut",
                     "type": "string",
                     "enum": [
-                        "en_attente",
                         "acceptee",
-                        "rejetee",
-                        "annulee"
+                        "rejetee"
                     ]
                 },
                 "motif_rejet": {
@@ -13553,7 +13550,8 @@
                         "en_attente",
                         "acceptee",
                         "rejetee",
-                        "annulee"
+                        "annulee",
+                        "expiree"
                     ],
                     "readOnly": true
                 },

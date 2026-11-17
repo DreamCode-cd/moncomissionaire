@@ -1,3 +1,4 @@
+import { jourLocalIso } from '@/lib/dates';
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { ErreurApi } from '@/lib/erreurs';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
@@ -1092,7 +1093,7 @@ export default function PropertyDetail() {
                     type="date"
                     value={visitDate}
                     onChange={(e) => setVisitDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={jourLocalIso()}
                     data-testid="input-visit-date"
                   />
                 </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
+import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { Link } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -60,7 +61,7 @@ import {
   CLE_VISITES,
 } from '@/components/commission/commun';
 import { lieuAnnonce } from '@/lib/annonce';
-import { formaterDateCourte } from '@/lib/dates';
+import { formaterDateCourte, jourLocalIso } from '@/lib/dates';
 import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { messageErreur } from '@/lib/erreurs';
 import type {
@@ -125,7 +126,11 @@ export default function CommissionnaireDashboard() {
   const demandesATraiter = (demandes.data?.results ?? []).filter(
     (d) => d.statut === 'en_attente' || (d.statut === 'acceptee' && !demandesAvecVisite.has(d.id)),
   );
-  const visitesAVenir = (visites.data?.results ?? []).filter((v) => v.statut === 'planifiee');
+  // À venir, ou passées sans nouvelle (« à confirmer ») : les deux attendent
+  // un geste du commissionnaire.
+  const visitesAVenir = (visites.data?.results ?? []).filter(
+    (v) => v.statut === 'planifiee' || v.statut === 'reportee' || v.statut === 'en_cours',
+  );
 
   return (
     <Layout>
@@ -526,7 +531,7 @@ function OngletDemandes({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="visite-date">Date</Label>
-              <Input id="visite-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input id="visite-date" type="date" min={jourLocalIso()} value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="visite-heure">Heure</Label>
@@ -549,7 +554,7 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
   const { toast } = useToast();
   const terminer = useMutation({
     mutationFn: (id: number) =>
-      api.patch(`/api/v1/visites/commissionnaire/visites/${id}/`, { statut: 'terminee' }),
+      api.post(`/api/v1/visites/commissionnaire/visites/${id}/confirmer/`, { eu_lieu: true }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_VISITES }),
     onError: (e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' }),
   });
@@ -586,7 +591,8 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
               )}
               {demande && <InfosDemande demande={demande} />}
               <div className="flex flex-wrap gap-2 pt-1">
-                {v.statut === 'planifiee' && (
+                <ConfirmerVisite visite={v} cle={CLE_VISITES} />
+                {v.statut === 'planifiee' && !v.a_confirmer && (
                   <Button
                     size="sm"
                     variant="outline"

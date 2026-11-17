@@ -12,6 +12,16 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
@@ -30,6 +40,17 @@ interface DemandeWithVisite extends DemandeVisite {
   visite_detail?: Visite & { rapport?: RapportVisite };
 }
 
+/** Le client annule jusqu'à la visite : en attente, acceptée, ou visite
+ *  fixée dont l'heure n'est pas passée. Même règle que le serveur
+ *  (visites/views.py, `annuler`). */
+function annulable(d: DemandeVisite): boolean {
+  if (d.statut === 'en_attente') return true;
+  if (d.statut !== 'acceptee') return false;
+  const v = d.visite;
+  if (!v) return true;
+  return (v.statut === 'planifiee' || v.statut === 'reportee') && !v.a_confirmer;
+}
+
 /** L'API renvoie la visite sous `visite` ; ces pages lisaient un champ
  *  `visite_detail` que personne n'envoie : les visites planifiées et faites
  *  n'apparaissaient jamais côté client. */
@@ -46,6 +67,7 @@ function avecVisite(page: PaginatedResponse<DemandeWithVisite>): PaginatedRespon
 export default function MyVisits() {
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
   const [aSignaler, setASignaler] = useState<DemandeWithVisite | null>(null);
+  const [aAnnuler, setAAnnuler] = useState<DemandeWithVisite | null>(null);
   const [motifSignalement, setMotifSignalement] = useState('');
   const [aNoter, setANoter] = useState<{ demande: DemandeWithVisite; sujet: 'commissionnaire' | 'agent' | 'bien' } | null>(null);
   const { toast } = useToast();
@@ -69,6 +91,24 @@ export default function MyVisits() {
       }),
   });
 
+  const annuler = useMutation({
+    mutationFn: (demande: DemandeWithVisite) =>
+      api.post(`/api/v1/visites/client/demandes/${demande.id}/annuler/`, {}),
+    onSuccess: () => {
+      setAAnnuler(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/client/demandes/'] });
+      toast({ title: 'Demande annulée', description: 'Le commissionnaire est prévenu.' });
+    },
+    onError: (e) => {
+      setAAnnuler(null);
+      toast({
+        title: 'Annulation impossible',
+        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const { data: demandes, isLoading, error: erreurDemandes, refetch } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
     select: avecVisite,
@@ -89,7 +129,15 @@ export default function MyVisits() {
   const pendingDemandes = allDemandes.filter(d => d.statut === 'en_attente');
   const acceptedDemandes = allDemandes.filter(d => d.statut === 'acceptee' || d.visite_detail?.statut === 'planifiee');
   const completedDemandes = allDemandes.filter(d => d.visite_detail?.statut === 'terminee');
-  const rejectedDemandes = allDemandes.filter(d => d.statut === 'rejetee' || d.statut === 'annulee');
+  // Closes sans visite faite : refusées, annulées, expirées (le créneau est
+  // passé sans réponse), ou visite qui n'a pas eu lieu.
+  const rejectedDemandes = allDemandes.filter(
+    (d) =>
+      d.statut === 'rejetee' ||
+      d.statut === 'annulee' ||
+      d.statut === 'expiree' ||
+      d.visite?.statut === 'non_faite',
+  );
 
   const renderDemandeCard = (demande: DemandeWithVisite) => (
     <Card key={demande.id} className="overflow-hidden">
@@ -219,6 +267,17 @@ export default function MyVisits() {
                 )}
               </div>
             )}
+            {annulable(demande) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 mr-4 px-0 text-muted-foreground"
+                onClick={() => setAAnnuler(demande)}
+                data-testid={`button-annuler-${demande.id}`}
+              >
+                <CircleX className="w-4 h-4 mr-1" /> {demande.visite ? 'Annuler la visite' : 'Annuler ma demande'}
+              </Button>
+            )}
             {demande.signale_le ? (
               demande.signalement_traite_le ? (
                 <div className="mt-2 rounded-md bg-muted p-3 text-sm" data-testid={`reponse-signalement-${demande.id}`}>
@@ -305,7 +364,7 @@ export default function MyVisits() {
                 Terminées ({completedDemandes.length})
               </TabsTrigger>
               <TabsTrigger value="rejected" className="whitespace-nowrap px-3">
-                Rejetées ({rejectedDemandes.length})
+                Closes ({rejectedDemandes.length})
               </TabsTrigger>
             </TabsList>
           </div>
@@ -340,7 +399,7 @@ export default function MyVisits() {
 
           <TabsContent value="rejected">
             {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
-              rejectedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande rejetée" /> :
+              rejectedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande close" /> :
               <div className="space-y-4">{rejectedDemandes.map(renderDemandeCard)}</div>
             }
           </TabsContent>
@@ -443,6 +502,28 @@ export default function MyVisits() {
           </DialogContent>
         </Dialog>
       </div>
+      <AlertDialog open={aAnnuler !== null} onOpenChange={(ouvert) => !ouvert && setAAnnuler(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{aAnnuler?.visite ? 'Annuler la visite ?' : 'Annuler la demande ?'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {aAnnuler?.visite
+                ? 'Le commissionnaire et la personne qui devait vous accompagner seront prévenus.'
+                : 'Le commissionnaire sera prévenu. Vous pourrez en envoyer une autre plus tard.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Garder</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => aAnnuler && annuler.mutate(aAnnuler)}
+              disabled={annuler.isPending}
+              data-testid="confirmer-annulation"
+            >
+              {aAnnuler?.visite ? 'Annuler la visite' : 'Annuler la demande'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

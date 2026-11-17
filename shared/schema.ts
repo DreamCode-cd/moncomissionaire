@@ -439,7 +439,8 @@ export interface AvisAgentCreate {
   commentaire: string;
 }
 
-export type StatutDemande = 'en_attente' | 'acceptee' | 'rejetee' | 'annulee';
+/** `expiree` : le créneau souhaité est passé sans réponse (le serveur la clôt). */
+export type StatutDemande = 'en_attente' | 'acceptee' | 'rejetee' | 'annulee' | 'expiree';
 
 export interface DemandeVisite {
   id: number;
@@ -451,6 +452,9 @@ export interface DemandeVisite {
   message: string;
   statut: StatutDemande;
   statut_display: string;
+  /** Annulée par le client, quand et pourquoi. */
+  annulee_le?: string | null;
+  motif_annulation?: string;
   traitee_par?: number;
   traitee_par_detail?: CompteResume | null;
   motif_rejet?: string;
@@ -570,6 +574,8 @@ export interface VisiteMini {
   heure_visite: string;
   statut: StatutVisite;
   statut_display: string;
+  /** L'heure est passée et personne n'a dit si elle a eu lieu. */
+  a_confirmer?: boolean;
   /** Le client a déjà noté le commissionnaire pour cette visite. */
   avis_commissionnaire_donne: boolean;
   /** Le client a déjà donné son avis sur ce bien (un seul par bien). */
@@ -586,11 +592,14 @@ export interface DemandeVisiteCreate {
   message?: string;
 }
 
-export type StatutVisite = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
+/** `non_faite` : dit par le commissionnaire ou l'agent, jamais déduit. */
+export type StatutVisite = 'planifiee' | 'en_cours' | 'terminee' | 'annulee' | 'reportee' | 'non_faite';
 
 export interface Visite {
   id: number;
   demande: number;
+  /** L'heure est passée et personne n'a dit si elle a eu lieu. */
+  a_confirmer?: boolean;
   demande_detail?: DemandeVisite;
   /** Adresse exacte et position, pour l'agent et le gestionnaire. */
   localisation?: Localisation | null;
