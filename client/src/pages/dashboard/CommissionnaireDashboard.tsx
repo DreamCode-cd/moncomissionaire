@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
 import { ActionsVisite } from '@/components/confiance/ActionsVisite';
 import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
+import { ChoixCreneau, creneauPasse } from '@/components/confiance/ChoixCreneau';
 import { Link } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -26,8 +27,6 @@ import { DialogueNouveauBailleur, CLE_BAILLEURS } from '@/components/property/Ch
 import { useConfirmerStatutLocation } from '@/components/property/ConfirmerStatutLocation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -62,7 +61,7 @@ import {
   CLE_VISITES,
 } from '@/components/commission/commun';
 import { lieuAnnonce } from '@/lib/annonce';
-import { formaterDateCourte, jourLocalIso } from '@/lib/dates';
+import { formaterDateCourte } from '@/lib/dates';
 import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { messageErreur } from '@/lib/erreurs';
 import type {
@@ -482,8 +481,10 @@ function OngletDemandes({
                   size="sm"
                   onClick={() => {
                     setAPlanifier(d);
-                    setDate(d.date_souhaitee);
-                    setHeure(d.heure_souhaitee?.slice(0, 5) ?? '');
+                    // Le créneau du client, s'il n'est pas déjà passé.
+                    const libre = d.heure_souhaitee && !creneauPasse(d.date_souhaitee, d.heure_souhaitee);
+                    setDate(libre ? d.date_souhaitee : '');
+                    setHeure(libre ? d.heure_souhaitee.slice(0, 5) : '');
                   }}
                   data-testid={`button-planifier-${d.id}`}
                 >
@@ -527,16 +528,13 @@ function OngletDemandes({
               Vous accompagnerez le client vous-même. Il est prévenu dans la messagerie.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="visite-date">Date</Label>
-              <Input id="visite-date" type="date" min={jourLocalIso()} value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="visite-heure">Heure</Label>
-              <Input id="visite-heure" type="time" value={heure} onChange={(e) => setHeure(e.target.value)} />
-            </div>
-          </div>
+          <ChoixCreneau
+            jour={date || null}
+            heure={heure || null}
+            onJour={setDate}
+            onHeure={(h) => setHeure(h ?? '')}
+            marque={aPlanifier ? { jour: aPlanifier.date_souhaitee, heure: aPlanifier.heure_souhaitee } : null}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setAPlanifier(null)}>Annuler</Button>
             <Button disabled={!date || !heure || planifier.isPending} onClick={() => planifier.mutate()}>

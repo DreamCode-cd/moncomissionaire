@@ -1,4 +1,5 @@
 import { useMutation, type QueryKey } from '@tanstack/react-query';
+import { ChoixCreneau } from '@/components/confiance/ChoixCreneau';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import { jourLocalIso } from '@/lib/dates';
 import { messageErreur } from '@/lib/erreurs';
 import { queryClient } from '@/lib/queryClient';
 import type { Visite } from '@shared/schema';
@@ -91,27 +90,14 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
               Le client est prévenu du nouveau créneau et peut annuler s’il ne lui convient pas.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor={`report-jour-${visite.id}`}>Jour</Label>
-              <Input
-                id={`report-jour-${visite.id}`}
-                type="date"
-                min={jourLocalIso()}
-                value={jour}
-                onChange={(e) => setJour(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor={`report-heure-${visite.id}`}>Heure</Label>
-              <Input
-                id={`report-heure-${visite.id}`}
-                type="time"
-                value={heure}
-                onChange={(e) => setHeure(e.target.value)}
-              />
-            </div>
-          </div>
+          <ChoixCreneau
+            jour={jour || null}
+            heure={heure || null}
+            onJour={setJour}
+            onHeure={(h) => setHeure(h ?? '')}
+            marque={{ jour: visite.date_visite, heure: visite.heure_visite }}
+            libelleMarque="créneau actuel"
+          />
           <DialogFooter>
             <Button variant="outline" onClick={fermer}>
               Retour

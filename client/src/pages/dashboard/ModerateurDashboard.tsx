@@ -1,9 +1,10 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
+import { ChoixCreneau, creneauPasse } from '@/components/confiance/ChoixCreneau';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
 import { ActionsVisite } from '@/components/confiance/ActionsVisite';
 import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
-import { formaterDateCourte, jourLocalIso } from '@/lib/dates';
+import { formaterDateCourte } from '@/lib/dates';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -895,8 +896,10 @@ export default function ModerateurDashboard() {
                                 size="sm"
                                 onClick={() => {
                                   setSelectedDemandeForVisite(demande);
-                                  setVisiteDate(demande.date_souhaitee);
-                                  setVisiteHeure(demande.heure_souhaitee);
+                                  // Le créneau du client, s'il n'est pas déjà passé.
+                                  const libre = !creneauPasse(demande.date_souhaitee, demande.heure_souhaitee);
+                                  setVisiteDate(libre ? demande.date_souhaitee : '');
+                                  setVisiteHeure(libre ? demande.heure_souhaitee.slice(0, 5) : '');
                                   setCreateVisiteDialogOpen(true);
                                 }}
                                 data-testid={`button-schedule-visite-${demande.id}`}
@@ -1344,29 +1347,13 @@ export default function ModerateurDashboard() {
                   </p>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="visite-date">Date de visite</Label>
-                  <Input
-                    id="visite-date"
-                    type="date"
-                    value={visiteDate}
-                    onChange={(e) => setVisiteDate(e.target.value)}
-                    min={jourLocalIso()}
-                    data-testid="input-visite-date"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="visite-heure">Heure</Label>
-                  <Input
-                    id="visite-heure"
-                    type="time"
-                    value={visiteHeure}
-                    onChange={(e) => setVisiteHeure(e.target.value)}
-                    data-testid="input-visite-heure"
-                  />
-                </div>
-              </div>
+              <ChoixCreneau
+                jour={visiteDate || null}
+                heure={visiteHeure || null}
+                onJour={setVisiteDate}
+                onHeure={(h) => setVisiteHeure(h ?? '')}
+                marque={selectedDemande ? { jour: selectedDemande.date_souhaitee, heure: selectedDemande.heure_souhaitee } : null}
+              />
               <div>
                 <Label htmlFor="agent-select">Agent (optionnel)</Label>
                 <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
