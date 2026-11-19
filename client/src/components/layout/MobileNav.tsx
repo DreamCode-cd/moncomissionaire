@@ -49,7 +49,7 @@ const moderateurNavItems = [
 ];
 
 const agentNavItems = [
-  { href: '/agent-dashboard', icon: House, label: 'Dashboard' },
+  { href: '/agent-dashboard', icon: House, label: 'Mes visites' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profil' },
 ];

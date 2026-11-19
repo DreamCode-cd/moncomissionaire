@@ -23,6 +23,7 @@ import { Layout } from '@/components/layout/Layout';
 import { EtatChargement, EtatVide, SiCharge } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { DialogueNouveauBailleur, CLE_BAILLEURS } from '@/components/property/ChampsTerrain';
+import { useConfirmerStatutLocation } from '@/components/property/ConfirmerStatutLocation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -45,7 +46,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { estPositif, formaterLoyer, formaterMontant } from '@/lib/prix';
@@ -105,7 +105,6 @@ function LienTelephone({ numero }: { numero?: string | null }) {
 }
 
 export default function CommissionnaireDashboard() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [onglet, setOnglet] = useState('biens');
 
@@ -137,12 +136,9 @@ export default function CommissionnaireDashboard() {
     <Layout>
       <div className="max-w-3xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold">Mon portefeuille</h1>
-            <p className="text-sm text-muted-foreground">
-              {user?.first_name} {user?.last_name} · Commissionnaire
-            </p>
-          </div>
+          {/* Le nom et le rôle de la personne connectée n'apprenaient rien :
+              ils sont déjà dans le menu du compte. */}
+          <h1 className="text-xl md:text-2xl font-bold">Mon portefeuille</h1>
           <Link href="/add-property">
             <Button size="sm" data-testid="button-add-property">
               <Plus className="w-4 h-4 mr-1" /> Ajouter un bien
@@ -220,6 +216,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_BIENS }),
     onError: (e) => toast({ title: 'Statut non modifié', description: messageErreur(e), variant: 'destructive' }),
   });
+  const statut = useConfirmerStatutLocation((id, valeur) => changerStatut.mutate({ id, statut: valeur }));
 
   if (chargement) return <EtatChargement texte="Chargement de vos biens…" />;
   if (!biens?.length) {
@@ -277,7 +274,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <Select
                   value={bien.statut_location}
-                  onValueChange={(statut) => changerStatut.mutate({ id: bien.id, statut })}
+                  onValueChange={(valeur) => statut.choisir(bien, valeur)}
                 >
                   <SelectTrigger className="w-36" data-testid={`select-location-${bien.id}`}>
                     <SelectValue />
@@ -302,6 +299,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
           </CardContent>
         </Card>
       ))}
+      {statut.dialogue}
     </div>
   );
 }
