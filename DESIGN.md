@@ -104,6 +104,27 @@ notamment du travail d'Adam Wathan et Steve Schoger — les auteurs de
    personne. Ne pas s'appuyer sur la taille de police pour porter la
    hiérarchie — le contraste et l'espacement font davantage.
 
+## Ce que le site partage avec l'application mobile
+
+Depuis le 19 novembre 2026, le site reprend l'identité validée sur le mobile,
+pour qu'on reconnaisse le même service d'un écran à l'autre :
+
+- **Police** : Atkinson Hyperlegible Next, embarquée
+  (`@fontsource-variable/atkinson-hyperlegible-next`, un fichier variable de
+  34 Ko pour l'alphabet latin, chargé dans `main.tsx`). Le site utilisait la
+  police du système pour ne rien télécharger ; l'écart avec l'application se
+  voyait plus que les 34 Ko ne coûtent.
+- **Annonce dans une liste** (`PropertyCard`) : une ligne pleine largeur sur
+  téléphone, une carte en grille à partir de 768 px ; titre en entier, loyer
+  « par mois », puis les faits (`FaitsBien`).
+- **Faits et relevé** : mêmes libellés et même code couleur que le mobile
+  (`lib/faits.ts`) — vert pour ce qui est acquis, ambre pour ce qui est
+  partiel (délestages, eau par intermittence, solaire ou groupe seuls), rouge
+  pour ce qui manque. La fiche ouvre sur le relevé (`ReleveMaison`) puis sur
+  « Ce que vous paierez » avec le total pour entrer (`PaiementEntree`).
+
+Une règle changée d'un côté se change de l'autre le même jour.
+
 ## Ce que le système ne couvre pas encore
 
 - Les espacements suivent l'échelle Tailwind sans être documentés : `1`, `2`,

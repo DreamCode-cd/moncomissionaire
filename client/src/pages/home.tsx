@@ -65,7 +65,9 @@ export default function House() {
           Court à dessein : sur téléphone, l'ancien bloc occupait tout le
           premier écran et aucune annonce n'apparaissait sans défiler. */}
       <section className="border-b border-border bg-card px-4 py-6 md:py-12">
-        <div className="mx-auto max-w-3xl">
+        {/* Même colonne que les annonces : centré dans une colonne étroite,
+            le titre ne partait pas du même bord que la liste juste dessous. */}
+        <div className="mx-auto max-w-7xl">
           <h1 className="text-2xl font-bold leading-tight tracking-tight text-foreground md:text-4xl">
             Trouvez une maison à louer à Lubumbashi
           </h1>
@@ -162,7 +164,7 @@ export default function House() {
       {/* Ce qui distingue VillaGo, après les annonces plutôt qu'avant : on
           vient d'abord pour les maisons. */}
       <section className="border-t border-border px-4 py-8">
-        <ul className="mx-auto grid max-w-5xl gap-3 text-sm sm:grid-cols-3">
+        <ul className="mx-auto grid max-w-7xl gap-3 text-sm sm:grid-cols-3">
           <li className="flex items-start gap-2">
             <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
             <span>Loyer et garantie affichés, trois mois au plus comme le veut la loi.</span>

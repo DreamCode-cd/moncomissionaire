@@ -1,6 +1,10 @@
 import { PropertyCard } from './PropertyCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BienList } from '@shared/schema';
+import { cn } from '@/lib/utils';
+
+/** Une colonne de lignes séparées par des filets sur téléphone, une grille de cartes ensuite. */
+const GRILLE = 'grid grid-cols-1 divide-y md:divide-y-0 md:grid-cols-3 lg:grid-cols-4 md:gap-4';
 
 interface PropertyGridProps {
   properties: BienList[];
@@ -11,10 +15,7 @@ interface PropertyGridProps {
 export function PropertyGrid({ properties, isLoading, variant = 'default' }: PropertyGridProps) {
   if (isLoading) {
     return (
-      <div className={variant === 'horizontal' 
-        ? "space-y-2" 
-        : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"
-      }>
+      <div className={variant === 'horizontal' ? 'divide-y' : GRILLE}>
         {[...Array(6)].map((_, i) => (
           <PropertyCardSkeleton key={i} variant={variant} />
         ))}
@@ -50,7 +51,7 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
 
   if (variant === 'horizontal') {
     return (
-      <div className="space-y-2">
+      <div className="divide-y">
         {properties.map((property) => (
           <PropertyCard key={property.id} property={property} variant="horizontal" />
         ))}
@@ -59,7 +60,7 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+    <div className={GRILLE}>
       {properties.map((property) => (
         <PropertyCard key={property.id} property={property} />
       ))}
@@ -68,32 +69,18 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
 }
 
 function PropertyCardSkeleton({ variant = 'default' }: { variant?: 'default' | 'horizontal' }) {
-  if (variant === 'horizontal') {
-    return (
-      <div className="flex h-24 border rounded-lg overflow-hidden">
-        <Skeleton className="w-28 h-full flex-shrink-0" />
-        <div className="flex-1 p-2 space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-3 w-1/2" />
-          <Skeleton className="h-3 w-2/3" />
-          <Skeleton className="h-4 w-1/3" />
-        </div>
-      </div>
-    );
-  }
-
+  const enGrille = variant === 'default';
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <Skeleton className="aspect-square" />
-      <div className="p-2.5 space-y-2">
+    <div className={cn('flex gap-4 py-4', enGrille && 'md:flex-col md:gap-0 md:py-0 md:border md:rounded-lg md:overflow-hidden')}>
+      <Skeleton className={cn('w-24 h-24 shrink-0 rounded-lg', enGrille && 'md:w-full md:h-auto md:aspect-[4/3] md:rounded-none')} />
+      <div className={cn('flex-1 space-y-2', enGrille && 'md:p-3')}>
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-1/2" />
-        <div className="flex gap-3">
-          <Skeleton className="h-3 w-12" />
-          <Skeleton className="h-3 w-12" />
-          <Skeleton className="h-3 w-12" />
-        </div>
         <Skeleton className="h-5 w-1/3" />
+        <div className="flex gap-3">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-20" />
+        </div>
       </div>
     </div>
   );

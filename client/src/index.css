@@ -64,7 +64,7 @@
   --chart-3: 30 80% 40%;
   --chart-4: 280 65% 40%;
   --chart-5: 150 60% 35%;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
   --font-serif: var(--font-sans);
   --font-mono: Menlo, monospace;
   --radius: .5rem;

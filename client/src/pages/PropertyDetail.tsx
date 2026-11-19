@@ -7,8 +7,8 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useRoute, useLocation, useSearch, Link } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
-  MapPin, Bed, Bath, Maximize, Calendar, User, ChevronLeft, ChevronRight, X,
-  Droplets, Zap, Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
+  MapPin, Calendar, User, ChevronLeft, ChevronRight, X,
+  Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
   Images, SquarePen, Send, ChevronDown, ChevronUp, LoaderCircle,
   ShieldCheck,
 } from 'lucide-react';
@@ -45,9 +45,12 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterLoyer, formaterPrix } from '@/lib/prix';
-import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, libelleVerification, lieuAnnonce } from '@/lib/annonce';
+import { auteurAnnonce, formaterSurface, initiale, libelleVerification, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
+import { PaiementEntree } from '@/components/property/PaiementEntree';
+import { ReleveMaison } from '@/components/property/ReleveMaison';
+import { libelleChambres } from '@/lib/faits';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
 import { garderBrouillonVisite, oublierBrouillonVisite, reprendreBrouillonVisite, versConnexion } from '@/lib/suite';
 
@@ -474,6 +477,13 @@ export default function PropertyDetail() {
     getDjangoImageUrl(property.photos?.[0]?.image) ||
     null;
   const surface = formaterSurface(property.superficie);
+  const mesures = [
+    libelleChambres(property.nombre_chambres),
+    property.nombre_salles_bain
+      ? `${property.nombre_salles_bain} salle${property.nombre_salles_bain > 1 ? 's' : ''} de bain`
+      : null,
+    surface,
+  ].filter((m): m is string => !!m);
 
   const availableAmenities = amenities.filter(
     a => property[a.key as keyof BienDetail]
@@ -650,42 +660,24 @@ export default function PropertyDetail() {
               )}
             </div>
 
-            <div className="flex items-baseline gap-2 mt-4">
-              <span className="text-3xl font-bold text-primary" data-testid="text-property-price">
-                {formaterPrix(property.prix_mensuel, property.devise)}
-              </span>
-              <span className="text-muted-foreground">/mois</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1" data-testid="text-garantie">
-              {property.garantie_mois > 0
-                ? `Garantie : ${libelleGarantie(property.garantie_mois)}, soit ${formaterPrix(property.garantie, property.devise)}`
-                : 'Aucune garantie demandée'}
+            <p className="mt-3 text-2xl font-extrabold text-primary tabular-nums" data-testid="text-property-price">
+              {formaterPrix(property.prix_mensuel, property.devise)}
+              <span className="text-lg font-semibold"> par mois</span>
             </p>
-            <CoutsLocation bien={property} />
+            {/* Chambres, salles de bain, surface : une ligne de faits, comme
+                sur le mobile, plutôt que trois cartes d'icônes de même taille. */}
+            {mesures.length > 0 && <p className="mt-1 text-muted-foreground">{mesures.join(', ')}</p>}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4 flex flex-col items-center">
-                <Bed className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.nombre_chambres}</span>
-                <span className="text-sm text-muted-foreground">Chambres</span>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex flex-col items-center">
-                <Bath className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.nombre_salles_bain}</span>
-                <span className="text-sm text-muted-foreground">Salles de bain</span>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex flex-col items-center">
-                <Maximize className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{surface ?? '—'}</span>
-                <span className="text-sm text-muted-foreground">{surface ? 'Surface' : 'Surface non précisée'}</span>
-              </CardContent>
-            </Card>
+          {/* Eau, courant, libre ou non, qui en répond : ce qui décide une
+              visite, avant même la description. */}
+          <ReleveMaison bien={property} />
+
+          <Separator />
+
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Ce que vous paierez</h2>
+            <PaiementEntree bien={property} />
           </div>
 
           <Separator />
@@ -724,31 +716,6 @@ export default function PropertyDetail() {
               )}
             </div>
           </div>
-
-          {(property.eau || property.electricite) && (
-            <>
-              <Separator />
-              <div>
-                {/* La première question d'un locataire à Lubumbashi : l'eau
-                    et le courant sont-ils réguliers ? */}
-                <h2 className="text-lg font-semibold mb-3">Eau et courant</h2>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {property.eau && (
-                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-eau">
-                      <Droplets className="w-5 h-5 text-primary" />
-                      <span>{property.eau_display}</span>
-                    </div>
-                  )}
-                  {property.electricite && (
-                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-electricite">
-                      <Zap className="w-5 h-5 text-primary" />
-                      <span>{property.electricite_display}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
 
           {availableAmenities.length > 0 && (
             <>
@@ -1053,10 +1020,10 @@ export default function PropertyDetail() {
 
         <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 bg-background border-t p-4 flex items-center gap-4">
           <div className="flex-1">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-extrabold text-primary tabular-nums">
               {formaterPrix(property.prix_mensuel, property.devise)}
             </span>
-            <span className="text-muted-foreground">/mois</span>
+            <span className="text-muted-foreground"> par mois</span>
           </div>
           
           {property.statut_location !== 'loue' ? (
