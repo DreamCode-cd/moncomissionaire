@@ -1,4 +1,3 @@
-import { jourLocalIso } from '@/lib/dates';
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { ErreurApi } from '@/lib/erreurs';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
@@ -33,7 +32,6 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -50,6 +48,7 @@ import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
 import { PaiementEntree } from '@/components/property/PaiementEntree';
 import { ReleveMaison } from '@/components/property/ReleveMaison';
+import { ChoixCreneau, heureLisible, jourLisible } from '@/components/confiance/ChoixCreneau';
 import { libelleChambres } from '@/lib/faits';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
 import { garderBrouillonVisite, oublierBrouillonVisite, reprendreBrouillonVisite, versConnexion } from '@/lib/suite';
@@ -379,7 +378,7 @@ export default function PropertyDetail() {
   };
 
   // On ne crée pas d'avis depuis la fiche : il faut avoir visité le bien, et
-  // cela se fait depuis « Mes visites ». Ici, l'auteur corrige seulement le sien.
+  // cela se fait depuis « Mes visites ». Ici, l'auteur corrige seulement le sien.
   const reviewMutation = useMutation({
     mutationFn: async (data: { note: number; commentaire: string }) =>
       api.patch(`/api/v1/biens/avis-biens/${userReviewId}/`, data),
@@ -902,7 +901,7 @@ export default function PropertyDetail() {
               <p className="text-sm text-muted-foreground mb-4" data-testid="text-origine-avis">
                 Seules les personnes qui ont visité ce bien avec VillaGo peuvent le noter.
                 {isAuthenticated && user?.role === 'client'
-                  ? ' Après votre visite, vous le noterez depuis « Mes visites ».'
+                  ? ' Après votre visite, vous le noterez depuis « Mes visites ».'
                   : ''}
               </p>
             )}
@@ -1045,56 +1044,48 @@ export default function PropertyDetail() {
               <DialogHeader>
                 <DialogTitle>Demander une visite</DialogTitle>
                 <DialogDescription>
-                  Remplissez le formulaire pour demander une visite de ce bien.
+                  Le commissionnaire vous répond dans « Mes visites ». L’adresse exacte vous est donnée quand la
+                  visite est fixée.
                 </DialogDescription>
               </DialogHeader>
               <div className="rounded-md bg-muted p-3">
                 <CoutsLocation bien={property} compact />
                 <p className="text-sm text-muted-foreground mt-2">
-                  Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
+                  Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
                 </p>
               </div>
-              <div className="space-y-4 py-4">
+              <div className="min-w-0 space-y-4 py-4">
+                <ChoixCreneau
+                  jour={visitDate || null}
+                  heure={visitTime || null}
+                  onJour={setVisitDate}
+                  onHeure={(h) => setVisitTime(h ?? '')}
+                />
                 <div>
-                  <Label htmlFor="visit-date">Date souhaitée</Label>
-                  <p className="text-sm text-muted-foreground mb-1">Sélectionnez une date (jj/mm/aaaa)</p>
-                  <Input
-                    id="visit-date"
-                    type="date"
-                    value={visitDate}
-                    onChange={(e) => setVisitDate(e.target.value)}
-                    min={jourLocalIso()}
-                    data-testid="input-visit-date"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="visit-time">Heure souhaitée</Label>
-                  <p className="text-sm text-muted-foreground mb-1">Sélectionnez une heure (hh:mm)</p>
-                  <Input
-                    id="visit-time"
-                    type="time"
-                    value={visitTime}
-                    onChange={(e) => setVisitTime(e.target.value)}
-                    data-testid="input-visit-time"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="visit-message">Message (optionnel)</Label>
+                  <Label htmlFor="visit-message">Un message (facultatif)</Label>
                   <Textarea
                     id="visit-message"
-                    placeholder="Précisez vos disponibilités ou questions..."
+                    placeholder="Par exemple : je viens avec mon épouse, ou je préfère être appelé avant."
                     value={visitMessage}
                     onChange={(e) => setVisitMessage(e.target.value)}
                     data-testid="input-visit-message"
                   />
                 </div>
-                <Button 
-                  className="w-full" 
+                {/* Ce qui va partir, relu juste au-dessus du bouton. */}
+                <p className="text-sm" aria-live="polite" data-testid="resume-creneau">
+                  {visitDate && visitTime ? (
+                    <>Visite souhaitée <strong>{jourLisible(visitDate)} à {heureLisible(visitTime)}</strong></>
+                  ) : (
+                    <span className="text-muted-foreground">Choisissez un jour et une heure.</span>
+                  )}
+                </p>
+                <Button
+                  className="w-full"
                   onClick={handleRequestVisit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (isAuthenticated && (!visitDate || !visitTime))}
                   data-testid="button-submit-visit"
                 >
-                  {isSubmitting ? 'Envoi...' : 'Envoyer la demande'}
+                  {isSubmitting ? 'Envoi…' : 'Envoyer la demande'}
                 </Button>
               </div>
             </DialogContent>
