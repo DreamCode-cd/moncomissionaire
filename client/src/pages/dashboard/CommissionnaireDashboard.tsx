@@ -461,22 +461,11 @@ function OngletDemandes({
               <p className="text-sm"><LienTelephone numero={d.client?.phone} /></p>
             )}
             <div className="flex gap-2">
-              {d.statut === 'en_attente' && (
-                <>
-                  <Button
-                    size="sm"
-                    onClick={() => traiter.mutate({ id: d.id, statut: 'acceptee' })}
-                    disabled={traiter.isPending}
-                    data-testid={`button-accepter-${d.id}`}
-                  >
-                    Accepter
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setARefuser(d)}>
-                    Refuser
-                  </Button>
-                </>
-              )}
-              {d.statut === 'acceptee' && !demandesAvecVisite.has(d.id) && (
+              {/* Accepter, c'est fixer la visite : le créneau du client est
+                  déjà choisi, il suffit de confirmer, ou d'en prendre un
+                  autre. « Accepter » seul laissait une demande acceptée sans
+                  visite (audit du 19/11/2026, W-1) ; le mobile fait de même. */}
+              {(d.statut === 'en_attente' || (d.statut === 'acceptee' && !demandesAvecVisite.has(d.id))) && (
                 <Button
                   size="sm"
                   onClick={() => {
@@ -488,7 +477,13 @@ function OngletDemandes({
                   }}
                   data-testid={`button-planifier-${d.id}`}
                 >
-                  <CalendarClock className="w-4 h-4 mr-1" /> Planifier la visite
+                  <CalendarClock className="w-4 h-4 mr-1" />
+                  {d.statut === 'en_attente' ? 'Accepter ce créneau' : 'Fixer la visite'}
+                </Button>
+              )}
+              {d.statut === 'en_attente' && (
+                <Button size="sm" variant="outline" onClick={() => setARefuser(d)}>
+                  Refuser
                 </Button>
               )}
             </div>
@@ -523,9 +518,10 @@ function OngletDemandes({
       <Dialog open={!!aPlanifier} onOpenChange={(o) => !o && setAPlanifier(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Planifier la visite</DialogTitle>
+            <DialogTitle>Fixer la visite</DialogTitle>
             <DialogDescription>
-              Vous accompagnerez le client vous-même. Il est prévenu dans la messagerie.
+              Le créneau proposé par le client est déjà choisi : confirmez, ou prenez-en un autre. Vous
+              accompagnerez le client vous-même ; il est prévenu dans la messagerie.
             </DialogDescription>
           </DialogHeader>
           <ChoixCreneau
