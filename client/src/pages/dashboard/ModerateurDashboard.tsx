@@ -1,5 +1,6 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
+import { ActionsVisite } from '@/components/confiance/ActionsVisite';
 import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateCourte, jourLocalIso } from '@/lib/dates';
@@ -1012,6 +1013,7 @@ export default function ModerateurDashboard() {
                         </div>
                         <div className="flex flex-row md:flex-col gap-2 justify-end">
                           <ConfirmerVisite visite={visite} cle={['/api/v1/visites/commissionnaire/visites/']} />
+                          <ActionsVisite visite={visite} cle={['/api/v1/visites/commissionnaire/visites/']} />
                           {(visite.statut === 'planifiee' || visite.statut === 'en_cours') && !visite.a_confirmer && (
                             <Button 
                               variant="outline"

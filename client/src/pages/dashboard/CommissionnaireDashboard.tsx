@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
+import { ActionsVisite } from '@/components/confiance/ActionsVisite';
 import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { Link } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -586,12 +587,21 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
               </p>
               {demande?.client && (
                 <p className="text-sm text-muted-foreground">
-                  {demande.client.full_name || demande.client.username} · <LienTelephone numero={demande.client.phone} />
+                  {demande.client.full_name || demande.client.username}
+                  {demande.client.phone ? (
+                    <>
+                      , <LienTelephone numero={demande.client.phone} />
+                    </>
+                  ) : null}
                 </p>
               )}
               {demande && <InfosDemande demande={demande} />}
+              {v.statut === 'annulee' && v.motif_annulation && (
+                <p className="text-sm text-muted-foreground">Motif d’annulation : {v.motif_annulation}</p>
+              )}
               <div className="flex flex-wrap gap-2 pt-1">
                 <ConfirmerVisite visite={v} cle={CLE_VISITES} />
+                <ActionsVisite visite={v} cle={CLE_VISITES} />
                 {v.statut === 'planifiee' && !v.a_confirmer && (
                   <Button
                     size="sm"
@@ -602,7 +612,12 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
                     Visite faite
                   </Button>
                 )}
-                {demande && <ActionsArgent demande={demande} />}
+                {/* Ni bail ni frais sur une visite annulée ou qui n'a pas eu
+                    lieu ; le bail en bouton principal seulement après la
+                    visite. */}
+                {demande && v.statut !== 'annulee' && v.statut !== 'non_faite' && (
+                  <ActionsArgent demande={demande} visiteFaite={v.statut === 'terminee'} />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -643,7 +658,7 @@ function InfosDemande({ demande }: { demande: DemandeVisite }) {
 }
 
 /** Noter les frais de visite reçus, puis déclarer le bail une fois signé. */
-function ActionsArgent({ demande }: { demande: DemandeVisite }) {
+function ActionsArgent({ demande, visiteFaite = true }: { demande: DemandeVisite; visiteFaite?: boolean }) {
   const commissions = useQuery<PaginatedResponse<Commission>>({ queryKey: CLE_COMMISSIONS });
   const [fraisOuvert, setFraisOuvert] = useState(false);
   const [bailOuvert, setBailOuvert] = useState(false);
@@ -665,7 +680,12 @@ function ActionsArgent({ demande }: { demande: DemandeVisite }) {
       {/* Sans la liste des baux, on ne sait pas si celui-ci est déjà déclaré :
           on ne propose pas le bouton plutôt que de risquer un doublon. */}
       {!bailDeclare && commissions.isSuccess && (
-        <Button size="sm" onClick={() => setBailOuvert(true)} data-testid={`button-bail-${demande.id}`}>
+        <Button
+          size="sm"
+          variant={visiteFaite ? 'default' : 'outline'}
+          onClick={() => setBailOuvert(true)}
+          data-testid={`button-bail-${demande.id}`}
+        >
           <FilePenLine className="w-4 h-4 mr-1" /> Bail signé
         </Button>
       )}

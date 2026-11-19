@@ -576,6 +576,8 @@ export interface VisiteMini {
   statut_display: string;
   /** L'heure est passée et personne n'a dit si elle a eu lieu. */
   a_confirmer?: boolean;
+  /** Annulée par le commissionnaire : son motif, que le client lit. */
+  motif_annulation?: string;
   /** Le client a déjà noté le commissionnaire pour cette visite. */
   avis_commissionnaire_donne: boolean;
   /** Le client a déjà donné son avis sur ce bien (un seul par bien). */
@@ -600,6 +602,8 @@ export interface Visite {
   demande: number;
   /** L'heure est passée et personne n'a dit si elle a eu lieu. */
   a_confirmer?: boolean;
+  /** Annulée par le commissionnaire : son motif, que le client lit. */
+  motif_annulation?: string;
   demande_detail?: DemandeVisite;
   /** Adresse exacte et position, pour l'agent et le gestionnaire. */
   localisation?: Localisation | null;

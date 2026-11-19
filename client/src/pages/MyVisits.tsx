@@ -127,7 +127,11 @@ export default function MyVisits() {
     ) : null;
   const allDemandes = demandes?.results || [];
   const pendingDemandes = allDemandes.filter(d => d.statut === 'en_attente');
-  const acceptedDemandes = allDemandes.filter(d => d.statut === 'acceptee' || d.visite_detail?.statut === 'planifiee');
+  // Acceptées et pas encore closes : une visite annulée, non faite ou faite
+  // n'a plus rien à attendre.
+  const acceptedDemandes = allDemandes.filter(
+    (d) => d.statut === 'acceptee' && !['annulee', 'non_faite', 'terminee'].includes(d.visite?.statut ?? ''),
+  );
   const completedDemandes = allDemandes.filter(d => d.visite_detail?.statut === 'terminee');
   // Closes sans visite faite : refusées, annulées, expirées (le créneau est
   // passé sans réponse), ou visite qui n'a pas eu lieu.
@@ -136,7 +140,8 @@ export default function MyVisits() {
       d.statut === 'rejetee' ||
       d.statut === 'annulee' ||
       d.statut === 'expiree' ||
-      d.visite?.statut === 'non_faite',
+      d.visite?.statut === 'non_faite' ||
+      d.visite?.statut === 'annulee',
   );
 
   const renderDemandeCard = (demande: DemandeWithVisite) => (
@@ -184,14 +189,27 @@ export default function MyVisits() {
                   <span>Souhaitée: {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
                 </div>
               )}
-              {demande.visite_detail?.date_visite && (
+              {demande.visite_detail?.date_visite &&
+                ['planifiee', 'reportee', 'en_cours'].includes(demande.visite_detail.statut) && (
                 <div className="flex items-center gap-2 text-primary">
                   <CircleCheck className="w-4 h-4" />
-                  <span>Planifiée: {formaterDateLongue(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}</span>
+                  <span>
+                    {demande.visite_detail.statut === 'reportee' ? 'Déplacée au' : 'Planifiée :'}{' '}
+                    {formaterDateLongue(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}
+                  </span>
+                </div>
+              )}
+              {/* Annulée par le commissionnaire : il dit pourquoi, et le
+                  client peut redemander une visite. */}
+              {demande.visite?.statut === 'annulee' && demande.visite.motif_annulation && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CircleX className="w-4 h-4" />
+                  <span>Visite annulée par le commissionnaire. Motif : {demande.visite.motif_annulation}</span>
                 </div>
               )}
             </div>
-            {demande.visite_detail?.agent_detail && (
+            {demande.visite_detail?.agent_detail &&
+              ['planifiee', 'reportee', 'en_cours'].includes(demande.visite_detail.statut) && (
               <div className="flex items-center gap-2 mt-3 p-2 bg-muted/50 rounded-lg">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={getDjangoImageUrl(demande.visite_detail.agent_detail.avatar) || undefined} />

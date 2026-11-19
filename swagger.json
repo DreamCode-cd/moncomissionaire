@@ -7677,6 +7677,41 @@
                 }
             ]
         },
+        "/visites/commissionnaire/visites/{id}/annuler/": {
+            "post": {
+                "operationId": "visites_commissionnaire_visites_annuler",
+                "description": "Annuler une visite fixée (bailleur absent, maison louée…). Le motif\nest obligatoire et envoyé au client, qui peut redemander une visite.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/visites/commissionnaire/visites/{id}/confirmer/": {
             "post": {
                 "operationId": "visites_commissionnaire_visites_confirmer",
@@ -7716,6 +7751,41 @@
             "post": {
                 "operationId": "visites_commissionnaire_visites_reassigner",
                 "description": "",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Visite"
+                        }
+                    }
+                },
+                "tags": [
+                    "visites"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/visites/commissionnaire/visites/{id}/reporter/": {
+            "post": {
+                "operationId": "visites_commissionnaire_visites_reporter",
+                "description": "Déplacer une visite fixée : le commissionnaire choisit le nouveau\ncréneau, le client est prévenu (et peut annuler s'il ne lui convient\npas). Décision de David, 19/11/2026.",
                 "parameters": [
                     {
                         "name": "data",
@@ -8074,6 +8144,7 @@
                         "annulation_visite",
                         "expiration_demande",
                         "confirmation_visite",
+                        "report_visite",
                         "assignation_agent",
                         "rapport_visite",
                         "envoi_message",
@@ -13072,6 +13143,10 @@
                     "description": "L'heure de la visite est passée et ni le commissionnaire ni l'agent n'ont dit si elle a eu lieu.",
                     "type": "boolean",
                     "readOnly": true
+                },
+                "motif_annulation": {
+                    "title": "Motif d'annulation du commissionnaire",
+                    "type": "string"
                 }
             }
         },
@@ -13367,6 +13442,10 @@
                     "description": "L'heure de la visite est passée et personne n'a dit si elle a eu lieu : le commissionnaire ou l'agent doit le confirmer.",
                     "type": "boolean",
                     "readOnly": true
+                },
+                "motif_annulation": {
+                    "title": "Motif d'annulation du commissionnaire",
+                    "type": "string"
                 },
                 "created_at": {
                     "title": "Date de création",
