@@ -832,7 +832,7 @@ export default function ModerateurDashboard() {
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 mb-3">
                               <p className="text-sm font-medium mb-1">
-                                Bien: {demande.bien_detail?.titre}
+                                Bien : {demande.bien_detail?.titre}
                               </p>
                               <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
@@ -856,7 +856,7 @@ export default function ModerateurDashboard() {
                             )}
                             {demande.motif_rejet && (
                               <p className="text-sm text-destructive mt-2">
-                                Motif de rejet: {demande.motif_rejet}
+                                Motif de rejet : {demande.motif_rejet}
                               </p>
                             )}
                           </div>
@@ -1007,7 +1007,7 @@ export default function ModerateurDashboard() {
                           </div>
                           {visite.notes_commissionnaire && (
                             <p className="text-sm text-muted-foreground mt-2 italic">
-                              Notes: {visite.notes_commissionnaire}
+                              Notes : {visite.notes_commissionnaire}
                             </p>
                           )}
                         </div>
@@ -1082,7 +1082,7 @@ export default function ModerateurDashboard() {
                               </Avatar>
                               <div>
                                 <p className="text-sm font-medium">
-                                  Agent: {rapport.agent_detail.first_name} {rapport.agent_detail.last_name}
+                                  Agent : {rapport.agent_detail.first_name} {rapport.agent_detail.last_name}
                                 </p>
                               </div>
                             </div>

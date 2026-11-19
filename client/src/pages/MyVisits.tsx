@@ -186,7 +186,7 @@ export default function MyVisits() {
               {demande.date_souhaitee && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Souhaitée: {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
+                  <span>Souhaitée : {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
                 </div>
               )}
               {demande.visite_detail?.date_visite &&

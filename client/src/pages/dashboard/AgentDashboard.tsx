@@ -334,7 +334,7 @@ export default function AgentDashboard() {
 
               {visite.notes_commissionnaire && (
                 <p className="text-sm text-muted-foreground mt-2 italic">
-                  Note: {visite.notes_commissionnaire}
+                  Note : {visite.notes_commissionnaire}
                 </p>
               )}
             </div>

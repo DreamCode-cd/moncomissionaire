@@ -169,8 +169,11 @@ export default function PropertyDetail() {
     queryKey: ['/api/v1/biens/', 'suggestions', propertyId, property?.type_bien],
     queryFn: async (): Promise<PaginatedResponse<BienList>> => {
       const typeBien = property?.type_bien ? `&type_bien=${property.type_bien}` : '';
-      const response = await api.get(`/api/v1/biens/?page_size=4&exclude=${propertyId}${typeBien}`);
-      return response as PaginatedResponse<BienList>;
+      // L'API n'a pas de filtre « exclude » (le paramètre était ignoré et la
+      // fiche se proposait elle-même) : on en demande un de plus et on retire
+      // le bien affiché.
+      const response = (await api.get(`/api/v1/biens/?page_size=5${typeBien}`)) as PaginatedResponse<BienList>;
+      return { ...response, results: response.results.filter((b) => String(b.id) !== String(propertyId)) };
     },
     enabled: !!propertyId && !!property?.type_bien,
   });

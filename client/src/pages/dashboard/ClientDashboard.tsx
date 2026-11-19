@@ -1,6 +1,6 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
-import { formaterDateLongue } from '@/lib/dates';
+import { formaterDateLongue, formaterHeure } from '@/lib/dates';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
@@ -217,8 +217,10 @@ export default function ClientDashboard() {
                         <h4 className="font-medium line-clamp-1">
                           {demande.bien_detail?.titre}
                         </h4>
-                        <p className="text-sm text-muted-foreground line-clamp-1">
-                          {formaterDateLongue(demande.date_souhaitee)} à {demande.heure_souhaitee}
+                        {/* Sur deux lignes au besoin : coupée, la ligne perdait l'heure,
+                            le seul renseignement utile. */}
+                        <p className="text-sm text-muted-foreground">
+                          {formaterDateLongue(demande.date_souhaitee)} à {formaterHeure(demande.heure_souhaitee)}
                         </p>
                         <div className="mt-2 flex items-center gap-2 flex-wrap">
                           {demande.visite_detail ? <BadgeStatut valeur={demande.visite_detail.statut} /> : <BadgeStatut valeur={demande.statut} />}
