@@ -13,15 +13,27 @@ import type { Visite } from '@shared/schema';
  * Une visite dont l'heure est passée sans que personne ait dit si elle a eu
  * lieu (`a_confirmer`, calculé par le serveur).
  *
- * C'est au commissionnaire (ou à la modération) de le dire : l'application
- * ne déclare jamais « non faite » à sa place, la visite s'est peut-être faite
- * sans rapport. « Pas eu lieu » prévient le client, qui peut redemander.
+ * C'est au commissionnaire, à la modération ou à l'agent de le dire :
+ * l'application ne déclare jamais « non faite » à sa place, la visite s'est
+ * peut-être faite sans rapport. « Pas eu lieu » prévient le client, qui peut
+ * redemander.
+ *
+ * L'agent, lui, dit qu'elle a eu lieu en écrivant son rapport (bouton à côté,
+ * comme sur le mobile) : ici, il n'a que « Pas eu lieu ».
  */
-export function ConfirmerVisite({ visite, cle }: { visite: Visite; cle: QueryKey }) {
+export function ConfirmerVisite({
+  visite,
+  cle,
+  espace = 'commissionnaire',
+}: {
+  visite: Visite;
+  cle: QueryKey;
+  espace?: 'commissionnaire' | 'agent';
+}) {
   const { toast } = useToast();
   const confirmer = useMutation({
     mutationFn: (eu_lieu: boolean) =>
-      api.post(`/api/v1/visites/commissionnaire/visites/${visite.id}/confirmer/`, { eu_lieu }),
+      api.post(`/api/v1/visites/${espace}/visites/${visite.id}/confirmer/`, { eu_lieu }),
     onSuccess: (_r, eu_lieu) => {
       queryClient.invalidateQueries({ queryKey: cle });
       toast({
@@ -40,9 +52,11 @@ export function ConfirmerVisite({ visite, cle }: { visite: Visite; cle: QueryKey
         L’heure est passée : la visite a-t-elle eu lieu ?
       </p>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={() => confirmer.mutate(true)} disabled={confirmer.isPending}>
-          Elle a eu lieu
-        </Button>
+        {espace === 'commissionnaire' && (
+          <Button size="sm" onClick={() => confirmer.mutate(true)} disabled={confirmer.isPending}>
+            Elle a eu lieu
+          </Button>
+        )}
         <Button
           size="sm"
           variant="outline"

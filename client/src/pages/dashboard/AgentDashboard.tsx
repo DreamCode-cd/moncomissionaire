@@ -1,5 +1,6 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
+import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { formaterDateLongue } from '@/lib/dates';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -114,57 +115,12 @@ export default function AgentDashboard() {
     queryKey: ['/api/v1/visites/agent/rapports/'],
   });
 
-  // Mutation to terminate a visit (used after report creation)
-  const terminerVisiteMutation = useMutation({
-    mutationFn: (id: number) => api.post(`/api/v1/visites/agent/visites/${id}/terminer/`, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/agent/visites/'] });
-      toast({
-        title: 'Visite terminée',
-        description: 'La visite a été marquée comme terminée.',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Impossible de terminer la visite',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Mutation to change visit status
-  const changeStatusMutation = useMutation({
-    mutationFn: ({ id, statut }: { id: number; statut: string }) => 
-      api.patch(`/api/v1/visites/agent/visites/${id}/`, { statut }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/agent/visites/'] });
-      toast({
-        title: 'Statut mis à jour',
-        description: 'Le statut de la visite a été modifié.',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Impossible de modifier le statut',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Mutation to create a report and terminate visit
+  // Créer le rapport : le serveur passe alors la visite à « terminée ».
   const createReportMutation = useMutation({
-    mutationFn: async (data: ExtendedReportData & { shouldTerminate?: boolean }) => {
-      const { shouldTerminate, ...reportData } = data;
-      // Create the report
-      const report = await api.post('/api/v1/visites/agent/rapports/', reportData);
-      // If visit was not already terminated, terminate it
-      if (shouldTerminate && data.visite) {
-        await api.post(`/api/v1/visites/agent/visites/${data.visite}/terminer/`, {});
-      }
-      return report;
-    },
+    // Le serveur termine la visite en enregistrant le rapport : un appel à
+    // `terminer` derrière serait refusé (visite déjà close) et afficherait une
+    // erreur alors que le rapport est bien parti.
+    mutationFn: (reportData: ExtendedReportData) => api.post('/api/v1/visites/agent/rapports/', reportData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/agent/visites/'] });
       queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/agent/rapports/'] });
@@ -216,13 +172,11 @@ export default function AgentDashboard() {
 
   const handleSubmitReport = () => {
     if (selectedVisite && reportData.etat_general) {
-      const submitData: ExtendedReportData & { shouldTerminate?: boolean } = {
+      const submitData: ExtendedReportData = {
         visite: selectedVisite.id,
         etat_general: reportData.etat_general,
         conformite_annonce: reportData.conformite_annonce,
         client_interesse: reportData.client_interesse,
-        // Terminate visit if it's not already terminated
-        shouldTerminate: selectedVisite.statut !== 'terminee',
       };
 
       // Add optional fields only if they have values
@@ -354,34 +308,13 @@ export default function AgentDashboard() {
                 Détails
               </Button>
 
-              {/* Status change dropdown - only for non-terminated visits */}
-              {visite.statut !== 'terminee' && visite.statut !== 'annulee' && (
-                <Select
-                  value={visite.statut}
-                  onValueChange={(newStatus) => {
-                    if (newStatus === 'terminee') {
-                      // When selecting "terminee", open report dialog first
-                      handleOpenReportDialog(visite);
-                    } else {
-                      changeStatusMutation.mutate({ id: visite.id, statut: newStatus });
-                    }
-                  }}
-                  disabled={changeStatusMutation.isPending}
-                >
-                  <SelectTrigger className="w-[140px]" data-testid={`select-status-${visite.id}`}>
-                    <SelectValue placeholder="Changer statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="planifiee">Planifiée</SelectItem>
-                    <SelectItem value="en_cours">En cours</SelectItem>
-                    <SelectItem value="terminee">Terminée</SelectItem>
-                    <SelectItem value="annulee">Annulée</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Terminer button opens report dialog */}
-              {(visite.statut === 'planifiee' || visite.statut === 'en_cours') && (
+              {/* Plus de liste déroulante de statut (audit du 19/11/2026,
+                  A-2) : l'agent annulait une visite sans motif et sans
+                  prévenir le client. Comme sur le mobile, il dit qu'elle a eu
+                  lieu par son rapport, une fois l'heure passée
+                  (`a_confirmer`, calculé par le serveur), ou qu'elle n'a pas
+                  eu lieu. Avant l'heure, il n'y a rien à faire. */}
+              {visite.a_confirmer && !visitHasReport && (
                 <Button
                   size="sm"
                   onClick={() => handleOpenReportDialog(visite)}
@@ -389,9 +322,10 @@ export default function AgentDashboard() {
                   data-testid={`button-terminer-${visite.id}`}
                 >
                   <CircleCheck className="w-4 h-4 mr-1" />
-                  Terminer
+                  Elle a eu lieu : rapport
                 </Button>
               )}
+              <ConfirmerVisite visite={visite} cle={['/api/v1/visites/agent/visites/']} espace="agent" />
 
               {visite.statut === 'terminee' && !visitHasReport && (
                 <Button

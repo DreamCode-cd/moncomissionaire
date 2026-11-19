@@ -641,11 +641,6 @@ export interface VisiteAssignation {
   heure_visite: string;
 }
 
-export interface VisiteUpdate {
-  statut?: StatutVisite | 'reportee';
-  notes_commissionnaire?: string;
-}
-
 export interface VisiteReassignment {
   agent: number;
 }

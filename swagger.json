@@ -6704,69 +6704,6 @@
                     "visites"
                 ]
             },
-            "put": {
-                "operationId": "visites_agent_rapports_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/RapportVisite"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/RapportVisite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "patch": {
-                "operationId": "visites_agent_rapports_partial_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/RapportVisite"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/RapportVisite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "delete": {
-                "operationId": "visites_agent_rapports_delete",
-                "description": "",
-                "parameters": [],
-                "responses": {
-                    "204": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
             "parameters": [
                 {
                     "name": "id",
@@ -6870,31 +6807,6 @@
                         "description": "",
                         "schema": {
                             "$ref": "#/definitions/Visite"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "patch": {
-                "operationId": "visites_agent_visites_partial_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/VisiteUpdate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/VisiteUpdate"
                         }
                     }
                 },
@@ -7599,69 +7511,6 @@
                         "schema": {
                             "$ref": "#/definitions/Visite"
                         }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "put": {
-                "operationId": "visites_commissionnaire_visites_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/VisiteUpdate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/VisiteUpdate"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "patch": {
-                "operationId": "visites_commissionnaire_visites_partial_update",
-                "description": "",
-                "parameters": [
-                    {
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/VisiteUpdate"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "schema": {
-                            "$ref": "#/definitions/VisiteUpdate"
-                        }
-                    }
-                },
-                "tags": [
-                    "visites"
-                ]
-            },
-            "delete": {
-                "operationId": "visites_commissionnaire_visites_delete",
-                "description": "",
-                "parameters": [],
-                "responses": {
-                    "204": {
-                        "description": ""
                     }
                 },
                 "tags": [
@@ -13458,27 +13307,6 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
-                }
-            }
-        },
-        "VisiteUpdate": {
-            "type": "object",
-            "properties": {
-                "statut": {
-                    "title": "Statut",
-                    "type": "string",
-                    "enum": [
-                        "planifiee",
-                        "en_cours",
-                        "terminee",
-                        "annulee",
-                        "reportee",
-                        "non_faite"
-                    ]
-                },
-                "notes_commissionnaire": {
-                    "title": "Notes du commissionnaire",
-                    "type": "string"
                 }
             }
         },
