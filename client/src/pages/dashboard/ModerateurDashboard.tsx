@@ -864,17 +864,22 @@ export default function ModerateurDashboard() {
                           <div className="flex flex-row md:flex-col gap-2 justify-end">
                             {demande.statut === 'en_attente' && (
                               <>
+                                {/* Accepter, c'est fixer la visite (audit du
+                                    19/11/2026, W-1) : le créneau du client est
+                                    prérempli, il reste à choisir l'agent. */}
                                 <Button 
                                   size="sm"
                                   onClick={() => {
-                                    setSelectedDemande(demande);
-                                    setDemandeAction('acceptee');
-                                    setProcessDemandeDialogOpen(true);
+                                    setSelectedDemandeForVisite(demande);
+                                    const libre = !creneauPasse(demande.date_souhaitee, demande.heure_souhaitee);
+                                    setVisiteDate(libre ? demande.date_souhaitee : '');
+                                    setVisiteHeure(libre ? demande.heure_souhaitee.slice(0, 5) : '');
+                                    setCreateVisiteDialogOpen(true);
                                   }}
                                   data-testid={`button-accept-demande-${demande.id}`}
                                 >
                                   <CircleCheck className="w-4 h-4 mr-1" />
-                                  Accepter
+                                  Accepter ce créneau
                                 </Button>
                                 <Button 
                                   variant="destructive"

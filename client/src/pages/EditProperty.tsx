@@ -300,51 +300,35 @@ export default function EditProperty() {
         }
       }
 
-      if (newPhotos.length > 0) {
-        const formData = new FormData();
-        
-        Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && (value !== '' || CHAMPS_VIDES_PERMIS.has(key))) {
-            formData.append(key, String(value));
-          }
-        });
-
-        formData.append('statut_location', locationStatus);
-
-        newPhotos.forEach((file) => {
-          formData.append('photos', file);
-        });
-
-        const currentPrincipalPhoto = photos[principalIndex];
-        if (currentPrincipalPhoto?.isExisting && currentPrincipalPhoto?.id) {
-          formData.append('photo_principale_id', String(currentPrincipalPhoto.id));
-        } else {
-          const newPhotoIndex = photos.slice(0, principalIndex + 1).filter(p => !p.isExisting).length - 1;
-          if (newPhotoIndex >= 0) {
-            formData.append('photo_principale_index', String(newPhotoIndex));
-          }
+      // Les champs d'abord, en JSON ; puis chaque nouvelle photo par
+      // `add_photo`, qui applique la limite de six et renvoie en validation
+      // une annonce validée. Avant le 19/11/2026, les nouvelles photos
+      // partaient dans la modification elle-même : le serveur répondait 200
+      // et les laissait tomber, sans un mot (audit, W-2).
+      const jsonData: Record<string, unknown> = {};
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && (value !== '' || CHAMPS_VIDES_PERMIS.has(key))) {
+          jsonData[key] = value;
         }
+      });
+      jsonData.statut_location = locationStatus;
 
-        await api.request(`${routeApi}${propertyId}/`, {
-          method: 'PATCH',
+      const currentPrincipalPhoto = photos[principalIndex];
+      if (currentPrincipalPhoto?.isExisting && currentPrincipalPhoto?.id) {
+        jsonData.photo_principale_id = currentPrincipalPhoto.id;
+      }
+
+      await api.patch(`${routeApi}${propertyId}/`, jsonData);
+
+      for (const file of newPhotos) {
+        const formData = new FormData();
+        formData.append('image', file);
+        if (currentPrincipalPhoto?.file === file) formData.append('is_principale', 'true');
+        await api.request(`${routeApi}${propertyId}/add_photo/`, {
+          method: 'POST',
           body: formData,
           isFormData: true,
         });
-      } else {
-        const jsonData: Record<string, unknown> = {};
-        Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && (value !== '' || CHAMPS_VIDES_PERMIS.has(key))) {
-            jsonData[key] = value;
-          }
-        });
-        jsonData.statut_location = locationStatus;
-
-        const currentPrincipalPhoto = photos[principalIndex];
-        if (currentPrincipalPhoto?.isExisting && currentPrincipalPhoto?.id) {
-          jsonData.photo_principale_id = currentPrincipalPhoto.id;
-        }
-
-        await api.patch(`${routeApi}${propertyId}/`, jsonData);
       }
 
       newPhotos.forEach(file => {
@@ -355,9 +339,22 @@ export default function EditProperty() {
       queryClient.invalidateQueries({ queryKey: [routeApi] });
       queryClient.invalidateQueries({ queryKey: [routeApi, propertyId] });
 
+      // Même règle que le serveur (biens/services.py, CHAMPS_ADRESSE) : une
+      // annonce validée qui change d'adresse ou de photos attend un nouvel avis.
+      const memeValeur = (a: unknown, b: unknown) => String(a ?? '') === String(b ?? '');
+      const adresseChangee =
+        !memeValeur(data.adresse, property?.adresse) ||
+        !memeValeur(data.quartier, property?.quartier) ||
+        !memeValeur(data.commune, property?.commune) ||
+        !memeValeur(data.ville, property?.ville);
+      const aRevoir =
+        property?.statut_validation === 'valide' &&
+        (adresseChangee || photosToDelete.length > 0 || newPhotos.length > 0);
       toast({
         title: 'Bien modifié',
-        description: 'Vos modifications ont été enregistrées.',
+        description: aRevoir
+          ? 'L’adresse ou les photos ont changé : l’annonce repasse en validation et revient en ligne après l’accord de l’équipe.'
+          : 'Vos modifications ont été enregistrées.',
       });
       setLocation(pageRetour);
     } catch (error) {
@@ -564,6 +561,12 @@ export default function EditProperty() {
               </CardContent>
             </Card>
 
+            {property.statut_validation === 'valide' && (
+              <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground" data-testid="avis-revalidation">
+                Changer l’adresse ou les photos renvoie l’annonce en validation : elle quitte les annonces jusqu’à
+                l’accord de l’équipe. Le prix, la description et la disponibilité se changent librement.
+              </p>
+            )}
             {property.statut_validation === 'valide' && (
               <Card>
                 <CardHeader>
