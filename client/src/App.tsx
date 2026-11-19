@@ -35,7 +35,6 @@ const Messages = lazyWithRetry(() => import("@/pages/Messages"));
 const ChatRoom = lazyWithRetry(() => import("@/pages/ChatRoom"));
 const AddProperty = lazyWithRetry(() => import("@/pages/AddProperty"));
 const EditProperty = lazyWithRetry(() => import("@/pages/EditProperty"));
-const ClientDashboard = lazyWithRetry(() => import("@/pages/dashboard/ClientDashboard"));
 const MyVisits = lazyWithRetry(() => import("@/pages/MyVisits"));
 const MesFavoris = lazyWithRetry(() => import("@/pages/MesFavoris"));
 const ProprietaireDashboard = lazyWithRetry(() => import("@/pages/dashboard/ProprietaireDashboard"));
@@ -142,10 +141,12 @@ function Router() {
             <ProtectedRoute><MesFavoris /></ProtectedRoute>
           </Route>
           <Route path="/my-visits">
-            <ProtectedRoute allowedRoles={['client']}><ClientDashboard /></ProtectedRoute>
-          </Route>
-          <Route path="/my-visits/all">
             <ProtectedRoute allowedRoles={['client']}><MyVisits /></ProtectedRoute>
+          </Route>
+          {/* Ancienne adresse de la liste complète, avant que « Mes visites »
+              ne devienne la page d'arrivée du client. */}
+          <Route path="/my-visits/all">
+            <Redirect to="/my-visits" />
           </Route>
           <Route path="/dashboard">
             <ProtectedRoute><DashboardRouter /></ProtectedRoute>
