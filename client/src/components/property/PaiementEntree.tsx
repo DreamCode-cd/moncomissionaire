@@ -1,3 +1,4 @@
+import { Link } from 'wouter';
 import type { BienList } from '@shared/schema';
 import { estPositif, formaterMontant } from '@/lib/prix';
 
@@ -63,6 +64,15 @@ export function PaiementEntree({ bien }: { bien: BienPaiement }) {
         montant={estPositif(frais) ? formaterMontant(frais, bien.devise) : 'aucun'}
         note={estPositif(frais) ? 'Une seule fois pour ce bien, même si vous revenez.' : undefined}
       />
+
+      {/* La question se pose ici, devant les montants : à qui, et quand ? */}
+      <Link
+        href="/comment-ca-marche"
+        className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
+        data-testid="lien-comment-ca-marche"
+      >
+        À qui payer, et quand ?
+      </Link>
     </div>
   );
 }

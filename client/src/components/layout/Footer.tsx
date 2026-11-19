@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { MessageCircle, Phone } from 'lucide-react';
+import { HelpCircle, MessageCircle, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CONTACT_VILLAGO, LIEN_WHATSAPP, numeroLisible } from '@/lib/contact';
 
@@ -37,6 +37,14 @@ export function Footer({
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">Aide et contact</p>
           <div className="flex flex-wrap gap-x-5 text-sm">
+            <Link
+              href="/comment-ca-marche"
+              className="inline-flex min-h-11 md:min-h-0 items-center gap-1.5 text-primary hover:underline underline-offset-2"
+              data-testid="aide-comment-ca-marche"
+            >
+              <HelpCircle className="h-4 w-4" aria-hidden />
+              Comment ça marche
+            </Link>
             <a
               href={LIEN_WHATSAPP}
               target="_blank"

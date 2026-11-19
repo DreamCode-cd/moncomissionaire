@@ -43,6 +43,7 @@ const ModerateurDashboard = lazyWithRetry(() => import("@/pages/dashboard/Modera
 const AgentDashboard = lazyWithRetry(() => import("@/pages/dashboard/AgentDashboard"));
 const AdminDashboard = lazyWithRetry(() => import("@/pages/dashboard/AdminDashboard"));
 const LegalPage = lazyWithRetry(() => import("@/pages/LegalPage"));
+const CommentCaMarche = lazyWithRetry(() => import("@/pages/CommentCaMarche"));
 const EtatDesLieuxEdition = lazyWithRetry(() => import("@/pages/EtatDesLieuxEdition"));
 const EtatDesLieuxPublic = lazyWithRetry(() => import("@/pages/EtatDesLieuxPublic"));
 
@@ -177,6 +178,7 @@ function Router() {
             <ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>
           </Route>
           <Route path="/legal/:pageType" component={LegalPage} />
+          <Route path="/comment-ca-marche" component={CommentCaMarche} />
           <Route component={NotFound} />
           </Switch>
         </Suspense>
