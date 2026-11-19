@@ -1,5 +1,8 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
+import { ChoixCreneau, creneauPasse } from '@/components/confiance/ChoixCreneau';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
+import { ActionsVisite } from '@/components/confiance/ActionsVisite';
+import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { formaterDateCourte } from '@/lib/dates';
 import { useState } from 'react';
@@ -830,7 +833,7 @@ export default function ModerateurDashboard() {
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 mb-3">
                               <p className="text-sm font-medium mb-1">
-                                Bien: {demande.bien_detail?.titre}
+                                Bien : {demande.bien_detail?.titre}
                               </p>
                               <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
@@ -854,7 +857,7 @@ export default function ModerateurDashboard() {
                             )}
                             {demande.motif_rejet && (
                               <p className="text-sm text-destructive mt-2">
-                                Motif de rejet: {demande.motif_rejet}
+                                Motif de rejet : {demande.motif_rejet}
                               </p>
                             )}
                           </div>
@@ -893,8 +896,10 @@ export default function ModerateurDashboard() {
                                 size="sm"
                                 onClick={() => {
                                   setSelectedDemandeForVisite(demande);
-                                  setVisiteDate(demande.date_souhaitee);
-                                  setVisiteHeure(demande.heure_souhaitee);
+                                  // Le créneau du client, s'il n'est pas déjà passé.
+                                  const libre = !creneauPasse(demande.date_souhaitee, demande.heure_souhaitee);
+                                  setVisiteDate(libre ? demande.date_souhaitee : '');
+                                  setVisiteHeure(libre ? demande.heure_souhaitee.slice(0, 5) : '');
                                   setCreateVisiteDialogOpen(true);
                                 }}
                                 data-testid={`button-schedule-visite-${demande.id}`}
@@ -1005,12 +1010,14 @@ export default function ModerateurDashboard() {
                           </div>
                           {visite.notes_commissionnaire && (
                             <p className="text-sm text-muted-foreground mt-2 italic">
-                              Notes: {visite.notes_commissionnaire}
+                              Notes : {visite.notes_commissionnaire}
                             </p>
                           )}
                         </div>
                         <div className="flex flex-row md:flex-col gap-2 justify-end">
-                          {(visite.statut === 'planifiee' || visite.statut === 'en_cours') && (
+                          <ConfirmerVisite visite={visite} cle={['/api/v1/visites/commissionnaire/visites/']} />
+                          <ActionsVisite visite={visite} cle={['/api/v1/visites/commissionnaire/visites/']} />
+                          {(visite.statut === 'planifiee' || visite.statut === 'en_cours') && !visite.a_confirmer && (
                             <Button 
                               variant="outline"
                               size="sm"
@@ -1078,7 +1085,7 @@ export default function ModerateurDashboard() {
                               </Avatar>
                               <div>
                                 <p className="text-sm font-medium">
-                                  Agent: {rapport.agent_detail.first_name} {rapport.agent_detail.last_name}
+                                  Agent : {rapport.agent_detail.first_name} {rapport.agent_detail.last_name}
                                 </p>
                               </div>
                             </div>
@@ -1340,28 +1347,13 @@ export default function ModerateurDashboard() {
                   </p>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="visite-date">Date de visite</Label>
-                  <Input
-                    id="visite-date"
-                    type="date"
-                    value={visiteDate}
-                    onChange={(e) => setVisiteDate(e.target.value)}
-                    data-testid="input-visite-date"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="visite-heure">Heure</Label>
-                  <Input
-                    id="visite-heure"
-                    type="time"
-                    value={visiteHeure}
-                    onChange={(e) => setVisiteHeure(e.target.value)}
-                    data-testid="input-visite-heure"
-                  />
-                </div>
-              </div>
+              <ChoixCreneau
+                jour={visiteDate || null}
+                heure={visiteHeure || null}
+                onJour={setVisiteDate}
+                onHeure={(h) => setVisiteHeure(h ?? '')}
+                marque={selectedDemande ? { jour: selectedDemande.date_souhaitee, heure: selectedDemande.heure_souhaitee } : null}
+              />
               <div>
                 <Label htmlFor="agent-select">Agent (optionnel)</Label>
                 <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>

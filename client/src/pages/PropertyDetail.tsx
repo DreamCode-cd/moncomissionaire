@@ -6,8 +6,8 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useRoute, useLocation, useSearch, Link } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
-  MapPin, Bed, Bath, Maximize, Calendar, User, ChevronLeft, ChevronRight, X,
-  Droplets, Zap, Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
+  MapPin, Calendar, User, ChevronLeft, ChevronRight, X,
+  Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
   Images, SquarePen, Send, ChevronDown, ChevronUp, LoaderCircle,
   ShieldCheck,
 } from 'lucide-react';
@@ -32,7 +32,6 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -44,9 +43,13 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterLoyer, formaterPrix } from '@/lib/prix';
-import { auteurAnnonce, formaterSurface, initiale, libelleGarantie, libelleVerification, lieuAnnonce } from '@/lib/annonce';
+import { auteurAnnonce, formaterSurface, initiale, libelleVerification, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
+import { PaiementEntree } from '@/components/property/PaiementEntree';
+import { ReleveMaison } from '@/components/property/ReleveMaison';
+import { ChoixCreneau, heureLisible, jourLisible } from '@/components/confiance/ChoixCreneau';
+import { libelleChambres } from '@/lib/faits';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
 import { garderBrouillonVisite, oublierBrouillonVisite, reprendreBrouillonVisite, versConnexion } from '@/lib/suite';
 
@@ -168,8 +171,11 @@ export default function PropertyDetail() {
     queryKey: ['/api/v1/biens/', 'suggestions', propertyId, property?.type_bien],
     queryFn: async (): Promise<PaginatedResponse<BienList>> => {
       const typeBien = property?.type_bien ? `&type_bien=${property.type_bien}` : '';
-      const response = await api.get(`/api/v1/biens/?page_size=4&exclude=${propertyId}${typeBien}`);
-      return response as PaginatedResponse<BienList>;
+      // L'API n'a pas de filtre « exclude » (le paramètre était ignoré et la
+      // fiche se proposait elle-même) : on en demande un de plus et on retire
+      // le bien affiché.
+      const response = (await api.get(`/api/v1/biens/?page_size=5${typeBien}`)) as PaginatedResponse<BienList>;
+      return { ...response, results: response.results.filter((b) => String(b.id) !== String(propertyId)) };
     },
     enabled: !!propertyId && !!property?.type_bien,
   });
@@ -372,7 +378,7 @@ export default function PropertyDetail() {
   };
 
   // On ne crée pas d'avis depuis la fiche : il faut avoir visité le bien, et
-  // cela se fait depuis « Mes visites ». Ici, l'auteur corrige seulement le sien.
+  // cela se fait depuis « Mes visites ». Ici, l'auteur corrige seulement le sien.
   const reviewMutation = useMutation({
     mutationFn: async (data: { note: number; commentaire: string }) =>
       api.patch(`/api/v1/biens/avis-biens/${userReviewId}/`, data),
@@ -470,6 +476,13 @@ export default function PropertyDetail() {
     getDjangoImageUrl(property.photos?.[0]?.image) ||
     null;
   const surface = formaterSurface(property.superficie);
+  const mesures = [
+    libelleChambres(property.nombre_chambres),
+    property.nombre_salles_bain
+      ? `${property.nombre_salles_bain} salle${property.nombre_salles_bain > 1 ? 's' : ''} de bain`
+      : null,
+    surface,
+  ].filter((m): m is string => !!m);
 
   const availableAmenities = amenities.filter(
     a => property[a.key as keyof BienDetail]
@@ -480,8 +493,8 @@ export default function PropertyDetail() {
     : null;
 
   return (
-    <Layout>
-      <div className="max-w-4xl mx-auto pb-24">
+    <Layout barreAction>
+      <div className="max-w-4xl mx-auto pb-6">
         <div className="sticky top-14 z-30 bg-background border-b px-4 py-2 flex items-center gap-2">
           <Button 
             variant="ghost" 
@@ -646,42 +659,24 @@ export default function PropertyDetail() {
               )}
             </div>
 
-            <div className="flex items-baseline gap-2 mt-4">
-              <span className="text-3xl font-bold text-primary" data-testid="text-property-price">
-                {formaterPrix(property.prix_mensuel, property.devise)}
-              </span>
-              <span className="text-muted-foreground">/mois</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1" data-testid="text-garantie">
-              {property.garantie_mois > 0
-                ? `Garantie : ${libelleGarantie(property.garantie_mois)}, soit ${formaterPrix(property.garantie, property.devise)}`
-                : 'Aucune garantie demandée'}
+            <p className="mt-3 text-2xl font-extrabold text-primary tabular-nums" data-testid="text-property-price">
+              {formaterPrix(property.prix_mensuel, property.devise)}
+              <span className="text-lg font-semibold"> par mois</span>
             </p>
-            <CoutsLocation bien={property} />
+            {/* Chambres, salles de bain, surface : une ligne de faits, comme
+                sur le mobile, plutôt que trois cartes d'icônes de même taille. */}
+            {mesures.length > 0 && <p className="mt-1 text-muted-foreground">{mesures.join(', ')}</p>}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4 flex flex-col items-center">
-                <Bed className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.nombre_chambres}</span>
-                <span className="text-sm text-muted-foreground">Chambres</span>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex flex-col items-center">
-                <Bath className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{property.nombre_salles_bain}</span>
-                <span className="text-sm text-muted-foreground">Salles de bain</span>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 flex flex-col items-center">
-                <Maximize className="w-6 h-6 mb-2 text-muted-foreground" />
-                <span className="text-xl font-bold">{surface ?? '—'}</span>
-                <span className="text-sm text-muted-foreground">{surface ? 'Surface' : 'Surface non précisée'}</span>
-              </CardContent>
-            </Card>
+          {/* Eau, courant, libre ou non, qui en répond : ce qui décide une
+              visite, avant même la description. */}
+          <ReleveMaison bien={property} />
+
+          <Separator />
+
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Ce que vous paierez</h2>
+            <PaiementEntree bien={property} />
           </div>
 
           <Separator />
@@ -720,31 +715,6 @@ export default function PropertyDetail() {
               )}
             </div>
           </div>
-
-          {(property.eau || property.electricite) && (
-            <>
-              <Separator />
-              <div>
-                {/* La première question d'un locataire à Lubumbashi : l'eau
-                    et le courant sont-ils réguliers ? */}
-                <h2 className="text-lg font-semibold mb-3">Eau et courant</h2>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {property.eau && (
-                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-eau">
-                      <Droplets className="w-5 h-5 text-primary" />
-                      <span>{property.eau_display}</span>
-                    </div>
-                  )}
-                  {property.electricite && (
-                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg" data-testid="text-electricite">
-                      <Zap className="w-5 h-5 text-primary" />
-                      <span>{property.electricite_display}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
 
           {availableAmenities.length > 0 && (
             <>
@@ -931,7 +901,7 @@ export default function PropertyDetail() {
               <p className="text-sm text-muted-foreground mb-4" data-testid="text-origine-avis">
                 Seules les personnes qui ont visité ce bien avec VillaGo peuvent le noter.
                 {isAuthenticated && user?.role === 'client'
-                  ? ' Après votre visite, vous le noterez depuis « Mes visites ».'
+                  ? ' Après votre visite, vous le noterez depuis « Mes visites ».'
                   : ''}
               </p>
             )}
@@ -1049,10 +1019,10 @@ export default function PropertyDetail() {
 
         <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 bg-background border-t p-4 flex items-center gap-4">
           <div className="flex-1">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-extrabold text-primary tabular-nums">
               {formaterPrix(property.prix_mensuel, property.devise)}
             </span>
-            <span className="text-muted-foreground">/mois</span>
+            <span className="text-muted-foreground"> par mois</span>
           </div>
           
           {property.statut_location !== 'loue' ? (
@@ -1074,56 +1044,48 @@ export default function PropertyDetail() {
               <DialogHeader>
                 <DialogTitle>Demander une visite</DialogTitle>
                 <DialogDescription>
-                  Remplissez le formulaire pour demander une visite de ce bien.
+                  Le commissionnaire vous répond dans « Mes visites ». L’adresse exacte vous est donnée quand la
+                  visite est fixée.
                 </DialogDescription>
               </DialogHeader>
               <div className="rounded-md bg-muted p-3">
                 <CoutsLocation bien={property} compact />
                 <p className="text-sm text-muted-foreground mt-2">
-                  Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
+                  Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
                 </p>
               </div>
-              <div className="space-y-4 py-4">
+              <div className="min-w-0 space-y-4 py-4">
+                <ChoixCreneau
+                  jour={visitDate || null}
+                  heure={visitTime || null}
+                  onJour={setVisitDate}
+                  onHeure={(h) => setVisitTime(h ?? '')}
+                />
                 <div>
-                  <Label htmlFor="visit-date">Date souhaitée</Label>
-                  <p className="text-sm text-muted-foreground mb-1">Sélectionnez une date (jj/mm/aaaa)</p>
-                  <Input
-                    id="visit-date"
-                    type="date"
-                    value={visitDate}
-                    onChange={(e) => setVisitDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    data-testid="input-visit-date"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="visit-time">Heure souhaitée</Label>
-                  <p className="text-sm text-muted-foreground mb-1">Sélectionnez une heure (hh:mm)</p>
-                  <Input
-                    id="visit-time"
-                    type="time"
-                    value={visitTime}
-                    onChange={(e) => setVisitTime(e.target.value)}
-                    data-testid="input-visit-time"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="visit-message">Message (optionnel)</Label>
+                  <Label htmlFor="visit-message">Un message (facultatif)</Label>
                   <Textarea
                     id="visit-message"
-                    placeholder="Précisez vos disponibilités ou questions..."
+                    placeholder="Par exemple : je viens avec mon épouse, ou je préfère être appelé avant."
                     value={visitMessage}
                     onChange={(e) => setVisitMessage(e.target.value)}
                     data-testid="input-visit-message"
                   />
                 </div>
-                <Button 
-                  className="w-full" 
+                {/* Ce qui va partir, relu juste au-dessus du bouton. */}
+                <p className="text-sm" aria-live="polite" data-testid="resume-creneau">
+                  {visitDate && visitTime ? (
+                    <>Visite souhaitée <strong>{jourLisible(visitDate)} à {heureLisible(visitTime)}</strong></>
+                  ) : (
+                    <span className="text-muted-foreground">Choisissez un jour et une heure.</span>
+                  )}
+                </p>
+                <Button
+                  className="w-full"
                   onClick={handleRequestVisit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (isAuthenticated && (!visitDate || !visitTime))}
                   data-testid="button-submit-visit"
                 >
-                  {isSubmitting ? 'Envoi...' : 'Envoyer la demande'}
+                  {isSubmitting ? 'Envoi…' : 'Envoyer la demande'}
                 </Button>
               </div>
             </DialogContent>

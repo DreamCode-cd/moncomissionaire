@@ -1,5 +1,6 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { MotifRefus } from '@/components/confiance/MotifRefus';
+import { useConfirmerStatutLocation } from '@/components/property/ConfirmerStatutLocation';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -77,6 +78,7 @@ export default function ProprietaireDashboard() {
       });
     },
   });
+  const statutLocation = useConfirmerStatutLocation((id, status) => updateStatusMutation.mutate({ id, status }));
 
   const properties = myProperties?.results || [];
   const pendingCount = properties.filter(p => p.statut_validation === 'en_attente').length;
@@ -278,7 +280,7 @@ export default function ProprietaireDashboard() {
                         {property.statut_validation === 'valide' && (
                           <Select
                             value={property.statut_location}
-                            onValueChange={(value) => updateStatusMutation.mutate({ id: property.id, status: value })}
+                            onValueChange={(value) => statutLocation.choisir(property, value)}
                           >
                             <SelectTrigger className="w-[130px]" data-testid={`select-status-${property.id}`}>
                               <SelectValue />
@@ -314,6 +316,7 @@ export default function ProprietaireDashboard() {
 
         <BauxConclus />
       </div>
+      {statutLocation.dialogue}
     </Layout>
   );
 }

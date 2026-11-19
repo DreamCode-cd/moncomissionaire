@@ -1,29 +1,85 @@
 import { Link } from 'wouter';
+import { HelpCircle, MessageCircle, Phone } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { CONTACT_VILLAGO, LIEN_WHATSAPP, numeroLisible } from '@/lib/contact';
 
-export function Footer() {
+const PAGES_LEGALES = [
+  { href: '/legal/terms', libelle: 'Conditions d’utilisation' },
+  { href: '/legal/privacy', libelle: 'Confidentialité' },
+  { href: '/legal/cookies', libelle: 'Cookies' },
+  { href: '/legal/legal', libelle: 'Mentions légales' },
+];
+
+/**
+ * Le pied de page, sur toutes les largeurs. Il était masqué sur téléphone :
+ * un visiteur n'y trouvait ni les pages légales (Code du numérique, art. 52 :
+ * accès « facile, direct et permanent ») ni le moyen de joindre l'équipe.
+ * Sur téléphone, il laisse la place de la barre de navigation du bas.
+ */
+export function Footer({
+  avecBarreDuBas = true,
+  barreAction = false,
+}: {
+  avecBarreDuBas?: boolean;
+  barreAction?: boolean;
+}) {
+  const { telephone } = CONTACT_VILLAGO;
   return (
-    <footer className="hidden md:block border-t bg-background py-6 mt-auto">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} VillaGo. Tous droits réservés.
+    <footer
+      className={cn(
+        'border-t bg-background pt-6 mt-auto',
+        // La barre d'action d'une fiche (≈ 90 px) se pose au-dessus de la
+        // navigation du bas sur téléphone, et seule sur ordinateur.
+        barreAction ? 'pb-44 md:pb-28' : avecBarreDuBas ? 'pb-24 md:pb-6' : 'pb-6',
+      )}
+    >
+      <div className="container mx-auto px-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Aide et contact</p>
+          <div className="flex flex-wrap gap-x-5 text-sm">
+            <Link
+              href="/comment-ca-marche"
+              className="inline-flex min-h-11 md:min-h-0 items-center gap-1.5 text-primary hover:underline underline-offset-2"
+              data-testid="aide-comment-ca-marche"
+            >
+              <HelpCircle className="h-4 w-4" aria-hidden />
+              Comment ça marche
+            </Link>
+            <a
+              href={LIEN_WHATSAPP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 md:min-h-0 items-center gap-1.5 text-primary hover:underline underline-offset-2"
+              data-testid="aide-whatsapp"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden />
+              WhatsApp
+            </a>
+            <a
+              href={`tel:${telephone}`}
+              className="inline-flex min-h-11 md:min-h-0 items-center gap-1.5 text-primary hover:underline underline-offset-2"
+              data-testid="aide-appeler"
+            >
+              <Phone className="h-4 w-4" aria-hidden />
+              {numeroLisible(telephone)}
+            </a>
           </div>
-          <nav className="flex items-center gap-6 text-sm">
-            <Link href="/legal/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-              Conditions d'utilisation
-            </Link>
-            <Link href="/legal/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-              Confidentialité
-            </Link>
-            <Link href="/legal/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
-              Cookies
-            </Link>
-            <Link href="/legal/legal" className="text-muted-foreground hover:text-foreground transition-colors">
-              Mentions légales
-            </Link>
-          </nav>
         </div>
+        <nav aria-label="Informations légales" className="flex flex-wrap gap-x-5 text-sm">
+          {PAGES_LEGALES.map(({ href, libelle }) => (
+            <Link
+              key={href}
+              href={href}
+              className="inline-flex min-h-11 md:min-h-0 items-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {libelle}
+            </Link>
+          ))}
+        </nav>
       </div>
+      <p className="container mx-auto px-4 mt-4 text-xs text-muted-foreground">
+        © {new Date().getFullYear()} VillaGo. Tous droits réservés.
+      </p>
     </footer>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChoixCreneau } from '@/components/confiance/ChoixCreneau';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Building2, Handshake, MapPin, Search } from 'lucide-react';
 import { EtatChargement, EtatVide, ErreurRequete } from '@/components/etats';
@@ -199,16 +200,7 @@ function DialoguePresentation({ bien, onFermer }: { bien: BienPartage; onFermer:
               onChange={(e) => setTelephone(e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="presentation-date">Visite souhaitée</Label>
-              <Input id="presentation-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="presentation-heure">Heure</Label>
-              <Input id="presentation-heure" type="time" value={heure} onChange={(e) => setHeure(e.target.value)} />
-            </div>
-          </div>
+          <ChoixCreneau jour={date || null} heure={heure || null} onJour={setDate} onHeure={(h) => setHeure(h ?? '')} />
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}

@@ -140,14 +140,18 @@ export default function Search() {
             {data?.count !== undefined ? (
               <span data-testid="text-results-count">{data.count} bien{data.count !== 1 ? 's' : ''} trouvé{data.count !== 1 ? 's' : ''}</span>
             ) : (
-              <span>Recherche en cours...</span>
+              <span>Recherche en cours…</span>
             )}
           </p>
 
-          <div className="flex gap-1">
+          {/* Sur téléphone, les annonces sont toujours en lignes : le choix
+              n'y changeait rien. */}
+          <div className="hidden md:flex gap-1">
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Afficher en grille"
+              aria-pressed={viewMode === 'grid'}
               className={cn(viewMode === 'grid' && 'bg-muted')}
               onClick={() => setViewMode('grid')}
               data-testid="button-view-grid"
@@ -157,6 +161,8 @@ export default function Search() {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Afficher en liste"
+              aria-pressed={viewMode === 'list'}
               className={cn(viewMode === 'list' && 'bg-muted')}
               onClick={() => setViewMode('list')}
               data-testid="button-view-list"

@@ -61,6 +61,7 @@ const VISITE: Record<string, Statut> = {
   terminee: { libelle: 'Terminée', ton: 'favorable', icone: CircleCheck },
   reportee: { libelle: 'Reportée', ton: 'attente', icone: Clock },
   annulee: { libelle: 'Annulée', ton: 'defavorable', icone: CircleX },
+  non_faite: { libelle: 'N’a pas eu lieu', ton: 'neutre', icone: CircleX },
 };
 
 /** Traitement d'une demande de visite. */
@@ -68,6 +69,8 @@ const DEMANDE: Record<string, Statut> = {
   en_attente: { libelle: 'En attente', ton: 'attente', icone: Clock },
   acceptee: { libelle: 'Acceptée', ton: 'favorable', icone: CircleCheck },
   rejetee: { libelle: 'Rejetée', ton: 'defavorable', icone: CircleX },
+  annulee: { libelle: 'Annulée', ton: 'neutre', icone: CircleX },
+  expiree: { libelle: 'Expirée', ton: 'neutre', icone: Clock },
 };
 
 /**

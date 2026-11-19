@@ -562,25 +562,6 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        <Card className="mt-6 md:hidden">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Informations légales</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <a href="/legal/terms" className="block text-sm text-muted-foreground hover:text-foreground">
-              Conditions d'utilisation
-            </a>
-            <a href="/legal/privacy" className="block text-sm text-muted-foreground hover:text-foreground">
-              Politique de confidentialité
-            </a>
-            <a href="/legal/cookies" className="block text-sm text-muted-foreground hover:text-foreground">
-              Politique des cookies
-            </a>
-            <a href="/legal/legal" className="block text-sm text-muted-foreground hover:text-foreground">
-              Mentions légales
-            </a>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );

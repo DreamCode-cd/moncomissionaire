@@ -8,18 +8,20 @@ import { NotificationPermissionBanner } from '@/components/notifications/Notific
 interface LayoutProps {
   children: ReactNode;
   hideNav?: boolean;
+  /** La page a sa propre barre d'action fixée en bas (fiche d'un bien). */
+  barreAction?: boolean;
 }
 
-export function Layout({ children, hideNav = false }: LayoutProps) {
+export function Layout({ children, hideNav = false, barreAction = false }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <BandeauHorsLigne />
       <NotificationPermissionBanner />
       <Header />
-      <main className="flex-1 pb-20 md:pb-6">
+      <main className="flex-1 pb-6">
         {children}
       </main>
-      <Footer />
+      <Footer avecBarreDuBas={!hideNav} barreAction={barreAction} />
       {!hideNav && <MobileNav />}
     </div>
   );

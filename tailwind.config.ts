@@ -105,7 +105,8 @@ export default {
         },
       },
       fontFamily: {
-        // Police du système : rien à télécharger, et Roboto sur Android.
+        // Atkinson Hyperlegible Next, comme le mobile (voir main.tsx), puis la
+        // police du système le temps qu'elle arrive.
         sans: ["var(--font-sans)"],
         serif: ["var(--font-sans)"],
         mono: ["var(--font-mono)", "monospace"],

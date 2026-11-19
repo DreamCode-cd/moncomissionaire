@@ -79,7 +79,7 @@ export function Header() {
         ];
       case 'agent':
         return [
-          { href: '/agent-dashboard', icon: House, label: 'Dashboard' },
+          { href: '/agent-dashboard', icon: House, label: 'Mes visites' },
           { href: '/search', icon: Search, label: 'Recherche' },
         ];
       default:

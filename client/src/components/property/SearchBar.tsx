@@ -209,7 +209,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
           <Input
             type="search"
             enterKeyHint="search"
-            placeholder="Quartier, commune, type de bien…"
+            placeholder="Quartier, commune…"
             aria-label="Rechercher un quartier, une commune ou un type de bien"
             className="pl-10 h-12"
             value={texte}

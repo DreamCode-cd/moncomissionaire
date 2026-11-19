@@ -11,7 +11,7 @@ import {
  * Badge de statut — unique façon d'afficher un statut dans l'application.
  *
  * Avant, quatre fonctions `getStatusBadge` quasi identiques coexistaient dans
- * MyVisits, ClientDashboard, ProprietaireDashboard et AgentDashboard, plus
+ * MyVisits, ProprietaireDashboard et AgentDashboard, plus
  * trois `getEtatBadge` pour l'appréciation d'un rapport. Chacune décidait de
  * son libellé, de sa couleur et de son icône avec des primitives Tailwind
  * écrites en dur. Le même statut s'affichait donc de quatre façons.

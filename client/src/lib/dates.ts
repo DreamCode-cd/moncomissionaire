@@ -114,3 +114,12 @@ export function formaterSeparateurDeJour(valeur?: string | Date | null): string 
 
   return date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
 }
+
+/** Le jour d'aujourd'hui, à l'heure du navigateur (« 2026-11-17 »), pour le
+ *  `min` d'un champ date. `toISOString()` donne le jour UTC : entre minuit et
+ *  2 h à Lubumbashi, il proposait encore la veille. Le serveur refuse de
+ *  toute façon un créneau passé. */
+export function jourLocalIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}

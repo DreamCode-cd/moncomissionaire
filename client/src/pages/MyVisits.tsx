@@ -4,7 +4,7 @@ import { formaterDateLongue } from '@/lib/dates';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Calendar, Clock, CircleCheck, CircleX, FileText, User, Eye, ArrowLeft, House, Flag, Wallet } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Clock, CircleCheck, CircleX, FileText, User, Eye, House, Flag, Wallet } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,15 +12,25 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { estPositif, formaterMontant } from '@/lib/prix';
 import { DialogueAvis } from '@/components/confiance/DialogueAvis';
+import { heureLisible } from '@/components/confiance/ChoixCreneau';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getDjangoImageUrl, nomAffiche, vignetteDe } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, RapportVisite, Visite } from '@shared/schema';
 
@@ -28,6 +38,17 @@ import type { DemandeVisite, PaginatedResponse, RapportVisite, Visite } from '@s
 
 interface DemandeWithVisite extends DemandeVisite {
   visite_detail?: Visite & { rapport?: RapportVisite };
+}
+
+/** Le client annule jusqu'à la visite : en attente, acceptée, ou visite
+ *  fixée dont l'heure n'est pas passée. Même règle que le serveur
+ *  (visites/views.py, `annuler`). */
+function annulable(d: DemandeVisite): boolean {
+  if (d.statut === 'en_attente') return true;
+  if (d.statut !== 'acceptee') return false;
+  const v = d.visite;
+  if (!v) return true;
+  return (v.statut === 'planifiee' || v.statut === 'reportee') && !v.a_confirmer;
 }
 
 /** L'API renvoie la visite sous `visite` ; ces pages lisaient un champ
@@ -43,9 +64,14 @@ function avecVisite(page: PaginatedResponse<DemandeWithVisite>): PaginatedRespon
   };
 }
 
+/** Combien de demandes closes restent visibles avant « Voir les plus anciennes ». */
+const CLOSES_VISIBLES = 5;
+
 export default function MyVisits() {
   const [selectedReport, setSelectedReport] = useState<RapportVisite | null>(null);
+  const [toutesCloses, setToutesCloses] = useState(false);
   const [aSignaler, setASignaler] = useState<DemandeWithVisite | null>(null);
+  const [aAnnuler, setAAnnuler] = useState<DemandeWithVisite | null>(null);
   const [motifSignalement, setMotifSignalement] = useState('');
   const [aNoter, setANoter] = useState<{ demande: DemandeWithVisite; sujet: 'commissionnaire' | 'agent' | 'bien' } | null>(null);
   const { toast } = useToast();
@@ -69,6 +95,24 @@ export default function MyVisits() {
       }),
   });
 
+  const annuler = useMutation({
+    mutationFn: (demande: DemandeWithVisite) =>
+      api.post(`/api/v1/visites/client/demandes/${demande.id}/annuler/`, {}),
+    onSuccess: () => {
+      setAAnnuler(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/client/demandes/'] });
+      toast({ title: 'Demande annulée', description: 'Le commissionnaire est prévenu.' });
+    },
+    onError: (e) => {
+      setAAnnuler(null);
+      toast({
+        title: 'Annulation impossible',
+        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const { data: demandes, isLoading, error: erreurDemandes, refetch } = useQuery<PaginatedResponse<DemandeWithVisite>>({
     queryKey: ['/api/v1/visites/client/demandes/'],
     select: avecVisite,
@@ -76,10 +120,8 @@ export default function MyVisits() {
   });
 
 
-  const formatTime = (timeString: string | undefined) => {
-    if (!timeString) return '';
-    return timeString.slice(0, 5);
-  };
+  // « 16 h », comme sur le mobile.
+  const formatTime = (timeString: string | undefined) => (timeString ? heureLisible(timeString.slice(0, 5)) : '');
 
   const etatErreur =
     erreurDemandes && !demandes ? (
@@ -87,9 +129,34 @@ export default function MyVisits() {
     ) : null;
   const allDemandes = demandes?.results || [];
   const pendingDemandes = allDemandes.filter(d => d.statut === 'en_attente');
-  const acceptedDemandes = allDemandes.filter(d => d.statut === 'acceptee' || d.visite_detail?.statut === 'planifiee');
+  // Acceptées et pas encore closes : une visite annulée, non faite ou faite
+  // n'a plus rien à attendre.
+  const acceptedDemandes = allDemandes.filter(
+    (d) => d.statut === 'acceptee' && !['annulee', 'non_faite', 'terminee'].includes(d.visite?.statut ?? ''),
+  );
   const completedDemandes = allDemandes.filter(d => d.visite_detail?.statut === 'terminee');
-  const rejectedDemandes = allDemandes.filter(d => d.statut === 'rejetee' || d.statut === 'annulee');
+  // Closes sans visite faite : refusées, annulées, expirées (le créneau est
+  // passé sans réponse), ou visite qui n'a pas eu lieu.
+  const rejectedDemandes = allDemandes.filter(
+    (d) =>
+      d.statut === 'rejetee' ||
+      d.statut === 'annulee' ||
+      d.statut === 'expiree' ||
+      d.visite?.statut === 'non_faite' ||
+      d.visite?.statut === 'annulee',
+  );
+
+  // Comme sur le mobile : ce qui court encore (une visite « à confirmer »
+  // reste sous les yeux), les visites faites, puis ce qui est clos — les
+  // cinq plus récentes, le reste à un clic.
+  const enCours = allDemandes.filter((d) => pendingDemandes.includes(d) || acceptedDemandes.includes(d));
+  const closesTriees = [...rejectedDemandes].sort((x, y) => (y.id ?? 0) - (x.id ?? 0));
+  const closesCachees = Math.max(0, closesTriees.length - CLOSES_VISIBLES);
+  const sections = [
+    { cle: 'en-cours', titre: 'En cours', demandes: enCours },
+    { cle: 'faites', titre: 'Visites faites', demandes: completedDemandes },
+    { cle: 'closes', titre: 'Closes', demandes: toutesCloses ? closesTriees : closesTriees.slice(0, CLOSES_VISIBLES) },
+  ].filter((section) => section.demandes.length > 0);
 
   const renderDemandeCard = (demande: DemandeWithVisite) => (
     <Card key={demande.id} className="overflow-hidden">
@@ -133,17 +200,30 @@ export default function MyVisits() {
               {demande.date_souhaitee && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Souhaitée: {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
+                  <span>Souhaitée : {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
                 </div>
               )}
-              {demande.visite_detail?.date_visite && (
+              {demande.visite_detail?.date_visite &&
+                ['planifiee', 'reportee', 'en_cours'].includes(demande.visite_detail.statut) && (
                 <div className="flex items-center gap-2 text-primary">
                   <CircleCheck className="w-4 h-4" />
-                  <span>Planifiée: {formaterDateLongue(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}</span>
+                  <span>
+                    {demande.visite_detail.statut === 'reportee' ? 'Déplacée au' : 'Planifiée :'}{' '}
+                    {formaterDateLongue(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}
+                  </span>
+                </div>
+              )}
+              {/* Annulée par le commissionnaire : il dit pourquoi, et le
+                  client peut redemander une visite. */}
+              {demande.visite?.statut === 'annulee' && demande.visite.motif_annulation && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CircleX className="w-4 h-4" />
+                  <span>Visite annulée par le commissionnaire. Motif : {demande.visite.motif_annulation}</span>
                 </div>
               )}
             </div>
-            {demande.visite_detail?.agent_detail && (
+            {demande.visite_detail?.agent_detail &&
+              ['planifiee', 'reportee', 'en_cours'].includes(demande.visite_detail.statut) && (
               <div className="flex items-center gap-2 mt-3 p-2 bg-muted/50 rounded-lg">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={getDjangoImageUrl(demande.visite_detail.agent_detail.avatar) || undefined} />
@@ -219,6 +299,17 @@ export default function MyVisits() {
                 )}
               </div>
             )}
+            {annulable(demande) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 mr-4 px-0 text-muted-foreground"
+                onClick={() => setAAnnuler(demande)}
+                data-testid={`button-annuler-${demande.id}`}
+              >
+                <CircleX className="w-4 h-4 mr-1" /> {demande.visite ? 'Annuler la visite' : 'Annuler ma demande'}
+              </Button>
+            )}
             {demande.signale_le ? (
               demande.signalement_traite_le ? (
                 <div className="mt-2 rounded-md bg-muted p-3 text-sm" data-testid={`reponse-signalement-${demande.id}`}>
@@ -275,76 +366,58 @@ export default function MyVisits() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/my-visits">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold">Mes demandes de visite</h1>
-            <p className="text-muted-foreground">
-              {allDemandes.length} demande{allDemandes.length > 1 ? 's' : ''} au total
-            </p>
+        {/* La page d'arrivée du client, comme l'onglet « Mes visites » du
+            mobile : trois sections plutôt que cinq onglets, que le téléphone
+            coupait (« Term… »). Le tableau de bord qui la précédait (quatre
+            tuiles de chiffres, des recommandations répétant l'accueil) a
+            disparu à la demande de David, le 19/11/2026. */}
+        <h1 className="mb-6 text-2xl font-bold">Mes visites</h1>
+
+        {isLoading ? (
+          renderLoadingSkeleton()
+        ) : etatErreur ? (
+          etatErreur
+        ) : allDemandes.length === 0 ? (
+          <EtatVide
+            icone={Calendar}
+            titre="Vous n’avez encore demandé aucune visite"
+            description="Choisissez une maison, puis « Visiter » : le commissionnaire vous répond ici."
+            action={
+              <Link href="/search">
+                <Button size="sm">Voir les annonces</Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className="space-y-8">
+            {sections.map((section) => (
+              <section key={section.titre} aria-labelledby={`section-${section.cle}`}>
+                <h2 id={`section-${section.cle}`} className="mb-3 text-lg font-semibold">
+                  {section.titre}
+                </h2>
+                <div className="space-y-4">{section.demandes.map(renderDemandeCard)}</div>
+                {section.cle === 'closes' && closesCachees > 0 && (
+                  <Button
+                    variant="ghost"
+                    className="mt-2 w-full text-primary"
+                    aria-expanded={toutesCloses}
+                    onClick={() => setToutesCloses((o) => !o)}
+                    data-testid="replier-closes"
+                  >
+                    {toutesCloses
+                      ? closesCachees === 1
+                        ? 'Masquer la plus ancienne'
+                        : 'Masquer les plus anciennes'
+                      : closesCachees === 1
+                        ? 'Voir la plus ancienne'
+                        : `Voir les ${closesCachees} plus anciennes`}
+                    {toutesCloses ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />}
+                  </Button>
+                )}
+              </section>
+            ))}
           </div>
-        </div>
-
-        <Tabs defaultValue="all" className="w-full">
-          <div className="overflow-x-auto pb-2 mb-4 -mx-4 px-4">
-            <TabsList className="inline-flex w-max min-w-full sm:w-full sm:grid sm:grid-cols-5 gap-1">
-              <TabsTrigger value="all" className="whitespace-nowrap px-3">
-                Toutes ({allDemandes.length})
-              </TabsTrigger>
-              <TabsTrigger value="pending" className="whitespace-nowrap px-3">
-                En attente ({pendingDemandes.length})
-              </TabsTrigger>
-              <TabsTrigger value="accepted" className="whitespace-nowrap px-3">
-                Acceptées ({acceptedDemandes.length})
-              </TabsTrigger>
-              <TabsTrigger value="completed" className="whitespace-nowrap px-3">
-                Terminées ({completedDemandes.length})
-              </TabsTrigger>
-              <TabsTrigger value="rejected" className="whitespace-nowrap px-3">
-                Rejetées ({rejectedDemandes.length})
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="all">
-            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur : 
-              allDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Vous n'avez pas encore fait de demande de visite" /> :
-              <div className="space-y-4">{allDemandes.map(renderDemandeCard)}</div>
-            }
-          </TabsContent>
-
-          <TabsContent value="pending">
-            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
-              pendingDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande en attente" /> :
-              <div className="space-y-4">{pendingDemandes.map(renderDemandeCard)}</div>
-            }
-          </TabsContent>
-
-          <TabsContent value="accepted">
-            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
-              acceptedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande acceptée" /> :
-              <div className="space-y-4">{acceptedDemandes.map(renderDemandeCard)}</div>
-            }
-          </TabsContent>
-
-          <TabsContent value="completed">
-            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
-              completedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune visite terminée" /> :
-              <div className="space-y-4">{completedDemandes.map(renderDemandeCard)}</div>
-            }
-          </TabsContent>
-
-          <TabsContent value="rejected">
-            {isLoading ? renderLoadingSkeleton() : etatErreur ? etatErreur :
-              rejectedDemandes.length === 0 ? <EtatVide icone={Calendar} titre="Aucune demande rejetée" /> :
-              <div className="space-y-4">{rejectedDemandes.map(renderDemandeCard)}</div>
-            }
-          </TabsContent>
-        </Tabs>
+        )}
 
         <Dialog open={!!selectedReport} onOpenChange={() => setSelectedReport(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh]">
@@ -443,6 +516,28 @@ export default function MyVisits() {
           </DialogContent>
         </Dialog>
       </div>
+      <AlertDialog open={aAnnuler !== null} onOpenChange={(ouvert) => !ouvert && setAAnnuler(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{aAnnuler?.visite ? 'Annuler la visite ?' : 'Annuler la demande ?'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {aAnnuler?.visite
+                ? 'Le commissionnaire et la personne qui devait vous accompagner seront prévenus.'
+                : 'Le commissionnaire sera prévenu. Vous pourrez en envoyer une autre plus tard.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Garder</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => aAnnuler && annuler.mutate(aAnnuler)}
+              disabled={annuler.isPending}
+              data-testid="confirmer-annulation"
+            >
+              {aAnnuler?.visite ? 'Annuler la visite' : 'Annuler la demande'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

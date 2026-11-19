@@ -1,5 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+// Même police que l'application mobile, embarquée avec le site : un seul
+// fichier variable de 34 Ko pour l'alphabet latin, mis en cache une fois.
+import "@fontsource-variable/atkinson-hyperlegible-next/wght.css";
 import "./index.css";
 
 if ('serviceWorker' in navigator) {
