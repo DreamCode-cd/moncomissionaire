@@ -710,7 +710,10 @@ export interface ChatRoom {
   agent?: number;
   agent_detail?: UserList;
   is_active: boolean;
-  last_message?: string;
+  /** De quelle maison parle la conversation. */
+  bien_id?: number | null;
+  bien_titre?: string | null;
+  last_message?: Message | null;
   unread_count: number;
   created_at: string;
   updated_at: string;

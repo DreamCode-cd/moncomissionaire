@@ -3025,6 +3025,12 @@
                 "description": "Le portefeuille du commissionnaire : les biens que des bailleurs lui\nont confiés. Il n'y voit que les siens, jamais ceux d'un confrère.",
                 "parameters": [
                     {
+                        "name": "photo_principale_id",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
                         "name": "titre",
                         "in": "formData",
                         "required": true,
@@ -4152,6 +4158,12 @@
                 "operationId": "biens_proprietaire_add_photo",
                 "description": "Les biens du propriétaire, avec la possibilité de les confier.",
                 "parameters": [
+                    {
+                        "name": "photo_principale_id",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
                     {
                         "name": "titre",
                         "in": "formData",
@@ -6969,7 +6981,7 @@
                     "201": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/DemandeVisiteCreate"
+                            "$ref": "#/definitions/DemandeVisite"
                         }
                     }
                 },
@@ -7490,7 +7502,7 @@
                     "201": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/VisiteAssignation"
+                            "$ref": "#/definitions/Visite"
                         }
                     }
                 },
@@ -10296,6 +10308,10 @@
                     },
                     "readOnly": true
                 },
+                "photo_principale_id": {
+                    "title": "Photo principale id",
+                    "type": "integer"
+                },
                 "bailleur_detail": {
                     "$ref": "#/definitions/Bailleur"
                 },
@@ -10717,7 +10733,8 @@
                         "retire",
                         "clos"
                     ],
-                    "readOnly": true
+                    "readOnly": true,
+                    "default": "propose"
                 },
                 "statut_display": {
                     "title": "Statut display",
@@ -12410,6 +12427,54 @@
                 }
             }
         },
+        "Message": {
+            "required": [
+                "content"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "chatroom": {
+                    "title": "Salon de discussion",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "sender": {
+                    "title": "Expéditeur",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "sender_detail": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "content": {
+                    "title": "Contenu",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "is_read": {
+                    "title": "Lu",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "is_read_by_me": {
+                    "title": "Is read by me",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "created_at": {
+                    "title": "Date d'envoi",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            },
+            "x-nullable": true
+        },
         "ChatRoom": {
             "type": "object",
             "properties": {
@@ -12453,14 +12518,25 @@
                     "title": "Actif",
                     "type": "boolean"
                 },
-                "last_message": {
-                    "title": "Last message",
+                "bien_id": {
+                    "title": "Bien id",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
                     "type": "string",
-                    "readOnly": true
+                    "readOnly": true,
+                    "minLength": 1,
+                    "x-nullable": true
+                },
+                "last_message": {
+                    "$ref": "#/definitions/Message"
                 },
                 "unread_count": {
                     "title": "Unread count",
-                    "type": "string",
+                    "type": "integer",
                     "readOnly": true
                 },
                 "created_at": {
@@ -12471,53 +12547,6 @@
                 },
                 "updated_at": {
                     "title": "Date de modification",
-                    "type": "string",
-                    "format": "date-time",
-                    "readOnly": true
-                }
-            }
-        },
-        "Message": {
-            "required": [
-                "content"
-            ],
-            "type": "object",
-            "properties": {
-                "id": {
-                    "title": "ID",
-                    "type": "integer",
-                    "readOnly": true
-                },
-                "chatroom": {
-                    "title": "Salon de discussion",
-                    "type": "integer",
-                    "readOnly": true
-                },
-                "sender": {
-                    "title": "Expéditeur",
-                    "type": "integer",
-                    "readOnly": true
-                },
-                "sender_detail": {
-                    "$ref": "#/definitions/UserList"
-                },
-                "content": {
-                    "title": "Contenu",
-                    "type": "string",
-                    "minLength": 1
-                },
-                "is_read": {
-                    "title": "Lu",
-                    "type": "boolean",
-                    "readOnly": true
-                },
-                "is_read_by_me": {
-                    "title": "Is read by me",
-                    "type": "string",
-                    "readOnly": true
-                },
-                "created_at": {
-                    "title": "Date d'envoi",
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
@@ -12567,14 +12596,25 @@
                     "title": "Actif",
                     "type": "boolean"
                 },
-                "last_message": {
-                    "title": "Last message",
+                "bien_id": {
+                    "title": "Bien id",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
                     "type": "string",
-                    "readOnly": true
+                    "readOnly": true,
+                    "minLength": 1,
+                    "x-nullable": true
+                },
+                "last_message": {
+                    "$ref": "#/definitions/Message"
                 },
                 "unread_count": {
                     "title": "Unread count",
-                    "type": "string",
+                    "type": "integer",
                     "readOnly": true
                 },
                 "created_at": {
@@ -12612,6 +12652,7 @@
                     "enum": [
                         "bien_valide",
                         "bien_rejete",
+                        "bien_a_revoir",
                         "nouvelle_demande",
                         "demande_acceptee",
                         "demande_rejetee",

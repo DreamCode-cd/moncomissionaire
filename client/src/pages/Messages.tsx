@@ -187,14 +187,15 @@ export default function Messages() {
                               {formaterAnciennete(chatroom.updated_at)}
                             </span>
                           </div>
+                          {chatroom.bien_titre && (
+                            <p className="text-sm text-primary line-clamp-1">{chatroom.bien_titre}</p>
+                          )}
                           <p className={`text-sm line-clamp-1 ${
                             chatroom.unread_count > 0 
                               ? 'text-foreground font-medium' 
                               : 'text-muted-foreground'
                           }`}>
-                            {typeof chatroom.last_message === 'object' && chatroom.last_message !== null
-                              ? (chatroom.last_message as any).content
-                              : chatroom.last_message || 'Aucun message'}
+                            {chatroom.last_message?.content || 'Aucun message'}
                           </p>
                         </div>
                       </div>

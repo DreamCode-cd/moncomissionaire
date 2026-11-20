@@ -437,7 +437,8 @@ const mockChatRooms: ChatRoom[] = [
     agent: 4,
     agent_detail: mockUsers[3],
     is_active: true,
-    last_message: 'La visite est confirmée pour demain à 10h.',
+    bien_titre: 'Villa avec jardin au Golf',
+    last_message: null,
     unread_count: 2,
     created_at: '2024-12-02T10:00:00Z',
     updated_at: '2024-12-05T08:00:00Z'
