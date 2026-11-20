@@ -40,9 +40,27 @@ export function libelleGarantie(mois: number): string {
   return `${mois} mois de loyer`;
 }
 
-/** Plafond fixé par le serveur (biens/serializers.py). Le formulaire en
- *  acceptait 10 : l'annonce échouait à l'envoi, après le téléversement. */
-export const PHOTOS_MAX = 6;
+/** Plafonds fixés par le serveur (biens/medias.py) : 20 photos, 2 vidéos
+ *  d'une minute, 100 Mo chacune avant réencodage (décision de David du
+ *  20/11/2026). */
+export const PHOTOS_MAX = 20;
+export const VIDEOS_MAX = 2;
+export const VIDEO_DUREE_MAX = 60;
+export const VIDEO_TAILLE_MAX = 100 * 1024 * 1024;
+
+/** « 45 s », « 1 min ». */
+export function dureeLisible(secondes?: number | null): string {
+  if (!secondes) return '';
+  return secondes >= 60 ? `${Math.round(secondes / 60)}\u00A0min` : `${secondes}\u00A0s`;
+}
+
+/** « 850 Ko », « 4,2 Mo », « 23 Mo ». */
+export function poidsLisible(octets?: number | null): string {
+  if (!octets) return '';
+  const mo = octets / (1024 * 1024);
+  if (mo < 1) return `${Math.max(1, Math.round(octets / 1024))}\u00A0Ko`;
+  return `${mo < 10 ? mo.toFixed(1).replace('.', ',') : Math.round(mo)}\u00A0Mo`;
+}
 
 /**
  * « Bel-Air · Kampemba · Lubumbashi », sans répétition.

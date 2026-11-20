@@ -60,6 +60,7 @@ import { getDjangoImageUrl, getVilleId } from '@/lib/utils';
 import { bienCreateSchema, type BienCreateInput, type BienDetail } from '@shared/schema';
 import { DEVISES } from '@/lib/prix';
 import { PHOTOS_MAX } from '@/lib/annonce';
+import { GestionVideos } from '@/components/property/GestionVideos';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   ChampBailleur,
@@ -120,6 +121,10 @@ export default function EditProperty() {
   const { data: property, isLoading, error: erreurBien, refetch: rechargerBien } = useQuery<BienDetail>({
     queryKey: [routeApi, propertyId],
     enabled: !!propertyId,
+    // Tant qu'une vidéo se prépare, on relit l'annonce pour montrer le
+    // moment où elle devient prête.
+    refetchInterval: (requete) =>
+      requete.state.data?.videos?.some((v) => v.statut === 'en_traitement') ? 10_000 : false,
   });
   const estConfie = estCommissionnaire && !!property?.proprietaire;
 
@@ -560,6 +565,13 @@ export default function EditProperty() {
                 />
               </CardContent>
             </Card>
+
+            <GestionVideos
+              routeApi={routeApi}
+              bienId={propertyId}
+              videos={property.videos ?? []}
+              onChangement={() => void rechargerBien()}
+            />
 
             {property.statut_validation === 'valide' && (
               <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground" data-testid="avis-revalidation">
