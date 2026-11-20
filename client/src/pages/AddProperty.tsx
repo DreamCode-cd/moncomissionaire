@@ -279,7 +279,8 @@ export default function AddProperty() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Ajoutez jusqu'à {PHOTOS_MAX} photos. Cliquez sur l'étoile pour définir la photo principale.
+                  Ajoutez jusqu’à {PHOTOS_MAX} photos. Cliquez sur l’étoile pour définir la photo principale.
+                  Les vidéos (deux d’une minute au plus) s’ajoutent juste après la création, depuis « Modifier ».
                 </p>
                 
                 <div className="grid grid-cols-3 gap-3">

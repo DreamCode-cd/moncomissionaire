@@ -47,6 +47,7 @@ import { auteurAnnonce, formaterSurface, initiale, libelleVerification, lieuAnno
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
 import { PaiementEntree } from '@/components/property/PaiementEntree';
+import { VideosBien } from '@/components/property/VideosBien';
 import { ReleveMaison } from '@/components/property/ReleveMaison';
 import { ChoixCreneau, heureLisible, jourLisible } from '@/components/confiance/ChoixCreneau';
 import { libelleChambres } from '@/lib/faits';
@@ -685,6 +686,8 @@ export default function PropertyDetail() {
             <h2 className="text-lg font-semibold mb-3">Ce que vous paierez</h2>
             <PaiementEntree bien={property} />
           </div>
+
+          <VideosBien videos={property.videos} />
 
           <Separator />
 

@@ -3296,6 +3296,283 @@
                 }
             ]
         },
+        "/biens/commissionnaire/{id}/add_video/": {
+            "post": {
+                "operationId": "biens_commissionnaire_add_video",
+                "description": "Envoie une vidéo (60 s, 100 Mo au plus). Elle est réencodée en\narrière-plan : la réponse arrive tout de suite, avec le statut\n« en préparation ». Décision de David du 20/11/2026.",
+                "parameters": [
+                    {
+                        "name": "photo_principale_id",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "titre",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1
+                    },
+                    {
+                        "name": "description",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    {
+                        "name": "type_bien",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "maison",
+                            "appartement",
+                            "studio",
+                            "villa",
+                            "duplex",
+                            "terrain"
+                        ]
+                    },
+                    {
+                        "name": "devise",
+                        "in": "formData",
+                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
+                        ]
+                    },
+                    {
+                        "name": "prix_mensuel",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "garantie_mois",
+                        "in": "formData",
+                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 3,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "superficie",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "nombre_chambres",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "nombre_salles_bain",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "nombre_pieces",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "adresse",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    {
+                        "name": "quartier",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 1
+                    },
+                    {
+                        "name": "commune",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    {
+                        "name": "latitude",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "eau",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "permanente",
+                            "intermittente",
+                            "forage",
+                            "aucune"
+                        ]
+                    },
+                    {
+                        "name": "electricite",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "stable",
+                            "delestage",
+                            "autonome",
+                            "aucune"
+                        ]
+                    },
+                    {
+                        "name": "parking",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "jardin",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "meuble",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "climatisation",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "gardien",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "statut_location",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "disponible",
+                            "en_visite",
+                            "loue",
+                            "indisponible"
+                        ]
+                    },
+                    {
+                        "name": "commission_payee_par",
+                        "in": "formData",
+                        "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "locataire",
+                            "moitie"
+                        ]
+                    },
+                    {
+                        "name": "frais_visite",
+                        "in": "formData",
+                        "description": "Dans la devise du bien, sous le plafond fixé pour la ville. Annoncés au client avant qu'il demande la visite.",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "partage_ouvert",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "part_confrere_pourcent",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 99,
+                        "minimum": 1
+                    },
+                    {
+                        "name": "bailleur",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "ville",
+                        "in": "formData",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                },
+                "consumes": [
+                    "multipart/form-data",
+                    "application/x-www-form-urlencoded"
+                ],
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/biens/commissionnaire/{id}/photo/{photo_id}/": {
             "delete": {
                 "operationId": "biens_commissionnaire_delete_photo",
@@ -3354,6 +3631,35 @@
             "parameters": [
                 {
                     "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/commissionnaire/{id}/video/{video_id}/": {
+            "delete": {
+                "operationId": "biens_commissionnaire_delete_video",
+                "description": "Le portefeuille du commissionnaire : les biens que des bailleurs lui\nont confiés. Il n'y voit que les siens, jamais ceux d'un confrère.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "video_id",
                     "in": "path",
                     "required": true,
                     "type": "string"
@@ -4430,6 +4736,283 @@
                 }
             ]
         },
+        "/biens/proprietaire/{id}/add_video/": {
+            "post": {
+                "operationId": "biens_proprietaire_add_video",
+                "description": "Envoie une vidéo (60 s, 100 Mo au plus). Elle est réencodée en\narrière-plan : la réponse arrive tout de suite, avec le statut\n« en préparation ». Décision de David du 20/11/2026.",
+                "parameters": [
+                    {
+                        "name": "photo_principale_id",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "titre",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1
+                    },
+                    {
+                        "name": "description",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    {
+                        "name": "type_bien",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "maison",
+                            "appartement",
+                            "studio",
+                            "villa",
+                            "duplex",
+                            "terrain"
+                        ]
+                    },
+                    {
+                        "name": "devise",
+                        "in": "formData",
+                        "description": "S'applique au loyer comme à la garantie. Le dollar est la valeur par défaut : c'est la devise dans laquelle la majorité des loyers se négocient à Kinshasa et à Lubumbashi.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "USD",
+                            "CDF"
+                        ]
+                    },
+                    {
+                        "name": "prix_mensuel",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "garantie_mois",
+                        "in": "formData",
+                        "description": "Trois mois au maximum (loi n° 15/025, article 18).",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 3,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "superficie",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "nombre_chambres",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "nombre_salles_bain",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "nombre_pieces",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    {
+                        "name": "adresse",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    {
+                        "name": "quartier",
+                        "in": "formData",
+                        "required": true,
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 1
+                    },
+                    {
+                        "name": "commune",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    {
+                        "name": "latitude",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "eau",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "permanente",
+                            "intermittente",
+                            "forage",
+                            "aucune"
+                        ]
+                    },
+                    {
+                        "name": "electricite",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "stable",
+                            "delestage",
+                            "autonome",
+                            "aucune"
+                        ]
+                    },
+                    {
+                        "name": "parking",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "jardin",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "meuble",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "climatisation",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "gardien",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "statut_location",
+                        "in": "formData",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "disponible",
+                            "en_visite",
+                            "loue",
+                            "indisponible"
+                        ]
+                    },
+                    {
+                        "name": "commission_payee_par",
+                        "in": "formData",
+                        "description": "Un mois de loyer, jamais plus (loi n° 15/025, article 10). Sans objet pour un bien publié par son propriétaire.",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "locataire",
+                            "moitie"
+                        ]
+                    },
+                    {
+                        "name": "frais_visite",
+                        "in": "formData",
+                        "description": "Dans la devise du bien, sous le plafond fixé pour la ville. Annoncés au client avant qu'il demande la visite.",
+                        "required": false,
+                        "type": "string",
+                        "format": "decimal"
+                    },
+                    {
+                        "name": "partage_ouvert",
+                        "in": "formData",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "part_confrere_pourcent",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "maximum": 99,
+                        "minimum": 1
+                    },
+                    {
+                        "name": "bailleur",
+                        "in": "formData",
+                        "required": false,
+                        "type": "integer",
+                        "x-nullable": true
+                    },
+                    {
+                        "name": "ville",
+                        "in": "formData",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/BienDetail"
+                        }
+                    }
+                },
+                "consumes": [
+                    "multipart/form-data",
+                    "application/x-www-form-urlencoded"
+                ],
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/biens/proprietaire/{id}/confier/": {
             "post": {
                 "operationId": "biens_proprietaire_confier",
@@ -4558,6 +5141,35 @@
             "parameters": [
                 {
                     "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/biens/proprietaire/{id}/video/{video_id}/": {
+            "delete": {
+                "operationId": "biens_proprietaire_delete_video",
+                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "biens"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                },
+                {
+                    "name": "video_id",
                     "in": "path",
                     "required": true,
                     "type": "string"
@@ -10177,6 +10789,70 @@
                 }
             }
         },
+        "VideoBien": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "fichier": {
+                    "title": "Vidéo",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "affiche": {
+                    "title": "Affiche",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "duree": {
+                    "title": "Durée (s)",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "taille": {
+                    "title": "Taille (octets)",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "statut": {
+                    "title": "Statut",
+                    "type": "string",
+                    "enum": [
+                        "en_traitement",
+                        "prete",
+                        "erreur"
+                    ],
+                    "readOnly": true
+                },
+                "statut_display": {
+                    "title": "Statut display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "erreur": {
+                    "title": "Erreur",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "created_at": {
+                    "title": "Envoyée le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
         "BienDetail": {
             "required": [
                 "titre",
@@ -10305,6 +10981,13 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Photo"
+                    },
+                    "readOnly": true
+                },
+                "videos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/VideoBien"
                     },
                     "readOnly": true
                 },
@@ -11394,6 +12077,13 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Photo"
+                    },
+                    "readOnly": true
+                },
+                "videos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/VideoBien"
                     },
                     "readOnly": true
                 },

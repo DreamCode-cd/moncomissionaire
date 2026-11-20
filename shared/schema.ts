@@ -339,6 +339,18 @@ export interface BienPartage extends BienList {
   part_confrere_pourcent: number;
 }
 
+export interface VideoBien {
+  id: number;
+  fichier: string | null;
+  affiche: string | null;
+  duree: number | null;
+  taille: number | null;
+  statut: 'en_traitement' | 'prete' | 'erreur';
+  statut_display?: string;
+  erreur?: string;
+  created_at: string;
+}
+
 export interface BienDetail extends BienList {
   description: string;
   nombre_pieces: number;
@@ -356,6 +368,8 @@ export interface BienDetail extends BienList {
   climatisation: boolean;
   gardien: boolean;
   photos: Photo[];
+  /** Fiche publique : vidéos prêtes seulement ; espace de l'auteur : toutes. */
+  videos?: VideoBien[];
   valide_par?: ProfilPublic | null;
   motif_rejet?: string;
   date_validation?: string;
