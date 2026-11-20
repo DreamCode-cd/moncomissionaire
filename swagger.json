@@ -2905,7 +2905,7 @@
             },
             "post": {
                 "operationId": "biens_commissionnaire_create",
-                "description": "Le portefeuille du commissionnaire : les biens que des bailleurs lui\nont confiés. Il n'y voit que les siens, jamais ceux d'un confrère.",
+                "description": "Crée l'annonce et la renvoie entière, identifiant compris : la\nréponse ne portait que les champs saisis (audit du 20/11/2026, X-8).",
                 "parameters": [
                     {
                         "name": "data",
@@ -2920,7 +2920,7 @@
                     "201": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/BienCreate"
+                            "$ref": "#/definitions/BienDetail"
                         }
                     }
                 },
@@ -4039,7 +4039,7 @@
             },
             "post": {
                 "operationId": "biens_proprietaire_create",
-                "description": "Les biens du propriétaire, avec la possibilité de les confier.",
+                "description": "Crée l'annonce et la renvoie entière, identifiant compris : la\nréponse ne portait que les champs saisis (audit du 20/11/2026, X-8).",
                 "parameters": [
                     {
                         "name": "data",
@@ -4054,7 +4054,7 @@
                     "201": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/BienCreate"
+                            "$ref": "#/definitions/BienDetail"
                         }
                     }
                 },
@@ -5999,7 +5999,7 @@
         "/messaging/chatrooms/{id}/messages/": {
             "get": {
                 "operationId": "messaging_chatrooms_messages",
-                "description": "",
+                "description": "Les messages, page par page ; avec `depuis=<id>`, seulement ceux\narrivés après ce message (cent au plus, sans pagination).\n\nC'est ce que relève l'application : une relève sans nouveau message\npèse quelques octets, au lieu de toute la conversation.",
                 "parameters": [],
                 "responses": {
                     "200": {
