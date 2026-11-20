@@ -274,7 +274,7 @@ function SidebarTrigger({
       {...props}
     >
       <PanelLeft />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">Afficher ou masquer le menu</span>
     </Button>
   )
 }
@@ -287,7 +287,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
-      aria-label="Toggle Sidebar"
+      aria-label="Afficher ou masquer le menu"
       tabIndex={-1}
       onClick={toggleSidebar}
       title="Toggle Sidebar"

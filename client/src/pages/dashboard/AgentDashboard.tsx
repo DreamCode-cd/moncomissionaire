@@ -249,7 +249,7 @@ export default function AgentDashboard() {
                 </span>
                 <BadgeStatut valeur={visite.statut} />
                 {visitHasReport && (
-                  <Badge variant="outline" className="bg-purple-500/10 text-purple-700 dark:text-purple-400">
+                  <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
                     <FileText className="w-3 h-3 mr-1" />Rapport
                   </Badge>
                 )}
@@ -409,8 +409,8 @@ export default function AgentDashboard() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 rounded-full bg-statut-information-fond flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-statut-information" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-rapports">{reports?.results?.length || 0}</p>
@@ -699,7 +699,7 @@ export default function AgentDashboard() {
                           </div>
 
                           <p className="text-2xl font-bold text-primary">
-                            {formaterPrix(bien?.prix_mensuel, bien?.devise)}<span className="text-sm font-normal text-muted-foreground">/mois</span>
+                            {formaterPrix(bien?.prix_mensuel, bien?.devise)}<span className="text-sm font-normal text-muted-foreground"> par mois</span>
                           </p>
 
                           {bien?.description && (

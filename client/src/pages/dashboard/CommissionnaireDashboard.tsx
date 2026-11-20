@@ -148,7 +148,7 @@ export default function CommissionnaireDashboard() {
         <Tabs value={onglet} onValueChange={setOnglet}>
           {/* Six onglets : sur un téléphone, la barre défile plutôt que
               d'écraser les libellés. */}
-          <TabsList className="mb-4 flex w-full justify-start overflow-x-auto">
+          <TabsList className="mb-4 flex h-auto w-full flex-wrap justify-start">
             <TabsTrigger value="biens" data-testid="tab-biens">
               Biens ({biens.data?.count ?? 0})
             </TabsTrigger>
