@@ -645,7 +645,7 @@ export default function PropertyDetail() {
           <div>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold mb-2" data-testid="text-property-title">
+                <h1 className="text-2xl font-bold mb-2 [overflow-wrap:anywhere]" data-testid="text-property-title">
                   {property.titre}
                 </h1>
                 <div className="flex items-center text-muted-foreground">
