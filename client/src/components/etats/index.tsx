@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import type { Ton } from '@/lib/statuts';
 import { cn } from '@/lib/utils';
 import { ErreurReseau, messageErreur } from '@/lib/erreurs';
+import { t } from '@/i18n';
 
 /**
  * États d'écran partagés : chargement, vide, erreur, hors ligne.
@@ -108,7 +109,7 @@ const FOND_ICONE: Record<Ton, string> = {
 
 /** Quelque chose a échoué, et ce n'est pas la faute de l'utilisateur. */
 export function EtatErreur({
-  titre = 'Impossible d’afficher cette page',
+  titre = t('etat.impossibleAfficher'),
   description,
   onReessayer,
   className,
@@ -122,7 +123,7 @@ export function EtatErreur({
       action={
         onReessayer ? (
           <Button onClick={onReessayer} data-testid="button-reessayer">
-            Réessayer
+            {t('etat.reessayer')}
           </Button>
         ) : undefined
       }
@@ -145,16 +146,16 @@ export function EtatHorsLigne({
     <Cadre
       icone={<WifiOff className="h-6 w-6 text-statut-attente" aria-hidden />}
       tonIcone="bg-statut-attente-fond"
-      titre="Pas de connexion"
+      titre={t('etat.pasDeConnexion')}
       description={
         donneesEnCache
-          ? 'Voici les dernières données enregistrées. Elles se mettront à jour dès le retour du réseau.'
-          : 'Vérifiez votre connexion. Les données s’afficheront dès qu’elle sera rétablie.'
+          ? t('etat.donneesEnCache')
+          : t('etat.verifiezConnexion')
       }
       action={
         onReessayer ? (
           <Button variant="outline" onClick={onReessayer}>
-            Réessayer
+            {t('etat.reessayer')}
           </Button>
         ) : undefined
       }
@@ -171,7 +172,7 @@ export function EtatHorsLigne({
  * tournant ne sert que lorsque la forme est imprévisible.
  */
 export function EtatChargement({
-  texte = 'Chargement…',
+  texte = t('etat.chargement'),
   className,
 }: {
   texte?: string;

@@ -8708,6 +8708,15 @@
                 "content": {
                     "title": "Content",
                     "type": "string"
+                },
+                "title_en": {
+                    "title": "Title en",
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "content_en": {
+                    "title": "Content en",
+                    "type": "string"
                 }
             }
         },
@@ -8749,6 +8758,15 @@
                     "title": "Introduction",
                     "type": "string"
                 },
+                "title_en": {
+                    "title": "Titre principal (anglais)",
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "introduction_en": {
+                    "title": "Introduction (anglais)",
+                    "type": "string"
+                },
                 "sections": {
                     "type": "array",
                     "items": {
@@ -8768,7 +8786,7 @@
                 },
                 "a_completer": {
                     "title": "A completer",
-                    "description": "Vrai si le texte contient encore « [à compléter » : publication refusée.",
+                    "description": "Vrai si le texte, français ou anglais, contient encore « [à compléter » ou « [to be completed » : publication refusée.",
                     "type": "boolean",
                     "readOnly": true
                 },
@@ -9594,6 +9612,14 @@
                     "title": "Disponible",
                     "type": "boolean"
                 },
+                "langue": {
+                    "title": "Langue",
+                    "type": "string",
+                    "enum": [
+                        "fr",
+                        "en"
+                    ]
+                },
                 "pending_demandes_count": {
                     "title": "Pending demandes count",
                     "type": "string",
@@ -9739,6 +9765,14 @@
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1
+                },
+                "langue": {
+                    "title": "Langue",
+                    "type": "string",
+                    "enum": [
+                        "fr",
+                        "en"
+                    ]
                 }
             }
         },
@@ -13404,8 +13438,7 @@
         },
         "LegalPage": {
             "required": [
-                "page_type",
-                "title"
+                "page_type"
             ],
             "type": "object",
             "properties": {
@@ -13431,14 +13464,14 @@
                     "minLength": 1
                 },
                 "title": {
-                    "title": "Titre principal",
+                    "title": "Title",
                     "type": "string",
-                    "maxLength": 200,
-                    "minLength": 1
+                    "readOnly": true
                 },
                 "introduction": {
                     "title": "Introduction",
-                    "type": "string"
+                    "type": "string",
+                    "readOnly": true
                 },
                 "sections": {
                     "title": "Sections",
@@ -13450,6 +13483,12 @@
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 1
+                },
+                "langue": {
+                    "title": "Langue",
+                    "description": "Langue du texte servi : « en » si la page anglaise existe et que l'écran la demande, sinon « fr ». En anglais, le site rappelle que la version française fait foi.",
+                    "type": "string",
+                    "readOnly": true
                 },
                 "updated_at": {
                     "title": "Date de modification",

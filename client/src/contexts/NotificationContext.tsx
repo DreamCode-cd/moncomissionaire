@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { NotificationSocket } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
+import { t } from '@/i18n';
 
 interface Notification {
   id: number;
@@ -136,7 +137,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             if (!isFirstLoadRef.current && !lastMessageIdsRef.current.has(messageId)) {
               const senderName = lastMessage.sender_detail?.full_name || 
                 `${lastMessage.sender_detail?.first_name || ''} ${lastMessage.sender_detail?.last_name || ''}`.trim() ||
-                'Nouveau message';
+                t('notifs.nouveauMessage');
               
               const preview = lastMessage.content.length > 50 
                 ? lastMessage.content.substring(0, 50) + '...' 

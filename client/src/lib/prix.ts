@@ -11,13 +11,35 @@
  */
 
 import type { Devise } from '@shared/schema';
+import { langueActive, localeActive, t } from '@/i18n';
 
 export type { Devise };
 
 export const DEVISES: { valeur: Devise; libelle: string; symbole: string }[] = [
-  { valeur: 'USD', libelle: 'Dollar américain', symbole: '$' },
-  { valeur: 'CDF', libelle: 'Franc congolais', symbole: 'FC' },
+  { valeur: 'USD', get libelle() { return t('devise.usd'); }, symbole: '$' },
+  { valeur: 'CDF', get libelle() { return t('devise.cdf'); }, symbole: 'FC' },
 ];
+
+/**
+ * Un montant dans sa devise, selon la langue de l'écran : « 450 $ » et
+ * « 460 000 FC » en français, « $450 » et « 460,000 FC » en anglais.
+ * `en-GB` écrirait « CDF 460,000 » : le franc s'écrit à la main.
+ */
+function formater(valeur: number, devise: Devise, decimales: number): string {
+  if (devise === 'CDF' && langueActive() === 'en') {
+    return `${new Intl.NumberFormat('en-GB', {
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: Math.max(decimales, 0),
+    }).format(valeur)}\u00A0FC`;
+  }
+  return new Intl.NumberFormat(localeActive(), {
+    style: 'currency',
+    currency: devise,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales,
+  }).format(valeur);
+}
 
 const DEVISE_PAR_DEFAUT: Devise = 'USD';
 
@@ -49,13 +71,7 @@ export function formaterPrix(
     return '—';
   }
 
-  return new Intl.NumberFormat('fr-CD', {
-    style: 'currency',
-    currency: normaliser(devise),
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(valeur);
+  return formater(valeur, normaliser(devise), 0);
 }
 
 /** Loyer mensuel, avec la mention de périodicité. */
@@ -66,7 +82,7 @@ export function formaterLoyer(
   const prix = formaterPrix(montant, devise);
   // « par mois » et non « /mois » : la même écriture que la fiche, les
   // annonces et le mobile (audit du 20/11/2026).
-  return prix === '—' ? prix : `${prix} par mois`;
+  return prix === '—' ? prix : t('prix.parMois', { prix });
 }
 
 /**
@@ -85,17 +101,26 @@ export function formaterMontant(
   if (Number.isNaN(valeur)) {
     return '—';
   }
-  return new Intl.NumberFormat('fr-CD', {
-    style: 'currency',
-    currency: normaliser(devise),
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: Number.isInteger(valeur) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(valeur);
+  return formater(valeur, normaliser(devise), Number.isInteger(valeur) ? 0 : 2);
 }
 
 /** Vrai si le montant renvoyé par l'API vaut plus que zéro. */
 export function estPositif(montant?: string | number | null): boolean {
   const valeur = typeof montant === 'number' ? montant : parseFloat(montant ?? '');
   return !Number.isNaN(valeur) && valeur > 0;
+}
+
+/** Moyen de règlement dans la langue de l'écran ; les marques (M-Pesa,
+ *  Airtel Money, Orange Money) ne se traduisent pas. */
+export function libelleModeReglement(mode?: string | null, repli?: string | null): string {
+  if (mode === 'especes') return t('reglement.especes');
+  if (mode === 'virement') return t('reglement.virement');
+  return repli || mode || '';
+}
+
+/** « le locataire » / « le bailleur », pour « payé par … ». */
+export function libellePayeur(payeur?: string | null, repli?: string | null): string {
+  if (payeur === 'locataire') return t('reglement.payeurLocataire');
+  if (payeur === 'bailleur') return t('reglement.payeurBailleur');
+  return (repli || payeur || '').toLowerCase();
 }

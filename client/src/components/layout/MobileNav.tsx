@@ -2,56 +2,57 @@ import { Link, useLocation } from 'wouter';
 import { House, Search, MessageCircle, User, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { t } from '@/i18n';
 
 const publicNavItems = [
-  { href: '/', icon: House, label: 'Accueil' },
-  { href: '/search', icon: Search, label: 'Recherche' },
+  { href: '/', icon: House, get label() { return t('nav.accueil'); } },
+  { href: '/search', icon: Search, get label() { return t('nav.recherche'); } },
 ];
 
 const clientNavItems = [
-  { href: '/', icon: House, label: 'Accueil' },
-  { href: '/search', icon: Search, label: 'Recherche' },
-  { href: '/my-visits', icon: Building2, label: 'Visites' },
+  { href: '/', icon: House, get label() { return t('nav.accueil'); } },
+  { href: '/search', icon: Search, get label() { return t('nav.recherche'); } },
+  { href: '/my-visits', icon: Building2, get label() { return t('nav.visites'); } },
   // Seule entrée vers la messagerie sur téléphone : l'icône de l'en-tête y
   // est masquée pour ne pas doublonner.
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Compte' },
+  { href: '/messages', icon: MessageCircle, get label() { return t('nav.messages'); } },
+  { href: '/profile', icon: User, get label() { return t('nav.compte'); } },
 ];
 
 const proprietaireNavItems = [
-  { href: '/', icon: House, label: 'Accueil' },
-  { href: '/my-properties', icon: Building2, label: 'Mes biens' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Compte' },
+  { href: '/', icon: House, get label() { return t('nav.accueil'); } },
+  { href: '/my-properties', icon: Building2, get label() { return t('nav.mesBiens'); } },
+  { href: '/messages', icon: MessageCircle, get label() { return t('nav.messages'); } },
+  { href: '/profile', icon: User, get label() { return t('nav.compte'); } },
 ];
 
 const commissionnaireNavItems = [
-  { href: '/', icon: House, label: 'Accueil' },
-  { href: '/mon-portefeuille', icon: Building2, label: 'Portefeuille' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Compte' },
+  { href: '/', icon: House, get label() { return t('nav.accueil'); } },
+  { href: '/mon-portefeuille', icon: Building2, get label() { return t('nav.portefeuille'); } },
+  { href: '/messages', icon: MessageCircle, get label() { return t('nav.messages'); } },
+  { href: '/profile', icon: User, get label() { return t('nav.compte'); } },
 ];
 
 // Trois administrateurs interviennent depuis leur téléphone : l'administration
 // et la modération doivent être à un pouce.
 const adminNavItems = [
-  { href: '/administration', icon: House, label: 'Admin' },
-  { href: '/moderation', icon: Building2, label: 'Modération' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Compte' },
+  { href: '/administration', icon: House, get label() { return t('nav.admin'); } },
+  { href: '/moderation', icon: Building2, get label() { return t('nav.moderation'); } },
+  { href: '/messages', icon: MessageCircle, get label() { return t('nav.messages'); } },
+  { href: '/profile', icon: User, get label() { return t('nav.compte'); } },
 ];
 
 const moderateurNavItems = [
-  { href: '/', icon: House, label: 'Accueil' },
-  { href: '/moderation', icon: Building2, label: 'Modération' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Compte' },
+  { href: '/', icon: House, get label() { return t('nav.accueil'); } },
+  { href: '/moderation', icon: Building2, get label() { return t('nav.moderation'); } },
+  { href: '/messages', icon: MessageCircle, get label() { return t('nav.messages'); } },
+  { href: '/profile', icon: User, get label() { return t('nav.compte'); } },
 ];
 
 const agentNavItems = [
-  { href: '/agent-dashboard', icon: House, label: 'Mes visites' },
-  { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Compte' },
+  { href: '/agent-dashboard', icon: House, get label() { return t('nav.mesVisites'); } },
+  { href: '/messages', icon: MessageCircle, get label() { return t('nav.messages'); } },
+  { href: '/profile', icon: User, get label() { return t('nav.compte'); } },
 ];
 
 export function MobileNav() {
@@ -96,7 +97,7 @@ export function MobileNav() {
                     ? "text-primary" 
                     : "text-muted-foreground"
                 )}
-                data-testid={`nav-${item.label.toLowerCase()}`}
+                data-testid={`nav-${item.href.replace(/\W/g, '') || 'accueil'}`}
               >
                 <item.icon 
                   className={cn(

@@ -8,6 +8,7 @@ import { messageErreur } from '@/lib/erreurs';
 import { queryClient } from '@/lib/queryClient';
 import { classesDuTon } from '@/lib/statuts';
 import type { Visite } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * Une visite dont l'heure est passée sans que personne ait dit si elle a eu
@@ -37,11 +38,11 @@ export function ConfirmerVisite({
     onSuccess: (_r, eu_lieu) => {
       queryClient.invalidateQueries({ queryKey: cle });
       toast({
-        title: eu_lieu ? 'Visite confirmée' : 'Visite non faite',
-        description: eu_lieu ? undefined : 'Le client est prévenu et peut demander une autre visite.',
+        title: eu_lieu ? t('confirmerVisite.visiteConfirmee') : t('confirmerVisite.visiteNonFaite'),
+        description: eu_lieu ? undefined : t('confirmerVisite.clientEstPrevenuPeut'),
       });
     },
-    onError: (e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('confirmerVisite.erreur'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   if (!visite.a_confirmer) return null;
@@ -49,12 +50,12 @@ export function ConfirmerVisite({
     <div className="w-full space-y-2 text-sm" data-testid={`a-confirmer-${visite.id}`}>
       <p className={`flex items-center gap-1 rounded-md px-2 py-1 font-medium ${classesDuTon('attente')}`}>
         <CircleHelp className="h-4 w-4" aria-hidden />
-        L’heure est passée : la visite a-t-elle eu lieu ?
+        {t('confirmerVisite.heureEstPasseeVisite')}
       </p>
       <div className="flex flex-wrap gap-2">
         {espace === 'commissionnaire' && (
           <Button size="sm" onClick={() => confirmer.mutate(true)} disabled={confirmer.isPending}>
-            Elle a eu lieu
+            {t('confirmerVisite.elleEuLieu')}
           </Button>
         )}
         <Button
@@ -64,7 +65,7 @@ export function ConfirmerVisite({
           disabled={confirmer.isPending}
           data-testid={`pas-eu-lieu-${visite.id}`}
         >
-          Pas eu lieu
+          {t('confirmerVisite.pasEuLieu')}
         </Button>
       </div>
     </div>

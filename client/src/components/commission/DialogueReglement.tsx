@@ -30,6 +30,7 @@ import {
   aujourdhui,
   messageErreur,
 } from './commun';
+import { t } from '@/i18n';
 
 /**
  * Le commissionnaire note un paiement qu'il vient de recevoir.
@@ -79,10 +80,10 @@ export function DialogueReglement({
       queryClient.invalidateQueries({ queryKey: CLE_COMMISSIONS });
       queryClient.invalidateQueries({ queryKey: CLE_DEMANDES });
       queryClient.invalidateQueries({ queryKey: CLE_VISITES });
-      toast({ title: 'Règlement enregistré', description: `${formaterMontant(montant, cible.devise)} reçus.` });
+      toast({ title: t('reglement.reglementEnregistre'), description: t('reste.montantRecu', { montant: formaterMontant(montant, cible.devise) }) });
       onFermer();
     },
-    onError: (e) => toast({ title: 'Règlement non enregistré', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('reglement.reglementNonEnregistre'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   const mobileMoney = mode !== 'especes';
@@ -91,16 +92,16 @@ export function DialogueReglement({
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{estCommission ? 'Commission reçue' : 'Frais de visite reçus'}</DialogTitle>
+          <DialogTitle>{estCommission ? t('reglement.commissionRecue') : t('reglement.fraisVisiteRecus')}</DialogTitle>
           <DialogDescription>
-            {cible.titre} · reste dû : {formaterMontant(resteDu, cible.devise)}
+            {t('reglement.resteB', { a: cible.titre, b: formaterMontant(resteDu, cible.devise) })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           {estCommission && (
             <div className="space-y-1">
-              <Label>Payé par</Label>
+              <Label>{t('reglement.paye')}</Label>
               <Select
                 value={payeur}
                 onValueChange={(v) => {
@@ -110,15 +111,15 @@ export function DialogueReglement({
               >
                 <SelectTrigger data-testid="select-payeur"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="locataire">Le locataire</SelectItem>
-                  {parseFloat(cible.restes.bailleur) > 0 && <SelectItem value="bailleur">Le bailleur</SelectItem>}
+                  <SelectItem value="locataire">{t('reglement.locataire')}</SelectItem>
+                  {parseFloat(cible.restes.bailleur) > 0 && <SelectItem value="bailleur">{t('reglement.bailleur')}</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
           )}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="reglement-montant">Montant ({symboleDevise(cible.devise)})</Label>
+              <Label htmlFor="reglement-montant">{t('reglement.montant', { symbole: symboleDevise(cible.devise) })}</Label>
               <Input
                 id="reglement-montant"
                 type="number"
@@ -131,42 +132,42 @@ export function DialogueReglement({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="reglement-date">Date</Label>
+              <Label htmlFor="reglement-date">{t('reglement.date')}</Label>
               <Input id="reglement-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1">
-            <Label>Moyen</Label>
+            <Label>{t('reglement.moyen')}</Label>
             <Select value={mode} onValueChange={(v) => setMode(v as ModeReglement)}>
               <SelectTrigger data-testid="select-mode-reglement"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MODES_REGLEMENT.map((m) => (
-                  <SelectItem key={m.valeur} value={m.valeur}>{m.libelle}</SelectItem>
+                  <SelectItem key={m.valeur} value={m.valeur}>{m.valeur === 'especes' ? t('reglement.especes') : m.valeur === 'virement' ? t('reglement.virement') : m.libelle}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
             <Label htmlFor="reglement-reference">
-              {mobileMoney ? 'Référence de la transaction' : 'Numéro de reçu (facultatif)'}
+              {mobileMoney ? t('reglement.referenceTransaction') : t('reglement.numeroRecuFacultatif')}
             </Label>
             <Input
               id="reglement-reference"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              placeholder={mobileMoney ? 'Ex : le code reçu par SMS' : ''}
+              placeholder={mobileMoney ? t('reglement.exCodeRecuSms') : ''}
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('reglement.annuler')}</Button>
           <Button
             disabled={!(parseFloat(montant) > 0) || !date || enregistrer.isPending}
             onClick={() => enregistrer.mutate()}
             data-testid="button-enregistrer-reglement"
           >
-            Enregistrer
+            {t('reglement.enregistrer')}
           </Button>
         </DialogFooter>
       </DialogContent>

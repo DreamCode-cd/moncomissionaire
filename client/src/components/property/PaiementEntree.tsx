@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import type { BienList } from '@shared/schema';
 import { estPositif, formaterMontant } from '@/lib/prix';
+import { t } from '@/i18n';
 
 type BienPaiement = Pick<
   BienList,
@@ -34,35 +35,35 @@ export function PaiementEntree({ bien }: { bien: BienPaiement }) {
 
   return (
     <div className="space-y-2" data-testid="paiement-entree">
-      <p className="text-sm font-semibold text-muted-foreground">Pour entrer dans la maison</p>
-      <Ligne libelle="Premier mois de loyer" montant={formaterMontant(loyer, bien.devise)} />
+      <p className="text-sm font-semibold text-muted-foreground">{t('paiement.pourEntrer')}</p>
+      <Ligne libelle={t('paiement.premierMois')} montant={formaterMontant(loyer, bien.devise)} />
       {bien.garantie_mois ? (
         // En mois de loyer, trois au plus : loi n° 15/025, article 18.
-        <Ligne libelle={`Garantie, ${bien.garantie_mois} mois de loyer`} montant={formaterMontant(garantie, bien.devise)} />
+        <Ligne libelle={t('paiement.garantieMois', { n: bien.garantie_mois })} montant={formaterMontant(garantie, bien.devise)} />
       ) : (
-        <Ligne libelle="Garantie" montant="aucune" />
+        <Ligne libelle={t('paiement.garantie')} montant={t('paiement.aucune')} />
       )}
       {commission !== null && (
         <Ligne
-          libelle="Commission"
+          libelle={t('paiement.commission')}
           montant={formaterMontant(commission, bien.devise)}
           note={
             bien.commission_payee_par === 'moitie'
-              ? 'La moitié d’un mois de loyer ; le bailleur paie l’autre moitié.'
-              : 'Un mois de loyer, comme le prévoit la loi. Seulement si vous louez.'
+              ? t('paiement.commissionMoitie')
+              : t('paiement.commissionLoi')
           }
         />
       )}
       <div className="flex items-baseline gap-4 border-t pt-2" data-testid="total-entree">
-        <span className="flex-1 font-semibold">Total pour entrer</span>
+        <span className="flex-1 font-semibold">{t('paiement.total')}</span>
         <span className="text-xl font-extrabold tabular-nums">{formaterMontant(total, bien.devise)}</span>
       </div>
 
-      <p className="pt-3 text-sm font-semibold text-muted-foreground">Avant la visite</p>
+      <p className="pt-3 text-sm font-semibold text-muted-foreground">{t('paiement.avantVisite')}</p>
       <Ligne
-        libelle="Frais de visite"
-        montant={estPositif(frais) ? formaterMontant(frais, bien.devise) : 'aucun'}
-        note={estPositif(frais) ? 'Une seule fois pour ce bien, même si vous revenez.' : undefined}
+        libelle={t('paiement.fraisVisite')}
+        montant={estPositif(frais) ? formaterMontant(frais, bien.devise) : t('paiement.aucun')}
+        note={estPositif(frais) ? t('paiement.fraisUneFois') : undefined}
       />
 
       {/* La question se pose ici, devant les montants : à qui, et quand ? */}
@@ -71,7 +72,7 @@ export function PaiementEntree({ bien }: { bien: BienPaiement }) {
         className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
         data-testid="lien-comment-ca-marche"
       >
-        À qui payer, et quand ?
+        {t('paiement.aQuiPayer')}
       </Link>
     </div>
   );

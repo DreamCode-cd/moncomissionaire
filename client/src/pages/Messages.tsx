@@ -12,6 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ChatRoom, PaginatedResponse } from '@shared/schema';
+import { t } from '@/i18n';
+import { libelleRole } from '@/lib/roles';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -47,7 +49,7 @@ export default function Messages() {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 p-4">
-          <p className="text-muted-foreground">Vous devez être connecté pour voir vos messages</p>
+          <p className="text-muted-foreground">{t('messages.vousDevezEtreConnecte')}</p>
         </div>
       </Layout>
     );
@@ -73,8 +75,8 @@ export default function Messages() {
   };
 
   const getParticipantName = (participant: any) => {
-    if (!participant) return 'Inconnu';
-    return participant.full_name || `${participant.first_name || ''} ${participant.last_name || ''}`.trim() || participant.username || 'Inconnu';
+    if (!participant) return t('messages.inconnu');
+    return participant.full_name || `${participant.first_name || ''} ${participant.last_name || ''}`.trim() || participant.username || t('messages.inconnu');
   };
 
   const getInitials = (participant: any) => {
@@ -86,7 +88,7 @@ export default function Messages() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-4 md:py-6">
-        <h1 className="text-2xl font-bold mb-4">Messages</h1>
+        <h1 className="text-2xl font-bold mb-4">{t('messages.messages')}</h1>
 
         {/* Notification permission banner */}
         {notificationPermission === 'default' && (
@@ -97,13 +99,13 @@ export default function Messages() {
                   <Bell className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Activer les notifications</p>
+                  <p className="font-medium text-sm">{t('messages.activerNotifications')}</p>
                   <p className="text-xs text-muted-foreground">
-                    Recevez des alertes quand vous recevez un nouveau message
+                    {t('messages.recevezAlertesQuandVous')}
                   </p>
                 </div>
                 <Button size="sm" onClick={requestNotificationPermission}>
-                  Activer
+                  {t('messages.activer')}
                 </Button>
               </div>
             </CardContent>
@@ -132,19 +134,19 @@ export default function Messages() {
             <div className="w-16 h-16 mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
               <MessageCircle className="w-8 h-8 text-destructive" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Erreur de chargement</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('messages.erreurChargement')}</h3>
             <p className="text-muted-foreground max-w-sm mb-4">
-              Une erreur s'est produite lors du chargement des conversations.
+              {t('messages.erreurSEstProduite')}
             </p>
             <p className="text-sm text-muted-foreground">
-              {error instanceof Error ? error.message : 'Erreur inconnue'}
+              {error instanceof Error ? error.message : t('messages.erreurInconnue')}
             </p>
           </div>
         ) : data?.results?.length === 0 ? (
           <EtatVide
             icone={MessageCircle}
-            titre="Aucune conversation"
-            description="Une discussion s'ouvre automatiquement lorsqu'un commissionnaire accepte votre demande de visite."
+            titre={t('messages.aucuneConversation')}
+            description={t('messages.discussionSOuvreAutomatiquement')}
           />
         ) : (
           <div className="space-y-2">
@@ -179,7 +181,7 @@ export default function Messages() {
                               </h3>
                               {otherParticipant?.role_display && (
                                 <Badge variant="secondary" className="text-xs flex-shrink-0">
-                                  {otherParticipant.role_display}
+                                  {libelleRole(otherParticipant.user_type, otherParticipant.role_display)}
                                 </Badge>
                               )}
                             </div>
@@ -195,7 +197,7 @@ export default function Messages() {
                               ? 'text-foreground font-medium' 
                               : 'text-muted-foreground'
                           }`}>
-                            {chatroom.last_message?.content || 'Aucun message'}
+                            {chatroom.last_message?.content || t('messages.aucunMessage')}
                           </p>
                         </div>
                       </div>

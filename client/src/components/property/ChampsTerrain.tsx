@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { CHOIX_EAU, CHOIX_ELECTRICITE, NON_PRECISE } from '@/lib/terrain';
 import { GARANTIE_MOIS_MAX, type Bailleur, type PaginatedResponse } from '@shared/schema';
+import { localeActive, t } from '@/i18n';
 
 /* Champs partagés par l'ajout et la modification d'une annonce. Ils portent
  * ce qui distingue la location à Lubumbashi d'un formulaire générique. */
@@ -57,12 +58,12 @@ export function ChampBailleur({ control }: { control: Controle }) {
       name="bailleur"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Bailleur</FormLabel>
+          <FormLabel>{t('champs.bailleur')}</FormLabel>
           <div className="flex gap-2">
             <Select onValueChange={field.onChange} value={field.value ? String(field.value) : undefined}>
               <FormControl>
                 <SelectTrigger data-testid="select-bailleur">
-                  <SelectValue placeholder="Qui vous a confié ce bien ?" />
+                  <SelectValue placeholder={t('champs.quiVousConfieCe')} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -79,14 +80,14 @@ export function ChampBailleur({ control }: { control: Controle }) {
               onClick={() => setCreationOuverte(true)}
               data-testid="button-nouveau-bailleur"
             >
-              <Plus className="w-4 h-4 mr-1" /> Nouveau
+              <Plus className="w-4 h-4 mr-1" /> {t('champs.nouveau')}
             </Button>
           </div>
           <FormDescription>
             {/* Pas « ni VillaGo » : l'application cache bien cette fiche à la
                 modération, mais un administrateur technique peut toujours
                 lire la base. Promettre davantage serait mentir. */}
-            Ni les clients, ni les autres commissionnaires, ni l’équipe de modération ne voient cette fiche.
+            {t('champs.niClientsNiAutres')}
           </FormDescription>
           <FormMessage />
           <DialogueNouveauBailleur
@@ -143,25 +144,25 @@ export function DialogueNouveauBailleur({
       onFermer();
     },
     onError: (erreur: Error) =>
-      toast({ title: 'Fiche non enregistrée', description: erreur.message, variant: 'destructive' }),
+      toast({ title: t('champs.ficheNonEnregistree'), description: erreur.message, variant: 'destructive' }),
   });
 
   return (
     <Dialog open={ouvert} onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{bailleur ? 'Modifier le bailleur' : 'Nouveau bailleur'}</DialogTitle>
+          <DialogTitle>{bailleur ? t('champs.modifierBailleur') : t('champs.nouveauBailleur')}</DialogTitle>
           <DialogDescription>
-            Le bailleur n’a pas besoin de compte VillaGo. Sa fiche reste dans votre carnet.
+            {t('champs.bailleurNPasBesoin')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label htmlFor="bailleur-nom">Nom</Label>
+            <Label htmlFor="bailleur-nom">{t('champs.nom')}</Label>
             <Input id="bailleur-nom" value={nom} onChange={(e) => setNom(e.target.value)} data-testid="input-bailleur-nom" />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="bailleur-telephone">Téléphone</Label>
+            <Label htmlFor="bailleur-telephone">{t('champs.telephone')}</Label>
             <Input
               id="bailleur-telephone"
               type="tel"
@@ -173,23 +174,23 @@ export function DialogueNouveauBailleur({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="bailleur-notes">Notes privées (facultatif)</Label>
+            <Label htmlFor="bailleur-notes">{t('champs.notesPriveesFacultatif')}</Label>
             <Input
               id="bailleur-notes"
-              placeholder="Ex : préfère être appelé le soir"
+              placeholder={t('champs.exPrefereEtreAppele')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('champs.annuler')}</Button>
           <Button
             onClick={() => enregistrer.mutate()}
             disabled={!nom.trim() || !telephone.trim() || enregistrer.isPending}
             data-testid="button-enregistrer-bailleur"
           >
-            Enregistrer
+            {t('champs.enregistrer')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -208,7 +209,7 @@ export function ChampGarantie({ control }: { control: Controle }) {
       name="garantie_mois"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Garantie</FormLabel>
+          <FormLabel>{t('champs.garantie')}</FormLabel>
           <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value ?? 0)}>
             <FormControl>
               <SelectTrigger data-testid="select-garantie-mois">
@@ -218,12 +219,12 @@ export function ChampGarantie({ control }: { control: Controle }) {
             <SelectContent>
               {choix.map((mois) => (
                 <SelectItem key={mois} value={String(mois)}>
-                  {mois === 0 ? 'Aucune garantie' : `${mois} mois de loyer`}
+                  {mois === 0 ? t('annonce.aucuneGarantie') : t('annonce.moisDeLoyer', { n: mois })}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <FormDescription>Trois mois au maximum, selon la loi sur les baux (n° 15/025, article 18).</FormDescription>
+          <FormDescription>{t('champs.troisMoisMaximumSelon')}</FormDescription>
           <FormMessage />
         </FormItem>
       )}
@@ -240,12 +241,12 @@ export function ChampCommune({ control, communes }: { control: Controle; commune
       name="commune"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Commune</FormLabel>
+          <FormLabel>{t('champs.commune')}</FormLabel>
           {communes.length > 0 ? (
             <Select onValueChange={field.onChange} value={field.value || undefined}>
               <FormControl>
                 <SelectTrigger data-testid="select-commune">
-                  <SelectValue placeholder="Choisir la commune" />
+                  <SelectValue placeholder={t('champs.choisirCommune')} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -256,7 +257,7 @@ export function ChampCommune({ control, communes }: { control: Controle; commune
             </Select>
           ) : (
             <FormControl>
-              <Input placeholder="Ex : Kampemba" {...field} data-testid="input-commune" />
+              <Input placeholder={t('champs.exKampemba')} {...field} data-testid="input-commune" />
             </FormControl>
           )}
           <FormMessage />
@@ -294,7 +295,7 @@ function SelectRegularite({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value={NON_PRECISE}>Non précisé</SelectItem>
+              <SelectItem value={NON_PRECISE}>{t('champs.nonPrecise')}</SelectItem>
               {choix.map((c) => (
                 <SelectItem key={c.valeur} value={c.valeur}>{c.libelle}</SelectItem>
               ))}
@@ -315,13 +316,13 @@ export function ChampsEauElectricite({ control }: { control: Controle }) {
       <SelectRegularite
         control={control}
         nom="eau"
-        libelle="Eau"
+        libelle={t('champs.eau')}
         choix={CHOIX_EAU.map((c) => ({ valeur: c.valeur, libelle: c.libelle }))}
       />
       <SelectRegularite
         control={control}
         nom="electricite"
-        libelle="Électricité"
+        libelle={t('champs.electricite')}
         choix={CHOIX_ELECTRICITE.map((c) => ({ valeur: c.valeur, libelle: c.libelle }))}
       />
     </div>
@@ -360,7 +361,7 @@ export function ChampsCommission({
         name="commission_payee_par"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Commission (un mois de loyer)</FormLabel>
+            <FormLabel>{t('champs.commissionMoisLoyer')}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value ?? 'locataire'}>
               <FormControl>
                 <SelectTrigger data-testid="select-commission-payee-par">
@@ -368,12 +369,12 @@ export function ChampsCommission({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="locataire">Payée par le locataire</SelectItem>
-                <SelectItem value="moitie">Moitié locataire, moitié bailleur</SelectItem>
+                <SelectItem value="locataire">{t('champs.payeeLocataire')}</SelectItem>
+                <SelectItem value="moitie">{t('champs.moitieLocataireMoitieBailleur')}</SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              La loi la fixe à un mois de loyer (n° 15/025, article 10). Le client la voit avant de demander la visite.
+              {t('champs.loiFixeMoisLoyer')}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -385,7 +386,7 @@ export function ChampsCommission({
         name="frais_visite"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Frais de visite ({symbole})</FormLabel>
+            <FormLabel>{t('champs.fraisVisite', { symbole })}</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -401,8 +402,8 @@ export function ChampsCommission({
             </FormControl>
             <FormDescription>
               {plafond > 0
-                ? `${plafond.toLocaleString('fr-CD')} ${symbole} au plus dans cette ville. Ils ne sont dus qu’une fois par client, et seulement si votre identité a été vérifiée par VillaGo.`
-                : 'VillaGo n’autorise pas encore de frais de visite dans cette ville.'}
+                ? t('champs.plafondFrais', { plafond: plafond.toLocaleString(localeActive()), symbole })
+                : t('champs.villagoNAutorisePas')}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -424,9 +425,9 @@ export function ChampsCommission({
               />
             </FormControl>
             <div className="space-y-1">
-              <FormLabel>Ouvrir aux confrères</FormLabel>
+              <FormLabel>{t('champs.ouvrirConfreres')}</FormLabel>
               <FormDescription>
-                Les autres commissionnaires voient ce bien et peuvent vous présenter leur client. Vous gardez le bailleur et la visite.
+                {t('champs.autresCommissionnairesVoientCe')}
               </FormDescription>
             </div>
           </FormItem>
@@ -439,7 +440,7 @@ export function ChampsCommission({
           name="part_confrere_pourcent"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Part cédée au confrère (%)</FormLabel>
+              <FormLabel>{t('champs.partCedeeConfrere')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -452,7 +453,7 @@ export function ChampsCommission({
                 />
               </FormControl>
               <FormDescription>
-                Figée au moment où le confrère présente son client : la changer ensuite ne touche pas aux clients déjà présentés.
+                {t('champs.figeeMomentOuConfrere')}
               </FormDescription>
               <FormMessage />
             </FormItem>

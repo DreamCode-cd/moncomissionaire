@@ -2,6 +2,7 @@ import { PropertyCard } from './PropertyCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BienList } from '@shared/schema';
 import { cn } from '@/lib/utils';
+import { t } from '@/i18n';
 
 /** Une colonne de lignes séparées par des filets sur téléphone, une grille de cartes ensuite. */
 const GRILLE = 'grid grid-cols-1 divide-y md:divide-y-0 md:grid-cols-3 lg:grid-cols-4 md:gap-4';
@@ -41,9 +42,9 @@ export function PropertyGrid({ properties, isLoading, variant = 'default' }: Pro
             />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold mb-2">Aucun bien trouvé</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('grille.aucunBien')}</h3>
         <p className="text-muted-foreground max-w-sm">
-          Essayez de modifier vos critères de recherche pour trouver plus de résultats.
+          {t('grille.modifierCriteres')}
         </p>
       </div>
     );

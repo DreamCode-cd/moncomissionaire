@@ -26,6 +26,8 @@ import { formaterMontant } from '@/lib/prix';
 import type { Commission, PaginatedResponse, Reglement } from '@shared/schema';
 import { DialogueReglement } from './DialogueReglement';
 import { CLE_COMMISSIONS, aujourdhui, messageErreur } from './commun';
+import { t } from '@/i18n';
+import { libelleModeReglement } from '@/lib/prix';
 
 /**
  * Ce que le commissionnaire a gagné, ce qu'on lui doit encore, et la trace
@@ -44,17 +46,17 @@ export function OngletGains() {
     { type: 'commission'; objet: Commission } | { type: 'reglement'; objet: Reglement } | null
   >(null);
 
-  if (commissions.isLoading) return <EtatChargement texte="Chargement de vos gains…" />;
+  if (commissions.isLoading) return <EtatChargement texte={t('gains.chargementVosGains')} />;
   if (commissions.error && !commissions.data) {
-    return <ErreurRequete erreur={commissions.error} titre="Vos gains n’ont pas pu être chargés" onReessayer={() => void commissions.refetch()} />;
+    return <ErreurRequete erreur={commissions.error} titre={t('gains.vosGainsNOnt')} onReessayer={() => void commissions.refetch()} />;
   }
   const liste = commissions.data?.results ?? [];
   if (!liste.length) {
     return (
       <EtatVide
         icone={HandCoins}
-        titre="Aucun bail enregistré"
-        description="Quand un bail est signé, enregistrez-le depuis la visite : la commission se calcule toute seule."
+        titre={t('gains.aucunBailEnregistre')}
+        description={t('gains.quandBailEstSigne')}
       />
     );
   }
@@ -73,7 +75,7 @@ export function OngletGains() {
                 <div className="min-w-0">
                   <p className="font-medium leading-tight">{c.bien_titre}</p>
                   <p className="text-xs text-muted-foreground">
-                    {c.locataire_nom} · bail du {formaterDateCourte(c.date_bail)}
+                    {t('gains.bailB', { a: c.locataire_nom, b: formaterDateCourte(c.date_bail) })}
                   </p>
                 </div>
                 <BadgeStatut famille="commission" valeur={c.statut} compact />
@@ -89,26 +91,26 @@ export function OngletGains() {
                   )}
                 </p>
                 <p>
-                  Votre part : <span className="font-semibold text-primary">{formaterMontant(maPart, c.devise)}</span>
+                  {t('gains.votrePart')} <span className="font-semibold text-primary">{formaterMontant(maPart, c.devise)}</span>
                   {c.confrere && (
                     <span className="text-muted-foreground">
                       {titulaire
                         ? ` · ${formaterMontant(c.montant_confrere, c.devise)} pour ${c.confrere_detail?.full_name} (${c.part_confrere_pourcent} %)`
-                        : ` · encaissée par ${c.titulaire_detail?.full_name}`}
+                        : t('gains.encaisseePar', { nom: c.titulaire_detail?.full_name })}
                     </span>
                   )}
                 </p>
                 {!c.annulee_le && c.statut !== 'reglee' && (
                   <p className="text-muted-foreground">
-                    Reste à recevoir : {formaterMontant(parseFloat(c.reste_locataire) + parseFloat(c.reste_bailleur), c.devise)}
+                    {t('gains.resteRecevoir', { a: formaterMontant(parseFloat(c.reste_locataire) + parseFloat(c.reste_bailleur), c.devise) })}
                   </p>
                 )}
-                {c.annulee_le && <p className="text-muted-foreground">Annulée : {c.motif_annulation}</p>}
+                {c.annulee_le && <p className="text-muted-foreground">{t('gains.annulee')} {c.motif_annulation}</p>}
                 {!c.annulee_le && (
                   <p className="text-muted-foreground">
                     {c.bail_enregistre_le
-                      ? `Bail enregistré le ${formaterDateCourte(c.bail_enregistre_le)}`
-                      : `Bail à enregistrer avant le ${formaterDateCourte(c.echeance_enregistrement)} (loi n° 15/025, art. 41)`}
+                      ? t('gains.bailEnregistreLe', { date: formaterDateCourte(c.bail_enregistre_le) })
+                      : t('gains.bailAEnregistrer', { date: formaterDateCourte(c.echeance_enregistrement) })}
                     {' · '}
                     {resumeEtatsDesLieux(c)}
                   </p>
@@ -120,8 +122,8 @@ export function OngletGains() {
                   {c.reglements.map((r) => (
                     <li key={r.id} className="flex items-center justify-between gap-2">
                       <span className={r.annulee_le ? 'line-through text-muted-foreground' : ''}>
-                        {formaterDateCourte(r.date_reglement)} · {formaterMontant(r.montant, r.devise)} · {r.mode_display}
-                        {r.payeur === 'bailleur' ? ' · bailleur' : ''}
+                        {formaterDateCourte(r.date_reglement)} · {formaterMontant(r.montant, r.devise)} · {libelleModeReglement(r.mode, r.mode_display)}
+                        {r.payeur === 'bailleur' ? t('gains.bailleur') : ''}
                         {r.reference ? ` · ${r.reference}` : ''}
                       </span>
                       {titulaire && !r.annulee_le && (
@@ -129,8 +131,8 @@ export function OngletGains() {
                           type="button"
                           className="text-muted-foreground hover:text-foreground"
                           onClick={() => setAAnnuler({ type: 'reglement', objet: r })}
-                          aria-label="Annuler ce règlement"
-                          title="Annuler ce règlement"
+                          aria-label={t('gains.annulerCeReglement')}
+                          title={t('gains.annulerCeReglement')}
                         >
                           <Undo2 className="w-3.5 h-3.5" />
                         </button>
@@ -144,34 +146,34 @@ export function OngletGains() {
                 <div className="flex flex-wrap gap-2 pt-1">
                   {c.statut !== 'reglee' && (
                     <Button size="sm" onClick={() => setARegler(c)} data-testid={`button-encaisser-${c.id}`}>
-                      <Wallet className="w-4 h-4 mr-1" /> Paiement reçu
+                      <Wallet className="w-4 h-4 mr-1" /> {t('gains.paiementRecu')}
                     </Button>
                   )}
                   {c.locataire_telephone && (
                     <a href={`tel:${c.locataire_telephone.replace(/\s/g, '')}`}>
-                      <Button size="sm" variant="outline"><Phone className="w-4 h-4 mr-1" /> Locataire</Button>
+                      <Button size="sm" variant="outline"><Phone className="w-4 h-4 mr-1" /> {t('gains.locataire')}</Button>
                     </a>
                   )}
                   <Link href={`/etats-des-lieux/bail/${c.id}`}>
                     <Button size="sm" variant="outline" data-testid={`button-etat-des-lieux-${c.id}`}>
-                      <ClipboardList className="w-4 h-4 mr-1" /> État des lieux d’entrée
+                      <ClipboardList className="w-4 h-4 mr-1" /> {t('gains.etatLieuxEntree')}
                     </Button>
                   </Link>
                   {c.etats_des_lieux.some((e) => e.type === 'entree') && (
                     <Link href={`/etats-des-lieux/bail/${c.id}/sortie`}>
                       <Button size="sm" variant="outline" data-testid={`button-etat-des-lieux-sortie-${c.id}`}>
-                        <ClipboardList className="w-4 h-4 mr-1" /> Sortie du locataire
+                        <ClipboardList className="w-4 h-4 mr-1" /> {t('gains.sortieLocataire')}
                       </Button>
                     </Link>
                   )}
                   {!c.bail_enregistre_le && (
                     <Button size="sm" variant="outline" onClick={() => setAEnregistrer(c)} data-testid={`button-bail-enregistre-${c.id}`}>
-                      <Stamp className="w-4 h-4 mr-1" /> Bail enregistré
+                      <Stamp className="w-4 h-4 mr-1" /> {t('gains.bailEnregistre')}
                     </Button>
                   )}
                   {actifs.length === 0 && (
                     <Button size="sm" variant="ghost" onClick={() => setAAnnuler({ type: 'commission', objet: c })}>
-                      Le bail ne s’est pas fait
+                      {t('gains.bailNeSEst')}
                     </Button>
                   )}
                 </div>
@@ -221,13 +223,13 @@ function Totaux({ commissions, monId }: { commissions: Commission[]; monId?: num
       {Array.from(parDevise.entries()).flatMap(([devise, { gagne, attendu }]) => [
         <Card key={`${devise}-g`}>
           <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Reçu</p>
+            <p className="text-xs text-muted-foreground">{t('gains.recu')}</p>
             <p className="text-lg font-semibold text-primary">{formaterMontant(Math.round(gagne * 100) / 100, devise)}</p>
           </CardContent>
         </Card>,
         <Card key={`${devise}-a`}>
           <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">À recevoir</p>
+            <p className="text-xs text-muted-foreground">{t('gains.recevoir')}</p>
             <p className="text-lg font-semibold">{formaterMontant(Math.round(attendu * 100) / 100, devise)}</p>
           </CardContent>
         </Card>,
@@ -255,7 +257,7 @@ function DialogueAnnulation({
       queryClient.invalidateQueries({ queryKey: CLE_COMMISSIONS });
       onFermer();
     },
-    onError: (e) => toast({ title: 'Annulation refusée', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('gains.annulationRefusee'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   return (
@@ -263,21 +265,21 @@ function DialogueAnnulation({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {cible.type === 'commission' ? 'Le bail ne s’est pas fait' : 'Annuler ce règlement'}
+            {cible.type === 'commission' ? t('gains.bailNeSEst') : t('gains.annulerCeReglement')}
           </DialogTitle>
           <DialogDescription>
-            Rien n’est effacé : la ligne reste visible, barrée, avec votre motif. C’est votre protection en cas de désaccord.
+            {t('gains.rienNEstEfface')}
           </DialogDescription>
         </DialogHeader>
         <Textarea
           value={motif}
           onChange={(e) => setMotif(e.target.value)}
-          placeholder={cible.type === 'commission' ? 'Ex : le locataire s’est désisté' : 'Ex : montant mal saisi'}
+          placeholder={cible.type === 'commission' ? t('gains.exLocataireSEst') : t('gains.exMontantMalSaisi')}
         />
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Retour</Button>
+          <Button variant="outline" onClick={onFermer}>{t('gains.retour')}</Button>
           <Button variant="destructive" disabled={!motif.trim() || annuler.isPending} onClick={() => annuler.mutate()}>
-            Confirmer
+            {t('gains.confirmer')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -295,22 +297,22 @@ function DialogueEnregistrement({ commission, onFermer }: { commission: Commissi
       queryClient.invalidateQueries({ queryKey: CLE_COMMISSIONS });
       onFermer();
     },
-    onError: (e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('gains.erreur'), description: messageErreur(e), variant: 'destructive' }),
   });
   return (
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Bail enregistré</DialogTitle>
-          <DialogDescription>{commission.bien_titre} · à faire avant le {formaterDateCourte(commission.echeance_enregistrement)}</DialogDescription>
+          <DialogTitle>{t('gains.bailEnregistre')}</DialogTitle>
+          <DialogDescription>{t('reste.aFaireAvant', { titre: commission.bien_titre, date: formaterDateCourte(commission.echeance_enregistrement) })}</DialogDescription>
         </DialogHeader>
         <div className="space-y-1">
-          <Label htmlFor="date-enregistrement">Date de l’enregistrement</Label>
+          <Label htmlFor="date-enregistrement">{t('gains.dateEnregistrement')}</Label>
           <Input id="date-enregistrement" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
-          <Button disabled={!date || noter.isPending} onClick={() => noter.mutate()}>Enregistrer</Button>
+          <Button variant="outline" onClick={onFermer}>{t('gains.annuler')}</Button>
+          <Button disabled={!date || noter.isPending} onClick={() => noter.mutate()}>{t('gains.enregistrer')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -322,8 +324,8 @@ function resumeEtatsDesLieux(c: Commission): string {
   const decrire = (type: 'entree' | 'sortie', nom: string) => {
     const etat = c.etats_des_lieux.find((e) => e.type === type);
     if (!etat) return null;
-    return etat.valide_le ? `${nom} validé` : `${nom} en attente du locataire`;
+    return etat.valide_le ? t('gains.edlValide', { nom }) : t('gains.edlEnAttente', { nom });
   };
-  const parties = [decrire('entree', 'état des lieux d’entrée'), decrire('sortie', 'de sortie')].filter(Boolean);
-  return parties.length ? parties.join(', ') : 'pas d’état des lieux';
+  const parties = [decrire('entree', t('gains.edlEntree')), decrire('sortie', t('gains.edlSortie'))].filter(Boolean);
+  return parties.length ? parties.join(', ') : t('gains.pasEdl');
 }

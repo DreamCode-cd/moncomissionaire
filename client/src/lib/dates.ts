@@ -6,12 +6,14 @@
  * dates absentes ni les chaînes invalides de la même façon : selon l'écran,
  * une date manquante s'affichait « Invalid Date », « N/A » ou rien du tout.
  *
- * La locale est `fr-CD` partout. Sur les dates, l'écart avec `fr-FR` est
- * minime, mais une application ne doit pas parler deux langues selon qu'elle
- * affiche un prix ou une échéance.
+ * La locale suit la langue de l'écran : `fr-CD` en français, `en-GB` en
+ * anglais (« Saturday 21 November », décision du 20/11/2026). Une
+ * application ne doit pas parler deux langues selon qu'elle affiche un prix
+ * ou une échéance.
  */
 
-const LOCALE = 'fr-CD';
+import { langueActive, localeActive, t } from '@/i18n';
+
 const ABSENT = '—';
 
 function versDate(valeur?: string | Date | null): Date | null {
@@ -24,7 +26,7 @@ function versDate(valeur?: string | Date | null): Date | null {
 export function formaterDateLongue(valeur?: string | Date | null): string {
   const date = versDate(valeur);
   if (!date) return ABSENT;
-  return date.toLocaleDateString(LOCALE, {
+  return date.toLocaleDateString(localeActive(), {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -35,7 +37,7 @@ export function formaterDateLongue(valeur?: string | Date | null): string {
 export function formaterDateCourte(valeur?: string | Date | null): string {
   const date = versDate(valeur);
   if (!date) return ABSENT;
-  return date.toLocaleDateString(LOCALE, {
+  return date.toLocaleDateString(localeActive(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -46,7 +48,7 @@ export function formaterDateCourte(valeur?: string | Date | null): string {
 export function formaterJourEtMois(valeur?: string | Date | null): string {
   const date = versDate(valeur);
   if (!date) return ABSENT;
-  return date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString(localeActive(), { day: 'numeric', month: 'short' });
 }
 
 /** « 14:30 » — l'API renvoie souvent « 14:30:00 », les secondes n'apprennent rien. */
@@ -65,6 +67,14 @@ export function formaterHeure(valeur?: string | Date | null): string {
     heures = date.getHours();
     minutes = date.getMinutes();
   }
+  if (langueActive() === 'en') {
+    // « 10 am », « 2:30 pm » : comme les textes du serveur en anglais.
+    const suffixe = heures < 12 ? 'am' : 'pm';
+    const h = heures % 12 || 12;
+    return minutes
+      ? `${h}:${String(minutes).padStart(2, '0')}\u00A0${suffixe}`
+      : `${h}\u00A0${suffixe}`;
+  }
   return minutes ? `${heures}\u00A0h\u00A0${String(minutes).padStart(2, '0')}` : `${heures}\u00A0h`;
 }
 
@@ -72,7 +82,7 @@ export function formaterHeure(valeur?: string | Date | null): string {
 export function formaterDateEtHeure(valeur?: string | Date | null): string {
   const date = versDate(valeur);
   if (!date) return ABSENT;
-  return `${formaterDateCourte(date)} à ${formaterHeure(date)}`;
+  return t('date.dateEtHeure', { date: formaterDateCourte(date), heure: formaterHeure(date) });
 }
 
 /**
@@ -88,17 +98,17 @@ export function formaterAnciennete(valeur?: string | Date | null): string {
   const secondes = Math.floor((Date.now() - date.getTime()) / 1000);
 
   if (secondes < 0) return formaterJourEtMois(date);
-  if (secondes < 60) return "à l'instant";
+  if (secondes < 60) return t('date.alInstant');
 
   const minutes = Math.floor(secondes / 60);
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 60) return t('date.ilYAMinutes', { n: minutes });
 
   const heures = Math.floor(minutes / 60);
-  if (heures < 24) return `il y a ${heures} h`;
+  if (heures < 24) return t('date.ilYAHeures', { n: heures });
 
   const jours = Math.floor(heures / 24);
-  if (jours === 1) return 'hier';
-  if (jours < 7) return `il y a ${jours} jours`;
+  if (jours === 1) return t('date.hier');
+  if (jours < 7) return t('date.ilYAJours', { n: jours });
 
   return formaterJourEtMois(date);
 }
@@ -118,10 +128,10 @@ export function formaterSeparateurDeJour(valeur?: string | Date | null): string 
   const hier = new Date(aujourdhui);
   hier.setDate(hier.getDate() - 1);
 
-  if (date.toDateString() === aujourdhui.toDateString()) return "Aujourd'hui";
-  if (date.toDateString() === hier.toDateString()) return 'Hier';
+  if (date.toDateString() === aujourdhui.toDateString()) return t('date.aujourdhui');
+  if (date.toDateString() === hier.toDateString()) return t('date.hierMajuscule');
 
-  return date.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
+  return date.toLocaleDateString(localeActive(), { day: 'numeric', month: 'long' });
 }
 
 /** Le jour d'aujourd'hui, à l'heure du navigateur (« 2026-11-17 »), pour le

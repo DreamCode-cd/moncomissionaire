@@ -13,6 +13,7 @@ import { ErreurApi, messageErreur } from '@/lib/erreurs';
 import { formaterDateCourte } from '@/lib/dates';
 import type { EtatDesLieux } from '@shared/schema';
 import { BilanGarantie, PieceLecture } from './EtatDesLieuxEdition';
+import { t } from '@/i18n';
 
 /**
  * Ce que le locataire ouvre depuis le lien reçu par WhatsApp : l'état des
@@ -58,21 +59,21 @@ export default function EtatDesLieuxPublic() {
     <Layout>
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
         <h1 className="text-xl font-bold">
-          État des lieux {etat.data?.type === 'sortie' ? 'de sortie' : etat.data ? 'd’entrée' : ''}
+          {etat.data?.type === 'sortie' ? t('edlPublic.titreSortie') : etat.data ? t('edlPublic.titreEntree') : t('edl.etatLieux')}
         </h1>
         {!jeton ? (
           <EtatVide
-            titre="Lien incomplet"
-            description="Il manque la fin du lien. Ouvrez le message du commissionnaire et touchez le lien entier, ou demandez-lui de vous le renvoyer."
+            titre={t('edlPublic.lienIncomplet')}
+            description={t('edlPublic.ilManqueFinLien')}
           />
         ) : etat.isLoading ? (
-          <EtatChargement texte="Chargement…" />
+          <EtatChargement texte={t('edlPublic.chargement')} />
         ) : etat.error && !etat.data && !lienInvalide ? (
           <ErreurRequete erreur={etat.error} onReessayer={() => void etat.refetch()} />
         ) : !etat.data ? (
           <EtatVide
-            titre="Lien plus valable"
-            description="Le commissionnaire a peut-être envoyé un lien plus récent. Demandez-lui de vous le renvoyer."
+            titre={t('edlPublic.lienPlusValable')}
+            description={t('edlPublic.commissionnairePeutEtreEnvoye')}
           />
         ) : (
           <>
@@ -80,17 +81,17 @@ export default function EtatDesLieuxPublic() {
               <CardContent className="p-4 space-y-1 text-sm">
                 <p className="font-medium">{etat.data.bien_titre}</p>
                 <p className="text-muted-foreground">
-                  {etat.data.bien_quartier} · {formaterDateCourte(etat.data.date)} · établi par {etat.data.etabli_par_detail?.full_name}
+                  {etat.data.bien_quartier} · {formaterDateCourte(etat.data.date)} · {t('edlPublic.etabliPar', { nom: etat.data.etabli_par_detail?.full_name })}
                 </p>
-                <p>Locataire : {etat.data.locataire_nom}</p>
-                {etat.data.releves_compteurs && <p>Compteurs : {etat.data.releves_compteurs}</p>}
+                <p>{t('edlPublic.locataire')} {etat.data.locataire_nom}</p>
+                {etat.data.releves_compteurs && <p>{t('edlPublic.compteurs')} {etat.data.releves_compteurs}</p>}
                 {etat.data.observations && <p>{etat.data.observations}</p>}
               </CardContent>
             </Card>
 
             {etat.data.type === 'sortie' && (
               <p className="text-sm text-muted-foreground">
-                Chaque pièce est comparée à l’état des lieux d’entrée. Vérifiez surtout celles marquées « dégradée », et la retenue sur la garantie plus bas.
+                {t('edlPublic.chaquePieceEstComparee')}
               </p>
             )}
             {etat.data.pieces.map((p) => <PieceLecture key={p.id} piece={p} sortie={etat.data.type === 'sortie'} />)}
@@ -100,34 +101,34 @@ export default function EtatDesLieuxPublic() {
               <Card>
                 <CardContent className="p-4 space-y-1 text-sm">
                   <p className="font-medium text-statut-favorable">
-                    Validé par {etat.data.valide_par_nom} le {formaterDateCourte(etat.data.valide_le ?? '')}
+                    {t('edlPublic.valideB', { a: etat.data.valide_par_nom, b: formaterDateCourte(etat.data.valide_le ?? '') })}
                   </p>
-                  {etat.data.reserves_locataire && <p>Vos réserves : {etat.data.reserves_locataire}</p>}
-                  <p className="text-muted-foreground">Gardez ce lien : c’est votre copie.</p>
+                  {etat.data.reserves_locataire && <p>{t('edlPublic.vosReserves')} {etat.data.reserves_locataire}</p>}
+                  <p className="text-muted-foreground">{t('edlPublic.gardezCeLienC')}</p>
                 </CardContent>
               </Card>
             ) : (
               <Card>
                 <CardContent className="p-4 space-y-3">
                   <p className="text-sm">
-                    Relisez chaque pièce. Si quelque chose ne correspond pas à ce que vous voyez{etat.data.type === 'sortie' ? ', ou si vous contestez la retenue' : ''}, écrivez-le ci-dessous : vos réserves resteront jointes à l’état des lieux.
+                    {t('reste.relisez')}{etat.data.type === 'sortie' ? t('edlPublic.ouSiVousContestez') : ''}{t('reste.ecrivezReserves')}
                   </p>
                   <div className="space-y-1">
-                    <Label htmlFor="reserves">Vos réserves (facultatif)</Label>
+                    <Label htmlFor="reserves">{t('edlPublic.vosReservesFacultatif')}</Label>
                     <Textarea
                       id="reserves"
                       value={reserves}
                       onChange={(e) => setReserves(e.target.value)}
-                      placeholder="Ex : la porte de la cuisine ferme mal"
+                      placeholder={t('edlPublic.exPorteCuisineFerme')}
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="nom">Votre nom, en guise de signature</Label>
+                    <Label htmlFor="nom">{t('edlPublic.votreNomGuiseSignature')}</Label>
                     <Input id="nom" value={nom} onChange={(e) => setNom(e.target.value)} autoComplete="name" />
                   </div>
                   {erreur && <p className="text-sm text-destructive">{erreur}</p>}
                   <Button className="w-full" disabled={!nom.trim() || valider.isPending} onClick={() => valider.mutate()} data-testid="button-valider-edl">
-                    Je valide cet état des lieux
+                    {t('edlPublic.jeValideCetEtat')}
                   </Button>
                 </CardContent>
               </Card>

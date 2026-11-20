@@ -89,6 +89,10 @@ export interface UserProfile extends UserList {
   address?: string;
   bio?: string;
   is_available?: boolean;
+  /** Langue dans laquelle le serveur écrit à ce compte (notifications,
+   *  e-mails). Le site l'adopte à la connexion et la met à jour quand on
+   *  change de langue. */
+  langue?: 'fr' | 'en';
   created_at?: string;
   updated_at?: string;
 }
@@ -768,8 +772,8 @@ export interface PaginatedResponse<T> {
 }
 
 export const loginSchema = z.object({
-  login: z.string().trim().min(1, "Indiquez votre e-mail"),
-  password: z.string().min(1, "Mot de passe requis"),
+  login: z.string().trim().min(1, "validation.indiquezEmail"),
+  password: z.string().min(1, "validation.motDePasseRequis"),
 });
 
 /* Les règles reprennent EXACTEMENT celles du serveur (accounts/serializers.py
@@ -783,71 +787,74 @@ export const loginSchema = z.object({
 // `u` en littéral, que tous les navigateurs visés savent pourtant lire.
 const NOM_DE_PERSONNE = new RegExp("^[\\p{L}\\p{M}]+(?:[ '’.-]+[\\p{L}\\p{M}]+)*\\.?$", "u");
 
-const nomDePersonne = (libelle: string) =>
+const nomDePersonne = (cleManquant: string) =>
   z
     .string()
     .transform((v) => v.trim().replace(/\s+/g, ' '))
     .pipe(
       z
         .string()
-        .min(1, `Indiquez votre ${libelle}`)
-        .max(60, `60 caractères au plus`)
-        .regex(NOM_DE_PERSONNE, 'Des lettres seulement, avec espaces, traits d’union ou apostrophes'),
+        .min(1, cleManquant)
+        .max(60, 'validation.soixanteCaracteres')
+        .regex(NOM_DE_PERSONNE, 'validation.lettresSeulement'),
     );
 
+/* Les messages d'erreur sont des clés de traduction (client/src/i18n) :
+   FormMessage les traduit à l'affichage. Ce fichier est partagé avec le
+   serveur Express, qui n'a pas le module de langue. */
 export const registerSchema = z.object({
   user_type: z.enum(['client', 'proprietaire', 'commissionnaire', 'agence']),
   /** Seulement pour une agence : le nom affiché sur ses annonces. */
   nom_agence: z.string().optional(),
-  first_name: nomDePersonne('prénom'),
-  last_name: nomDePersonne('nom'),
+  first_name: nomDePersonne('validation.indiquezPrenom'),
+  last_name: nomDePersonne('validation.indiquezNom'),
   // Le numéro arrive assemblé (« +243812345678 ») par ChampTelephone.
   phone: z
     .string()
-    .min(1, 'Indiquez votre numéro de téléphone')
+    .min(1, 'validation.indiquezTelephone')
     .superRefine((numero, ctx) => {
       const erreur = erreurTelephone(numero);
       if (erreur) ctx.addIssue({ code: z.ZodIssueCode.custom, message: erreur });
     }),
-  email: z.string().trim().toLowerCase().email("Adresse e-mail invalide"),
+  email: z.string().trim().toLowerCase().email("validation.emailInvalide"),
   password: z
     .string()
-    .min(8, "8 caractères au moins")
-    .refine((v) => !/^\d+$/.test(v), "Pas uniquement des chiffres"),
+    .min(8, "validation.huitCaracteres")
+    .refine((v) => !/^\d+$/.test(v), "validation.pasQueDesChiffres"),
   password2: z.string(),
   terms_accepted: z.boolean().refine((val) => val === true, {
-    message: "Vous devez accepter les conditions d'utilisation",
+    message: "validation.accepterConditions",
   }),
   // Distinct de l'acceptation des conditions : le Code du numérique
   // (article 196) veut un consentement aux données clairement séparé.
   consentement_donnees: z.boolean().refine((val) => val === true, {
-    message: "Sans cet accord, le compte ne peut pas fonctionner",
+    message: "validation.accordDonnees",
   }),
 }).refine((data) => data.password === data.password2, {
-  message: "Les deux mots de passe ne correspondent pas",
+  message: "validation.motsDePasseDifferents",
   path: ["password2"],
 }).refine((data) => data.user_type !== 'agence' || Boolean(data.nom_agence?.trim()), {
-  message: "Indiquez le nom de l’agence",
+  message: "validation.nomAgence",
   path: ["nom_agence"],
 });
 
 export const bienCreateSchema = z.object({
-  titre: z.string().min(5, "Minimum 5 caractères"),
-  description: z.string().min(20, "Minimum 20 caractères"),
+  titre: z.string().min(5, "validation.min5"),
+  description: z.string().min(20, "validation.min20"),
   type_bien: z.enum(['maison', 'appartement', 'studio', 'villa', 'duplex', 'terrain']),
   devise: z.enum(['USD', 'CDF']).default('USD'),
-  prix_mensuel: z.string().min(1, "Prix requis"),
+  prix_mensuel: z.string().min(1, "validation.prixRequis"),
   garantie_mois: z.coerce.number().int().min(0).max(GARANTIE_MOIS_MAX,
-    "Trois mois de loyer au plus (loi n° 15/025, article 18)").default(3),
+    "validation.garantieMax").default(3),
   // Facultative : un bailleur ne connaît presque jamais la surface de sa maison.
   superficie: z.string().optional(),
   bailleur: z.string().optional(),
   nombre_chambres: z.number().min(0).optional(),
   nombre_salles_bain: z.number().min(0).optional(),
   nombre_pieces: z.number().min(0).optional(),
-  adresse: z.string().min(5, "Adresse requise"),
-  ville: z.string().min(1, "Ville requise"),
-  quartier: z.string().min(2, "Quartier requis"),
+  adresse: z.string().min(5, "validation.adresseRequise"),
+  ville: z.string().min(1, "validation.villeRequise"),
+  quartier: z.string().min(2, "validation.quartierRequis"),
   commune: z.string().optional(),
   eau: z.enum(['', 'permanente', 'intermittente', 'forage', 'aucune']).default(''),
   electricite: z.enum(['', 'stable', 'delestage', 'autonome', 'aucune']).default(''),
@@ -862,13 +869,13 @@ export const bienCreateSchema = z.object({
   frais_visite: z.string().optional(),
   partage_ouvert: z.boolean().optional(),
   part_confrere_pourcent: z.coerce.number().int()
-    .min(1, "Au moins 1 %").max(99, "Au plus 99 %").default(50),
+    .min(1, "validation.auMoins1").max(99, "validation.auPlus99").default(50),
 });
 
 export const demandeVisiteSchema = z.object({
   bien: z.number(),
-  date_souhaitee: z.string().min(1, "Date requise"),
-  heure_souhaitee: z.string().min(1, "Heure requise"),
+  date_souhaitee: z.string().min(1, "validation.dateRequise"),
+  heure_souhaitee: z.string().min(1, "validation.heureRequise"),
   message: z.string().optional(),
 });
 

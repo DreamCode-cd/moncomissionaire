@@ -18,6 +18,7 @@ import { api } from '@/lib/api';
 import { messageErreur } from '@/lib/erreurs';
 import { queryClient } from '@/lib/queryClient';
 import type { Visite } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * Reporter ou annuler une visite fixée qui n'a pas encore eu lieu.
@@ -41,7 +42,7 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
   };
   const apres = (titre: string) => {
     queryClient.invalidateQueries({ queryKey: cle });
-    toast({ title: titre, description: 'Le client est prévenu.' });
+    toast({ title: titre, description: t('actionsVisite.clientPrevenu') });
     fermer();
   };
   const reporter = useMutation({
@@ -50,14 +51,14 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
         date_visite: jour,
         heure_visite: heure,
       }),
-    onSuccess: () => apres('Visite déplacée'),
-    onError: (e) => toast({ title: 'Visite non déplacée', description: messageErreur(e), variant: 'destructive' }),
+    onSuccess: () => apres(t('actionsVisite.deplacee')),
+    onError: (e) => toast({ title: t('actionsVisite.nonDeplacee'), description: messageErreur(e), variant: 'destructive' }),
   });
   const annuler = useMutation({
     mutationFn: () =>
       api.post(`/api/v1/visites/commissionnaire/visites/${visite.id}/annuler/`, { motif: motif.trim() }),
-    onSuccess: () => apres('Visite annulée'),
-    onError: (e) => toast({ title: 'Visite non annulée', description: messageErreur(e), variant: 'destructive' }),
+    onSuccess: () => apres(t('actionsVisite.annulee')),
+    onError: (e) => toast({ title: t('actionsVisite.nonAnnulee'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   // Seulement une visite à venir dont l'heure n'est pas passée : après, on
@@ -70,7 +71,7 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => setDialogue('reporter')} data-testid={`reporter-${visite.id}`}>
-        Reporter
+        {t('actionsVisite.reporter')}
       </Button>
       <Button
         size="sm"
@@ -79,15 +80,15 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
         onClick={() => setDialogue('annuler')}
         data-testid={`annuler-visite-${visite.id}`}
       >
-        Annuler la visite
+        {t('actionsVisite.annulerVisite')}
       </Button>
 
       <Dialog open={dialogue === 'reporter'} onOpenChange={(ouvert) => !ouvert && fermer()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reporter la visite</DialogTitle>
+            <DialogTitle>{t('actionsVisite.reporterVisite')}</DialogTitle>
             <DialogDescription>
-              Le client est prévenu du nouveau créneau et peut annuler s’il ne lui convient pas.
+              {t('actionsVisite.reporterTexte')}
             </DialogDescription>
           </DialogHeader>
           <ChoixCreneau
@@ -96,14 +97,14 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
             onJour={setJour}
             onHeure={(h) => setHeure(h ?? '')}
             marque={{ jour: visite.date_visite, heure: visite.heure_visite }}
-            libelleMarque="créneau actuel"
+            libelleMarque={t('creneau.actuel')}
           />
           <DialogFooter>
             <Button variant="outline" onClick={fermer}>
-              Retour
+              {t('commun.retour')}
             </Button>
             <Button onClick={() => reporter.mutate()} disabled={!jour || !heure || memeCreneau || reporter.isPending}>
-              Déplacer la visite
+              {t('actionsVisite.deplacer')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -112,28 +113,28 @@ export function ActionsVisite({ visite, cle }: { visite: Visite; cle: QueryKey }
       <Dialog open={dialogue === 'annuler'} onOpenChange={(ouvert) => !ouvert && fermer()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Annuler la visite</DialogTitle>
-            <DialogDescription>Le motif est envoyé au client, qui pourra demander une autre visite.</DialogDescription>
+            <DialogTitle>{t('actionsVisite.annulerVisite')}</DialogTitle>
+            <DialogDescription>{t('actionsVisite.annulerTexte')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-1">
-            <Label htmlFor={`annulation-motif-${visite.id}`}>Motif</Label>
+            <Label htmlFor={`annulation-motif-${visite.id}`}>{t('champ.motif')}</Label>
             <Textarea
               id={`annulation-motif-${visite.id}`}
-              placeholder="Ex : le bailleur n’est pas disponible ce jour-là"
+              placeholder={t('actionsVisite.motifPlaceholder')}
               value={motif}
               onChange={(e) => setMotif(e.target.value)}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={fermer}>
-              Retour
+              {t('commun.retour')}
             </Button>
             <Button
               variant="destructive"
               onClick={() => annuler.mutate()}
               disabled={motif.trim().length < 3 || annuler.isPending}
             >
-              Confirmer l’annulation
+              {t('actionsVisite.confirmerAnnulation')}
             </Button>
           </DialogFooter>
         </DialogContent>

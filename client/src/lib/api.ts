@@ -1,4 +1,5 @@
 import { ErreurApi, ErreurReseau, erreurDepuisReponse } from './erreurs';
+import { langueActive, t } from '@/i18n';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -17,8 +18,7 @@ interface RequestOptions {
 }
 
 /** Ce que voit l'utilisateur qui se déconnecte sans réseau. */
-export const MESSAGE_DECONNEXION_HORS_LIGNE =
-  "Déconnecté de cet appareil. Sans réseau, la session n’a pas pu être fermée sur le serveur : elle expirera d’elle-même dans sept jours au plus.";
+export const messageDeconnexionHorsLigne = () => t('api.deconnexionHorsLigne');
 
 class ApiClient {
   private accessToken: string | null = null;
@@ -149,10 +149,14 @@ class ApiClient {
     const controleur = new AbortController();
     const minuterie = setTimeout(() => controleur.abort(), DELAI_MAX_MS);
     try {
-      return await fetch(url, { ...init, signal: controleur.signal });
+      // La langue de l'écran : le serveur y rédige ses erreurs et ses refus,
+      // et sert les pages légales dans cette langue quand elles existent.
+      const entetes = new Headers(init.headers);
+      entetes.set('Accept-Language', langueActive());
+      return await fetch(url, { ...init, headers: entetes, signal: controleur.signal });
     } catch (erreur) {
       if (controleur.signal.aborted) {
-        throw new ErreurReseau('Le serveur met trop de temps à répondre. Réessayez dans un instant.');
+        throw new ErreurReseau(t('api.serveurMetTropTemps'));
       }
       throw new ErreurReseau();
     } finally {

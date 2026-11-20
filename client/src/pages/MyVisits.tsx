@@ -33,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getDjangoImageUrl, nomAffiche, vignetteDe } from '@/lib/utils';
 import type { DemandeVisite, PaginatedResponse, RapportVisite, Visite } from '@shared/schema';
+import { t } from '@/i18n';
 
 
 
@@ -85,12 +86,12 @@ export default function MyVisits() {
       setASignaler(null);
       setMotifSignalement('');
       queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/client/demandes/'] });
-      toast({ title: 'Signalement envoyé', description: 'L’équipe VillaGo va examiner la situation.' });
+      toast({ title: t('mesVisites.signalementEnvoye'), description: t('mesVisites.equipeVillagoVaExaminer') });
     },
     onError: (e) =>
       toast({
-        title: 'Signalement non envoyé',
-        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        title: t('mesVisites.signalementNonEnvoye'),
+        description: e instanceof Error ? e.message : t('mesVisites.erreurEstSurvenue'),
         variant: 'destructive',
       }),
   });
@@ -101,13 +102,13 @@ export default function MyVisits() {
     onSuccess: () => {
       setAAnnuler(null);
       queryClient.invalidateQueries({ queryKey: ['/api/v1/visites/client/demandes/'] });
-      toast({ title: 'Demande annulée', description: 'Le commissionnaire est prévenu.' });
+      toast({ title: t('mesVisites.demandeAnnulee'), description: t('mesVisites.commissionnaireEstPrevenu') });
     },
     onError: (e) => {
       setAAnnuler(null);
       toast({
-        title: 'Annulation impossible',
-        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        title: t('mesVisites.annulationImpossible'),
+        description: e instanceof Error ? e.message : t('mesVisites.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -125,7 +126,7 @@ export default function MyVisits() {
 
   const etatErreur =
     erreurDemandes && !demandes ? (
-      <ErreurRequete erreur={erreurDemandes} titre="Vos visites n’ont pas pu être chargées" onReessayer={() => void refetch()} />
+      <ErreurRequete erreur={erreurDemandes} titre={t('mesVisites.vosVisitesNOnt')} onReessayer={() => void refetch()} />
     ) : null;
   const allDemandes = demandes?.results || [];
   const pendingDemandes = allDemandes.filter(d => d.statut === 'en_attente');
@@ -164,9 +165,9 @@ export default function MyVisits() {
     !enCours.some((e) => bienDe(e) === bienDe(d));
   const closesCachees = Math.max(0, closesTriees.length - CLOSES_VISIBLES);
   const sections = [
-    { cle: 'en-cours', titre: 'En cours', demandes: enCours },
-    { cle: 'faites', titre: 'Visites faites', demandes: completedDemandes },
-    { cle: 'closes', titre: 'Closes', demandes: toutesCloses ? closesTriees : closesTriees.slice(0, CLOSES_VISIBLES) },
+    { cle: 'en-cours', titre: t('mesVisites.cours'), demandes: enCours },
+    { cle: 'faites', titre: t('mesVisites.visitesFaites'), demandes: completedDemandes },
+    { cle: 'closes', titre: t('mesVisites.closes'), demandes: toutesCloses ? closesTriees : closesTriees.slice(0, CLOSES_VISIBLES) },
   ].filter((section) => section.demandes.length > 0);
 
   const renderDemandeCard = (demande: DemandeWithVisite) => (
@@ -206,12 +207,12 @@ export default function MyVisits() {
             <div className="text-sm text-muted-foreground space-y-1">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>Demandée le {formaterDateLongue(demande.created_at)}</span>
+                <span>{t('mesVisites.demandee')} {formaterDateLongue(demande.created_at)}</span>
               </div>
               {demande.date_souhaitee && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Souhaitée : {formaterDateLongue(demande.date_souhaitee)} à {formatTime(demande.heure_souhaitee)}</span>
+                  <span>{t('mesVisites.souhaitee', { quand: t('date.dateEtHeure', { date: formaterDateLongue(demande.date_souhaitee), heure: formatTime(demande.heure_souhaitee) }) })}</span>
                 </div>
               )}
               {demande.visite_detail?.date_visite &&
@@ -219,8 +220,9 @@ export default function MyVisits() {
                 <div className="flex items-center gap-2 text-primary">
                   <CircleCheck className="w-4 h-4" />
                   <span>
-                    {demande.visite_detail.statut === 'reportee' ? 'Déplacée au' : 'Planifiée :'}{' '}
-                    {formaterDateLongue(demande.visite_detail.date_visite)} à {formatTime(demande.visite_detail.heure_visite)}
+                    {t(demande.visite_detail.statut === 'reportee' ? 'reste.deplaceeAu' : 'reste.planifiee', {
+                      quand: t('date.dateEtHeure', { date: formaterDateLongue(demande.visite_detail.date_visite), heure: formatTime(demande.visite_detail.heure_visite) }),
+                    })}
                   </span>
                 </div>
               )}
@@ -229,7 +231,7 @@ export default function MyVisits() {
               {demande.visite?.statut === 'annulee' && demande.visite.motif_annulation && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <CircleX className="w-4 h-4" />
-                  <span>Visite annulée par le commissionnaire. Motif : {demande.visite.motif_annulation}</span>
+                  <span>{t('mesVisites.visiteAnnuleeCommissionnaireMotif')} {demande.visite.motif_annulation}</span>
                 </div>
               )}
             </div>
@@ -248,8 +250,8 @@ export default function MyVisits() {
                       lui qui figure comme accompagnateur de la visite. */}
                   <p className="text-muted-foreground">
                     {demande.visite_detail.agent_detail.user_type === 'agent'
-                      ? 'Agent VillaGo qui vous accompagne'
-                      : 'Vous accompagne pendant la visite'}
+                      ? t('mesVisites.agentVillagoQuiVous')
+                      : t('mesVisites.vousAccompagnePendantVisite')}
                   </p>
                 </div>
               </div>
@@ -262,15 +264,15 @@ export default function MyVisits() {
                 onClick={() => setSelectedReport(demande.visite_detail?.rapport || null)}
               >
                 <FileText className="w-4 h-4 mr-2" />
-                Voir le rapport
+                {t('mesVisites.voirRapport')}
               </Button>
             )}
             {estPositif(demande.frais_visite) && (
               <p className="flex items-center gap-1 text-sm mt-2" data-testid={`frais-visite-${demande.id}`}>
                 <Wallet className="w-4 h-4 text-muted-foreground" />
-                {'Frais de visite annoncés : '}
+                {t('mesVisites.fraisVisiteAnnonces')}
                 {formaterMontant(demande.frais_visite, demande.frais_visite_devise)}
-                {estPositif(demande.frais_visite_regles) && ' · réglés'}
+                {estPositif(demande.frais_visite_regles) && t('mesVisites.regles')}
               </p>
             )}
             {demande.visite?.statut === 'terminee' && (
@@ -283,7 +285,7 @@ export default function MyVisits() {
                     onClick={() => setANoter({ demande, sujet: 'bien' })}
                     data-testid={`button-noter-bien-${demande.id}`}
                   >
-                    Noter le bien
+                    {t('mesVisites.noterBien')}
                   </Button>
                 )}
                 {!demande.visite.avis_commissionnaire_donne && demande.bien_detail?.commissionnaire && (
@@ -293,7 +295,7 @@ export default function MyVisits() {
                     onClick={() => setANoter({ demande, sujet: 'commissionnaire' })}
                     data-testid={`button-noter-${demande.id}`}
                   >
-                    Noter le commissionnaire
+                    {t('mesVisites.noterCommissionnaire')}
                   </Button>
                 )}
                 {/* Seulement quand un agent, et non le commissionnaire
@@ -305,14 +307,14 @@ export default function MyVisits() {
                     onClick={() => setANoter({ demande, sujet: 'agent' })}
                     data-testid={`button-noter-agent-${demande.id}`}
                   >
-                    Noter l’agent
+                    {t('mesVisites.noterAgent')}
                   </Button>
                 )}
               </div>
             )}
             {peutRedemander(demande) && (
               <Button asChild size="sm" className="mt-2 mr-4" data-testid={`button-redemander-${demande.id}`}>
-                <Link href={`/property/${bienDe(demande)}`}>Choisir une autre date</Link>
+                <Link href={`/property/${bienDe(demande)}`}>{t('mesVisites.choisirAutreDate')}</Link>
               </Button>
             )}
             {annulable(demande) && (
@@ -323,20 +325,20 @@ export default function MyVisits() {
                 onClick={() => setAAnnuler(demande)}
                 data-testid={`button-annuler-${demande.id}`}
               >
-                <CircleX className="w-4 h-4 mr-1" /> {demande.visite ? 'Annuler la visite' : 'Annuler ma demande'}
+                <CircleX className="w-4 h-4 mr-1" /> {demande.visite ? t('mesVisites.annulerVisite2') : t('mesVisites.annulerMaDemande')}
               </Button>
             )}
             {demande.signale_le ? (
               demande.signalement_traite_le ? (
                 <div className="mt-2 rounded-md bg-muted p-3 text-sm" data-testid={`reponse-signalement-${demande.id}`}>
                   <p className="text-xs text-muted-foreground">
-                    Réponse de l’équipe VillaGo, le {formaterDateLongue(demande.signalement_traite_le)}
+                    {t('mesVisites.reponseEquipeVillago', { a: formaterDateLongue(demande.signalement_traite_le) })}
                   </p>
                   <p className="whitespace-pre-line">{demande.signalement_suite}</p>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Vous avez signalé un problème le {formaterDateLongue(demande.signale_le)}. L’équipe VillaGo est prévenue et vous répondra ici.
+                  {t('mesVisites.vousAvezSignaleProbleme', { a: formaterDateLongue(demande.signale_le) })}
                 </p>
               )
             ) : (
@@ -348,7 +350,7 @@ export default function MyVisits() {
                   onClick={() => setASignaler(demande)}
                   data-testid={`button-signaler-${demande.id}`}
                 >
-                  <Flag className="w-4 h-4 mr-1" /> Signaler un problème
+                  <Flag className="w-4 h-4 mr-1" /> {t('mesVisites.signalerProbleme')}
                 </Button>
               )
             )}
@@ -387,7 +389,7 @@ export default function MyVisits() {
             coupait (« Term… »). Le tableau de bord qui la précédait (quatre
             tuiles de chiffres, des recommandations répétant l'accueil) a
             disparu à la demande de David, le 19/11/2026. */}
-        <h1 className="mb-6 text-2xl font-bold">Mes visites</h1>
+        <h1 className="mb-6 text-2xl font-bold">{t('mesVisites.mesVisites')}</h1>
 
         {isLoading ? (
           renderLoadingSkeleton()
@@ -396,11 +398,11 @@ export default function MyVisits() {
         ) : allDemandes.length === 0 ? (
           <EtatVide
             icone={Calendar}
-            titre="Vous n’avez encore demandé aucune visite"
-            description="Choisissez une maison, puis « Visiter » : le commissionnaire vous répond ici."
+            titre={t('mesVisites.vousNAvezEncore')}
+            description={t('mesVisites.choisissezMaisonPuisVisiter')}
             action={
               <Link href="/search">
-                <Button size="sm">Voir les annonces</Button>
+                <Button size="sm">{t('mesVisites.voirAnnonces')}</Button>
               </Link>
             }
           />
@@ -421,12 +423,8 @@ export default function MyVisits() {
                     data-testid="replier-closes"
                   >
                     {toutesCloses
-                      ? closesCachees === 1
-                        ? 'Masquer la plus ancienne'
-                        : 'Masquer les plus anciennes'
-                      : closesCachees === 1
-                        ? 'Voir la plus ancienne'
-                        : `Voir les ${closesCachees} plus anciennes`}
+                      ? t('mesVisites.masquerAnciennes', { n: closesCachees })
+                      : t('mesVisites.voirAnciennes', { n: closesCachees })}
                     {toutesCloses ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />}
                   </Button>
                 )}
@@ -440,47 +438,47 @@ export default function MyVisits() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" />
-                Rapport de visite
+                {t('mesVisites.rapportVisite')}
               </DialogTitle>
               <DialogDescription>
-                {selectedReport && `Visite du ${formaterDateLongue(selectedReport.created_at)}`}
+                {selectedReport && t('mesVisites.visiteDu', { date: formaterDateLongue(selectedReport.created_at) })}
               </DialogDescription>
             </DialogHeader>
             {selectedReport && (
               <ScrollArea className="max-h-[60vh]">
                 <div className="space-y-6 pr-4">
                   <div>
-                    <Label className="text-muted-foreground">Appréciation générale</Label>
+                    <Label className="text-muted-foreground">{t('mesVisites.appreciationGenerale')}</Label>
                     <div className="mt-1">
                       <BadgeStatut famille="appreciation" valeur={selectedReport.etat_general} />
                     </div>
                   </div>
                   
                   <div>
-                    <Label className="text-muted-foreground">Points positifs</Label>
+                    <Label className="text-muted-foreground">{t('mesVisites.pointsPositifs')}</Label>
                     <p className="mt-1 text-sm whitespace-pre-wrap">
-                      {selectedReport.points_positifs || 'Aucun point positif mentionné'}
+                      {selectedReport.points_positifs || t('mesVisites.aucunPointPositifMentionne')}
                     </p>
                   </div>
                   
                   <div>
-                    <Label className="text-muted-foreground">Points négatifs</Label>
+                    <Label className="text-muted-foreground">{t('mesVisites.pointsNegatifs')}</Label>
                     <p className="mt-1 text-sm whitespace-pre-wrap">
-                      {selectedReport.points_negatifs || 'Aucun point négatif mentionné'}
+                      {selectedReport.points_negatifs || t('mesVisites.aucunPointNegatifMentionne')}
                     </p>
                   </div>
 
                   <div>
-                    <Label className="text-muted-foreground">Recommandations</Label>
+                    <Label className="text-muted-foreground">{t('mesVisites.recommandations')}</Label>
                     <p className="mt-1 text-sm whitespace-pre-wrap">
-                      {selectedReport.recommandations || 'Aucune recommandation'}
+                      {selectedReport.recommandations || t('mesVisites.aucuneRecommandation')}
                     </p>
                   </div>
 
                   <div>
-                    <Label className="text-muted-foreground">Commentaires</Label>
+                    <Label className="text-muted-foreground">{t('mesVisites.commentaires')}</Label>
                     <p className="mt-1 text-sm whitespace-pre-wrap">
-                      {selectedReport.commentaires || 'Aucun commentaire'}
+                      {selectedReport.commentaires || t('mesVisites.aucunCommentaire')}
                     </p>
                   </div>
                 </div>
@@ -508,25 +506,25 @@ export default function MyVisits() {
         <Dialog open={!!aSignaler} onOpenChange={(o) => !o && setASignaler(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Signaler un problème</DialogTitle>
+              <DialogTitle>{t('mesVisites.signalerProbleme')}</DialogTitle>
               <DialogDescription>
-                Frais demandés au-delà de l’annonce, commissionnaire injoignable… Décrivez ce qui s’est passé : l’équipe VillaGo sera prévenue.
+                {t('mesVisites.fraisDemandesDelaAnnonce')}
               </DialogDescription>
             </DialogHeader>
             <Textarea
               value={motifSignalement}
               onChange={(e) => setMotifSignalement(e.target.value)}
-              placeholder="Ex : on m’a demandé 20 $ de frais de visite au lieu de 10 $"
+              placeholder={t('mesVisites.exOnMDemande')}
               data-testid="textarea-signalement"
             />
             <DialogFooter>
-              <Button variant="outline" onClick={() => setASignaler(null)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setASignaler(null)}>{t('mesVisites.annuler')}</Button>
               <Button
                 disabled={!motifSignalement.trim() || signaler.isPending}
                 onClick={() => signaler.mutate()}
                 data-testid="button-envoyer-signalement"
               >
-                Envoyer
+                {t('mesVisites.envoyer')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -535,21 +533,21 @@ export default function MyVisits() {
       <AlertDialog open={aAnnuler !== null} onOpenChange={(ouvert) => !ouvert && setAAnnuler(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{aAnnuler?.visite ? 'Annuler la visite ?' : 'Annuler la demande ?'}</AlertDialogTitle>
+            <AlertDialogTitle>{aAnnuler?.visite ? t('mesVisites.annulerVisite') : t('mesVisites.annulerDemande')}</AlertDialogTitle>
             <AlertDialogDescription>
               {aAnnuler?.visite
-                ? 'Le commissionnaire et la personne qui devait vous accompagner seront prévenus.'
-                : 'Le commissionnaire sera prévenu. Vous pourrez en envoyer une autre plus tard.'}
+                ? t('mesVisites.commissionnairePersonneQuiDevait')
+                : t('mesVisites.commissionnaireSeraPrevenuVous')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Garder</AlertDialogCancel>
+            <AlertDialogCancel>{t('mesVisites.garder')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => aAnnuler && annuler.mutate(aAnnuler)}
               disabled={annuler.isPending}
               data-testid="confirmer-annulation"
             >
-              {aAnnuler?.visite ? 'Annuler la visite' : 'Annuler la demande'}
+              {aAnnuler?.visite ? t('mesVisites.annulerVisite2') : t('mesVisites.annulerDemande2')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

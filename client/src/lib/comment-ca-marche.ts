@@ -1,4 +1,5 @@
 import { CONTACT_VILLAGO, numeroLisible } from '@/lib/contact';
+import { langueActive } from '@/i18n';
 
 /**
  * Le texte de la page « Comment ça marche » : qui paie quoi, à qui, et quand.
@@ -136,6 +137,114 @@ const ETAPES_SAISIES: Etape[] = [
     ],
   },
 ];
+
+/** Version anglaise (britannique), même découpage. Le français reste la
+ *  référence : toute modification se fait d'abord en français. */
+const INTRODUCTION_EN =
+  'VillaGo puts you in touch with a commissionnaire to view and rent a property. Here is what you pay, to whom and when.';
+
+const AVERTISSEMENT_EN =
+  'VillaGo does not collect any payment. You pay the commissionnaire and the landlord directly. If anyone asks you to pay “VillaGo”, do not pay and let us know.';
+
+const ETAPES_EN: Etape[] = [
+  {
+    titre: 'Before requesting a viewing',
+    blocs: [
+      'Every listing shows what you will pay: the rent, the deposit, the commission and the viewing fee. The “Move-in total” tells you how much to gather to move in.',
+      'A listing must be reconfirmed every 30 days, otherwise it disappears from the list. That way you avoid travelling to a property that is already let.',
+    ],
+  },
+  {
+    titre: 'The viewing request',
+    blocs: [
+      'You choose a day and a time. The commissionnaire accepts, sets another time slot or declines.',
+      'If they have not answered by the time you chose, the request expires. You can send a new one.',
+      'You can cancel up to the time of the viewing, from “My viewings”.',
+    ],
+  },
+  {
+    titre: 'Viewing fees',
+    blocs: [
+      'Some commissionnaires charge a fee to show a property. The amount is written on the listing. It cannot be more than the ceiling set by VillaGo for your city.',
+      'You pay it only once per property, even if you come back to see it again.',
+      'The commissionnaire tells you how to pay it:',
+      {
+        liste: [
+          'in cash, on site, before the viewing;',
+          'or by mobile money (M-Pesa, Airtel Money, Orange Money), before you travel.',
+        ],
+      },
+      'Keep the mobile money confirmation message, or ask for a receipt.',
+      'A commissionnaire whose identity VillaGo has not yet verified cannot charge a viewing fee.',
+      'Asked for more than the amount shown? Do not pay the difference and report it.',
+    ],
+  },
+  {
+    titre: 'If the viewing does not take place',
+    blocs: [
+      'The commissionnaire does not come, or cancels the viewing: they give you back the viewing fee in full.',
+      'If they do not, report it from “My viewings”. The VillaGo team contacts them and can suspend their account.',
+      'If you are the one who cancels, sort out any fee already paid with the commissionnaire.',
+    ],
+  },
+  {
+    titre: 'The day the lease is signed',
+    blocs: [
+      'You pay the “Move-in total” shown on the listing in one go:',
+      {
+        liste: [
+          'the first month’s rent, to the landlord;',
+          'the deposit, to the landlord: three months’ rent at most, as the law requires;',
+          'the commission, to the commissionnaire: one month’s rent, only if you rent.',
+        ],
+      },
+      'For some properties, the landlord pays half the commission: the listing says so. A property published directly by its owner has no commission.',
+      'Nobody can demand several months’ rent in advance: the law forbids it.',
+      'The lease must be in writing, then registered within 30 days of signing. Keep proof of every payment.',
+    ],
+  },
+  {
+    titre: 'The inventory and the deposit',
+    blocs: [
+      'When you move in, the commissionnaire draws up the inventory room by room, with photos. You read it and approve it: without your agreement, it does not count.',
+      'When you leave, the landlord can only keep part of the deposit for damage compared with the check-in inventory, and must say what it is.',
+      'Without a check-in inventory approved by you, VillaGo records no deduction from the deposit.',
+    ],
+  },
+  {
+    titre: 'If there is a problem',
+    blocs: [
+      'Disputed fees, deposit not returned, a commissionnaire who no longer answers:',
+      {
+        liste: [
+          'report it from “My viewings”, on the viewing concerned;',
+          `or write to us on WhatsApp at ${numero}.`,
+        ],
+      },
+      'The VillaGo team listens to both sides, looks at the viewing history and can warn or suspend an account. If you reported it from “My viewings”, the team’s answer appears under the viewing.',
+      'VillaGo is not an agency: the team does not decide who owes money to whom. For a money disagreement, it can point you in the right direction, but the decision is for the two parties or, if necessary, the authorities.',
+    ],
+  },
+  {
+    titre: 'After the viewing',
+    blocs: [
+      'You can rate the commissionnaire after a viewing has taken place. Ratings help other clients, and owners use them to choose who to entrust their property to.',
+    ],
+  },
+];
+
+/** Le texte dans la langue de l'écran. */
+export function introduction(): string {
+  return langueActive() === 'en' ? INTRODUCTION_EN : INTRODUCTION;
+}
+
+export function avertissement(): string {
+  return langueActive() === 'en' ? AVERTISSEMENT_EN : AVERTISSEMENT;
+}
+
+export function etapes(): Etape[] {
+  return langueActive() === 'en' ? ETAPES_EN : ETAPES;
+}
 
 export const ETAPES: Etape[] = ETAPES_SAISIES.map(({ titre, blocs }) => ({
   titre: insecables(titre),

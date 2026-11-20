@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { Notification, PaginatedResponse } from '@shared/schema';
+import { t } from '@/i18n';
 
 
 
@@ -38,8 +39,8 @@ export default function Notifications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/notifications/'] });
       toast({
-        title: 'Notifications marquées',
-        description: 'Toutes les notifications ont été marquées comme lues.',
+        title: t('notifs.notificationsMarquees'),
+        description: t('notifs.toutesNotificationsOntEte'),
       });
     },
   });
@@ -52,7 +53,7 @@ export default function Notifications() {
       <div className="max-w-2xl mx-auto px-4 py-4 md:py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Notifications</h1>
+            <h1 className="text-2xl font-bold">{t('notifs.notifications')}</h1>
             {unreadCount > 0 && (
               <p className="text-sm text-muted-foreground">
                 {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
@@ -68,7 +69,7 @@ export default function Notifications() {
               data-testid="button-mark-all-read"
             >
               <CheckCheck className="w-4 h-4 mr-2" />
-              Tout marquer comme lu
+              {t('notifs.toutMarquerCommeLu')}
             </Button>
           )}
         </div>
@@ -95,8 +96,8 @@ export default function Notifications() {
         ) : notifications?.results?.length === 0 ? (
           <EtatVide
             icone={Bell}
-            titre="Aucune notification"
-            description="Vous serez prévenu ici du traitement de vos demandes et de l'arrivée de nouveaux messages."
+            titre={t('notifs.aucuneNotification')}
+            description={t('notifs.vousSerezPrevenuIci')}
           />
         ) : (
           <div className="space-y-3">
@@ -120,7 +121,7 @@ export default function Notifications() {
                           </h3>
                           {!notification.is_read && (
                             <Badge variant="default" className="flex-shrink-0 text-xs">
-                              Nouveau
+                              {t('notifs.nouveau')}
                             </Badge>
                           )}
                         </div>
@@ -140,7 +141,7 @@ export default function Notifications() {
                               data-testid={`button-mark-read-${notification.id}`}
                             >
                               <Check className="w-4 h-4 mr-1" />
-                              Marquer comme lu
+                              {t('notifs.marquerCommeLu')}
                             </Button>
                           )}
                         </div>

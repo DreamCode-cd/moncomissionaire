@@ -16,6 +16,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { messageErreur } from '@/lib/erreurs';
 import type { Mandat, PaginatedResponse } from '@shared/schema';
+import { t } from '@/i18n';
 
 const CLE_MANDATS = ['/api/v1/biens/mandats/?statut=propose'];
 
@@ -36,18 +37,18 @@ export function PropositionsMandat({ cleBiens }: { cleBiens: string[] }) {
       queryClient.invalidateQueries({ queryKey: cleBiens });
       setARefuser(null);
       setMotif('');
-      toast({ title: accepte ? 'Bien ajouté à votre portefeuille' : 'Proposition refusée' });
+      toast({ title: accepte ? t('mandats.bienAjouteVotrePortefeuille') : t('mandats.propositionRefusee') });
     },
     onError: (e) =>
-      toast({ title: 'Erreur', description: e instanceof Error ? e.message : '', variant: 'destructive' }),
+      toast({ title: t('mandats.erreur'), description: e instanceof Error ? e.message : '', variant: 'destructive' }),
   });
 
   const liste = propositions.data?.results ?? [];
   if (propositions.error && !propositions.data) {
     return (
       <p className="mb-4 text-sm text-muted-foreground" role="status">
-        Les propositions des propriétaires n’ont pas pu être vérifiées. {messageErreur(propositions.error)}{' '}
-        <button type="button" className="inline-flex min-h-11 md:min-h-0 items-center underline" onClick={() => void propositions.refetch()}>Réessayer</button>
+        {t('reste.propositionsNonVerifiees')} {messageErreur(propositions.error)}{' '}
+        <button type="button" className="inline-flex min-h-11 md:min-h-0 items-center underline" onClick={() => void propositions.refetch()}>{t('mandats.reessayer')}</button>
       </p>
     );
   }
@@ -55,13 +56,13 @@ export function PropositionsMandat({ cleBiens }: { cleBiens: string[] }) {
 
   return (
     <section className="space-y-2 mb-4">
-      <h2 className="text-sm font-semibold">Propriétaires qui vous confient leur bien</h2>
+      <h2 className="text-sm font-semibold">{t('mandats.proprietairesQuiVousConfient')}</h2>
       {liste.map((m) => (
         <Card key={m.id} data-testid={`proposition-${m.id}`}>
           <CardContent className="p-3 space-y-2">
             <p className="font-medium leading-tight">{m.bien_titre}</p>
             <p className="text-xs text-muted-foreground">
-              {m.bien_quartier} · proposé par {m.proprietaire_detail?.full_name}
+              {t('mandats.proposeB', { a: m.bien_quartier, b: m.proprietaire_detail?.full_name })}
             </p>
             {m.message && <p className="text-sm italic text-muted-foreground">« {m.message} »</p>}
             <div className="flex gap-2">
@@ -71,10 +72,10 @@ export function PropositionsMandat({ cleBiens }: { cleBiens: string[] }) {
                 onClick={() => repondre.mutate({ id: m.id, accepte: true })}
                 data-testid={`button-accepter-mandat-${m.id}`}
               >
-                Accepter
+                {t('mandats.accepter')}
               </Button>
               <Button size="sm" variant="outline" onClick={() => setARefuser(m)}>
-                Refuser
+                {t('mandats.refuser')}
               </Button>
             </div>
           </CardContent>
@@ -84,18 +85,18 @@ export function PropositionsMandat({ cleBiens }: { cleBiens: string[] }) {
       <Dialog open={!!aRefuser} onOpenChange={(o) => !o && setARefuser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Refuser ce bien</DialogTitle>
-            <DialogDescription>Le propriétaire sera prévenu, avec votre motif s’il y en a un.</DialogDescription>
+            <DialogTitle>{t('mandats.refuserCeBien')}</DialogTitle>
+            <DialogDescription>{t('mandats.proprietaireSeraPrevenuAvec')}</DialogDescription>
           </DialogHeader>
-          <Textarea value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Ex : trop loin de mon secteur" />
+          <Textarea value={motif} onChange={(e) => setMotif(e.target.value)} placeholder={t('mandats.exTropLoinMon')} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setARefuser(null)}>Retour</Button>
+            <Button variant="outline" onClick={() => setARefuser(null)}>{t('mandats.retour')}</Button>
             <Button
               variant="destructive"
               disabled={repondre.isPending}
               onClick={() => aRefuser && repondre.mutate({ id: aRefuser.id, accepte: false })}
             >
-              Refuser
+              {t('mandats.refuser')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -34,15 +34,16 @@ import { formaterDateCourte } from '@/lib/dates';
 import { Expiration } from '@/components/confiance/Expiration';
 import { DialogueConfier } from '@/components/confiance/DialogueConfier';
 import { DialogueAvis } from '@/components/confiance/DialogueAvis';
+import { t } from '@/i18n';
 
 const CLE_MES_BIENS = ['/api/v1/biens/proprietaire/'];
 const CLE_BAUX = ['/api/v1/commissions/'];
 
 const locationStatuses = [
-  { value: 'disponible', label: 'Disponible' },
-  { value: 'en_visite', label: 'En visite' },
-  { value: 'loue', label: 'Loué' },
-  { value: 'indisponible', label: 'Indisponible' },
+  { value: 'disponible', get label() { return t('statut.location.disponible'); } },
+  { value: 'en_visite', get label() { return t('editForm.enVisite'); } },
+  { value: 'loue', get label() { return t('statut.location.loue'); } },
+  { value: 'indisponible', get label() { return t('statut.location.indisponible'); } },
 ];
 
 
@@ -66,14 +67,14 @@ export default function ProprietaireDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
       toast({
-        title: 'Statut mis à jour',
-        description: 'Le statut du bien a été modifié.',
+        title: t('proprio.statutMisJour'),
+        description: t('proprio.statutBienEteModifie'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('proprio.erreur'),
+        description: error instanceof Error ? error.message : t('proprio.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -111,13 +112,13 @@ export default function ProprietaireDashboard() {
                   {user?.first_name} {user?.last_name}
                 </h1>
                 {/* L'agence partage cet espace (décision du 24/10/2026). */}
-                <p className="text-sm text-muted-foreground">{user?.role === 'agence' ? 'Agence' : 'Propriétaire'}</p>
+                <p className="text-sm text-muted-foreground">{user?.role === 'agence' ? t('role.agence') : t('role.proprietaire')}</p>
               </div>
             </div>
             <Link href="/add-property">
               <Button size="sm" data-testid="button-add-property">
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter
+                {t('proprio.ajouter')}
               </Button>
             </Link>
           </div>
@@ -134,7 +135,7 @@ export default function ProprietaireDashboard() {
                   <p className="text-lg md:text-xl font-bold" data-testid="text-total-count">
                     {properties.length}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">Total</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('proprio.total')}</p>
                 </div>
               </div>
             </CardContent>
@@ -149,7 +150,7 @@ export default function ProprietaireDashboard() {
                   <p className="text-lg md:text-xl font-bold" data-testid="text-pending-count">
                     {pendingCount}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">Attente</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('proprio.attente')}</p>
                 </div>
               </div>
             </CardContent>
@@ -164,7 +165,7 @@ export default function ProprietaireDashboard() {
                   <p className="text-lg md:text-xl font-bold" data-testid="text-validated-count">
                     {validatedCount}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">Validés</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('proprio.valides')}</p>
                 </div>
               </div>
             </CardContent>
@@ -179,7 +180,7 @@ export default function ProprietaireDashboard() {
                   <p className="text-lg md:text-xl font-bold" data-testid="text-rented-count">
                     {rentedCount}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">Loués</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('proprio.loues')}</p>
                 </div>
               </div>
             </CardContent>
@@ -189,16 +190,16 @@ export default function ProprietaireDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="all" data-testid="tab-all" className="text-xs md:text-sm">
-              Tous ({properties.length})
+              {t('proprio.tous', { a: properties.length })}
             </TabsTrigger>
             <TabsTrigger value="pending" data-testid="tab-pending" className="text-xs md:text-sm">
-              Attente ({pendingCount})
+              {t('proprio.attente2', { a: pendingCount })}
             </TabsTrigger>
             <TabsTrigger value="validated" data-testid="tab-validated" className="text-xs md:text-sm">
-              Validés ({validatedCount})
+              {t('proprio.valides2', { a: validatedCount })}
             </TabsTrigger>
             <TabsTrigger value="rented" data-testid="tab-rented" className="text-xs md:text-sm">
-              Loués ({rentedCount})
+              {t('proprio.loues2', { a: rentedCount })}
             </TabsTrigger>
           </TabsList>
 
@@ -217,22 +218,22 @@ export default function ProprietaireDashboard() {
                 ))}
               </div>
             ) : erreurBiens && !myProperties ? (
-              <ErreurRequete erreur={erreurBiens} titre="Vos biens n’ont pas pu être chargés" onReessayer={() => void refetch()} />
+              <ErreurRequete erreur={erreurBiens} titre={t('proprio.vosBiensNOnt')} onReessayer={() => void refetch()} />
             ) : filteredProperties.length === 0 ? (
               <EtatVide
                 icone={House}
-                titre="Aucun bien"
+                titre={t('proprio.aucunBien')}
                 description={
                   activeTab === 'all'
-                    ? "Publiez votre premier bien : les annonces avec photos reçoivent nettement plus de demandes de visite."
-                    : 'Aucun bien dans cette catégorie pour le moment.'
+                    ? t('proprio.publiezVotrePremierBien')
+                    : t('proprio.aucunBienDansCette')
                 }
                 action={
                   activeTab === 'all' ? (
                     <Link href="/add-property">
                       <Button size="sm">
                         <Plus className="w-4 h-4 mr-2" />
-                        Ajouter un bien
+                        {t('proprio.ajouterBien')}
                       </Button>
                     </Link>
                   ) : undefined
@@ -299,7 +300,7 @@ export default function ProprietaireDashboard() {
                       <Link href={`/property/${property.id}/edit`}>
                         <Button variant="outline" size="sm" className="w-full">
                           <Pencil className="w-3 h-3 mr-1" />
-                          Modifier
+                          {t('proprio.modifier')}
                         </Button>
                       </Link>
                       <div className="mt-2 space-y-2">
@@ -330,7 +331,7 @@ function Mandat({ bien }: { bien: BienList }) {
     mutationFn: () => api.post(`/api/v1/biens/proprietaire/${bien.id}/reprendre/`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_MES_BIENS }),
     onError: (e) =>
-      toast({ title: 'Erreur', description: e instanceof Error ? e.message : '', variant: 'destructive' }),
+      toast({ title: t('proprio.erreur'), description: e instanceof Error ? e.message : '', variant: 'destructive' }),
   });
 
   if (mandat) {
@@ -338,7 +339,7 @@ function Mandat({ bien }: { bien: BienList }) {
     return (
       <div className="flex items-center justify-between gap-2 text-xs">
         <span className="text-muted-foreground">
-          {mandat.statut === 'accepte' ? `Confié à ${nom}` : `Proposé à ${nom}, en attente de réponse`}
+          {mandat.statut === 'accepte' ? t('proprio.confieA', { nom }) : t('proprio.proposeA', { nom })}
         </span>
         <Button
           size="sm"
@@ -348,7 +349,7 @@ function Mandat({ bien }: { bien: BienList }) {
           onClick={() => reprendre.mutate()}
           data-testid={`button-reprendre-${bien.id}`}
         >
-          {mandat.statut === 'accepte' ? 'Reprendre' : 'Annuler'}
+          {mandat.statut === 'accepte' ? t('proprio.reprendre') : t('commun.annuler')}
         </Button>
       </div>
     );
@@ -363,7 +364,7 @@ function Mandat({ bien }: { bien: BienList }) {
         onClick={() => setChoisir(true)}
         data-testid={`button-confier-${bien.id}`}
       >
-        Confier à un commissionnaire
+        {t('proprio.confierCommissionnaire')}
       </Button>
       {choisir && <DialogueConfier bien={bien} onFermer={() => setChoisir(false)} />}
     </>
@@ -379,34 +380,34 @@ function BauxConclus() {
   if (baux.error && !baux.data) {
     return (
       <section className="mt-8">
-        <ErreurRequete erreur={baux.error} titre="Les baux conclus n’ont pas pu être chargés" onReessayer={() => void baux.refetch()} />
+        <ErreurRequete erreur={baux.error} titre={t('proprio.bauxConclusNOnt')} onReessayer={() => void baux.refetch()} />
       </section>
     );
   }
   if (!liste.length) return null;
   return (
     <section className="mt-8 space-y-3">
-      <h2 className="text-lg font-semibold">Baux conclus chez vous</h2>
+      <h2 className="text-lg font-semibold">{t('proprio.bauxConclusChezVous')}</h2>
       {liste.map((c) => (
         <Card key={c.id}>
           <CardContent className="p-3 flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0 text-sm">
               <p className="font-medium">{c.bien_titre}</p>
               <p className="text-muted-foreground">
-                {c.locataire_nom} · bail du {formaterDateCourte(c.date_bail)} · par {c.titulaire_detail?.full_name}
+                {t('proprio.bailLigne', { locataire: c.locataire_nom, date: formaterDateCourte(c.date_bail), nom: c.titulaire_detail?.full_name })}
               </p>
               {c.part_bailleur && parseFloat(c.part_bailleur) > 0 && (
-                <p className="text-muted-foreground">Votre part de commission : {formaterMontant(c.part_bailleur, c.devise)}</p>
+                <p className="text-muted-foreground">{t('proprio.votrePartCommission')} {formaterMontant(c.part_bailleur, c.devise)}</p>
               )}
               <p className="text-muted-foreground">
                 {c.bail_enregistre_le
-                  ? `Bail enregistré le ${formaterDateCourte(c.bail_enregistre_le)}`
-                  : `À enregistrer avant le ${formaterDateCourte(c.echeance_enregistrement)}`}
+                  ? t('gains.bailEnregistreLe', { date: formaterDateCourte(c.bail_enregistre_le) })
+                  : t('proprio.aEnregistrer', { date: formaterDateCourte(c.echeance_enregistrement) })}
               </p>
             </div>
             {!c.avis_proprietaire_donne && (
               <Button size="sm" variant="outline" onClick={() => setANoter(c)} data-testid={`button-noter-bail-${c.id}`}>
-                Noter {c.titulaire_detail?.full_name}
+                {t('proprio.noter', { a: c.titulaire_detail?.full_name })}
               </Button>
             )}
           </CardContent>

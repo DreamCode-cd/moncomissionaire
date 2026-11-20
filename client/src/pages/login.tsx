@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { loginSchema, type LoginInput, type UserRole } from '@shared/schema';
 import { pageDeSuite, versConnexion } from '@/lib/suite';
+import { t } from '@/i18n';
 
 function getRedirectPath(role: UserRole): string {
   switch (role) {
@@ -68,7 +69,7 @@ export default function Login() {
     return (
       <Layout hideNav>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-muted-foreground">Chargement...</div>
+          <div className="text-muted-foreground">{t('etat.chargement')}</div>
         </div>
       </Layout>
     );
@@ -79,7 +80,7 @@ export default function Login() {
     return (
       <Layout hideNav>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-muted-foreground">Redirection...</div>
+          <div className="text-muted-foreground">{t('connexion.redirection')}</div>
         </div>
       </Layout>
     );
@@ -89,16 +90,16 @@ export default function Login() {
     try {
       const profile = await login(data);
       toast({
-        title: 'Connexion réussie',
-        description: 'Bienvenue sur VillaGo !',
+        title: t('connexion.reussie'),
+        description: t('connexion.bienvenue'),
       });
       const redirectPath = pageDeSuite() ?? getRedirectPath(profile.role);
       // Use window.location for more reliable navigation after login
       window.location.href = redirectPath;
     } catch (error) {
       toast({
-        title: 'Erreur de connexion',
-        description: error instanceof Error ? error.message : 'Identifiants incorrects',
+        title: t('connexion.erreur'),
+        description: error instanceof Error ? error.message : t('connexion.identifiantsIncorrects'),
         variant: 'destructive',
       });
     }
@@ -110,9 +111,9 @@ export default function Login() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <img src="/logo.png" alt="VillaGo" className="w-12 h-12 rounded-xl mx-auto mb-4 object-cover" />
-            <CardTitle className="text-2xl">Connexion</CardTitle>
+            <CardTitle className="text-2xl">{t('nav.connexion')}</CardTitle>
             <CardDescription>
-              Connectez-vous à votre compte VillaGo
+              {t('connexion.sousTitre')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -123,7 +124,7 @@ export default function Login() {
                   name="login"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-mail</FormLabel>
+                      <FormLabel>{t('connexion.email')}</FormLabel>
                       <FormControl>
                         {/* Pas type="email" : les comptes de l'équipe se
                             connectent encore avec leur nom d'utilisateur. */}
@@ -145,7 +146,7 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mot de passe</FormLabel>
+                      <FormLabel>{t('champ.password')}</FormLabel>
                       <div className="relative">
                         <FormControl>
                           <Input
@@ -163,7 +164,7 @@ export default function Login() {
                           type="button"
                           className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
                           onClick={() => setShowPassword(!showPassword)}
-                          aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          aria-label={showPassword ? t('mdp.masquer') : t('mdp.afficher')}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -172,7 +173,7 @@ export default function Login() {
                       <div className="text-right">
                         <Link href="/mot-de-passe-oublie">
                           <span className="inline-flex min-h-11 items-center text-sm text-primary cursor-pointer" data-testid="link-mot-de-passe-oublie">
-                            Mot de passe oublié ?
+                            {t('connexion.mdpOublie')}
                           </span>
                         </Link>
                       </div>
@@ -187,11 +188,11 @@ export default function Login() {
                   data-testid="button-submit-login"
                 >
                   {form.formState.isSubmitting ? (
-                    'Connexion...'
+                    t('connexion.enCours')
                   ) : (
                     <>
                       <LogIn className="mr-2 h-4 w-4" />
-                      Se connecter
+                      {t('connexion.seConnecter')}
                     </>
                   )}
                 </Button>
@@ -199,12 +200,12 @@ export default function Login() {
             </Form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Pas encore de compte ? </span>
+              <span className="text-muted-foreground">{t('connexion.pasDeCompte')}</span>
               {/* La page de suite suit vers l'inscription : celui qui n'a pas
                   encore de compte revient lui aussi là où il était. */}
               <Link href={pageDeSuite() ? versConnexion(pageDeSuite()!, '/register') : '/register'}>
                 <span className="text-primary font-medium cursor-pointer" data-testid="link-register">
-                  S'inscrire
+                  {t('connexion.sInscrire')}
                 </span>
               </Link>
             </div>

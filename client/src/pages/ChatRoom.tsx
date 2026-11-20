@@ -14,6 +14,8 @@ import { ChatSocket } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import type { ChatRoomDetail, Message } from '@shared/schema';
 import { cn } from '@/lib/utils';
+import { libelleRole } from '@/lib/roles';
+import { t } from '@/i18n';
 
 export default function ChatRoom() {
   const [, params] = useRoute('/messages/:id');
@@ -52,7 +54,7 @@ export default function ChatRoom() {
       
       // Show notification for messages from others
       if (message.sender !== user?.id) {
-        const senderName = message.sender_detail?.full_name || 'Nouveau message';
+        const senderName = message.sender_detail?.full_name || t('chat.nouveauMessage');
         toast({
           title: senderName,
           description: message.content.length > 50 
@@ -203,7 +205,7 @@ export default function ChatRoom() {
   };
 
   const getParticipantName = (participant: any) => {
-    return participant?.full_name || `${participant?.first_name || ''} ${participant?.last_name || ''}`.trim() || participant?.username || 'Inconnu';
+    return participant?.full_name || `${participant?.first_name || ''} ${participant?.last_name || ''}`.trim() || participant?.username || t('chat.inconnu');
   };
 
   const getInitials = (participant: any) => {
@@ -213,18 +215,7 @@ export default function ChatRoom() {
 
   const getUserTypeLabel = (participant: any) => {
     if (!participant) return '';
-    // Utiliser user_type_display de l'API si disponible
-    if (participant.user_type_display) return participant.user_type_display;
-    // Sinon mapper manuellement
-    const typeLabels: Record<string, string> = {
-      'client': 'Client',
-      'commissionnaire': 'Commissionnaire',
-      'moderateur': 'Modérateur VillaGo',
-      'agent': 'Agent',
-      'proprietaire': 'Propriétaire',
-      'agence': 'Agence',
-    };
-    return typeLabels[participant.user_type] || participant.role_display || '';
+    return libelleRole(participant.user_type, participant.user_type_display || participant.role_display);
   };
 
 
@@ -273,7 +264,7 @@ export default function ChatRoom() {
   if (!chatroom && erreurSalon) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <ErreurRequete erreur={erreurSalon} titre="La conversation n’a pas pu être chargée" onReessayer={() => void refetch()} />
+        <ErreurRequete erreur={erreurSalon} titre={t('chat.conversationNPasPu')} onReessayer={() => void refetch()} />
       </div>
     );
   }
@@ -281,8 +272,8 @@ export default function ChatRoom() {
   if (!chatroom) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-4">
-        <p className="text-muted-foreground">Conversation non trouvée</p>
-        <Button onClick={() => setLocation('/messages')}>Retour aux messages</Button>
+        <p className="text-muted-foreground">{t('chat.conversationNonTrouvee')}</p>
+        <Button onClick={() => setLocation('/messages')}>{t('chat.retourMessages')}</Button>
       </div>
     );
   }
@@ -318,7 +309,7 @@ export default function ChatRoom() {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {otherParticipant?.role_display || 'Utilisateur'}
+            {otherParticipant?.role_display ? libelleRole(otherParticipant.user_type, otherParticipant.role_display) : t('chat.utilisateur')}
           </p>
         </div>
         <Button 
@@ -326,8 +317,8 @@ export default function ChatRoom() {
           size="icon" 
           data-testid="button-call"
           onClick={() => toast({
-            title: 'Fonctionnalité indisponible',
-            description: 'Les appels ne sont pas disponibles pour le moment.',
+            title: t('chat.fonctionnaliteIndisponible'),
+            description: t('chat.appelsNeSontPas'),
           })}
         >
           <Phone className="w-5 h-5" />
@@ -341,8 +332,8 @@ export default function ChatRoom() {
         {localMessages.length === 0 ? (
           <EtatVide
             icone={MessageCircle}
-            titre="Aucun message"
-            description="Écrivez le premier message pour démarrer la discussion."
+            titre={t('chat.aucunMessage')}
+            description={t('chat.ecrivezPremierMessageDemarrer')}
           />
         ) : (
           messageGroups.map((group, groupIndex) => (
@@ -407,7 +398,7 @@ export default function ChatRoom() {
         <div className="flex gap-2 max-w-2xl mx-auto">
           <Input
             ref={inputRef}
-            placeholder="Écrivez un message..."
+            placeholder={t('chat.ecrivezMessage')}
             maxLength={2000}
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}

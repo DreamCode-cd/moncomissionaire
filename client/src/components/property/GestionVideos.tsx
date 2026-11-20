@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { VIDEO_DUREE_MAX, VIDEO_TAILLE_MAX, VIDEOS_MAX, dureeLisible, poidsLisible } from '@/lib/annonce';
 import { messageErreur } from '@/lib/erreurs';
+import { t } from '@/i18n';
 
 /**
  * Les vidéos d'une annonce, côté auteur (décision de David du 20/11/2026).
@@ -40,23 +41,23 @@ export function GestionVideos({
       return api.request(`${routeApi}${bienId}/add_video/`, { method: 'POST', body: formulaire, isFormData: true });
     },
     onSuccess: () => {
-      toast({ title: 'Vidéo envoyée', description: 'Elle se prépare ; elle apparaîtra dans quelques minutes.' });
+      toast({ title: t('videos.videoEnvoyee'), description: t('videos.elleSePrepareElle') });
       onChangement();
     },
-    onError: (e) => toast({ title: 'Vidéo refusée', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('videos.videoRefusee'), description: messageErreur(e), variant: 'destructive' }),
     onSettled: () => setEnvoi(null),
   });
 
   const supprimer = useMutation({
     mutationFn: (id: number) => api.delete(`${routeApi}${bienId}/video/${id}/`),
     onSuccess: onChangement,
-    onError: (e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('videos.erreur'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   const choisir = (fichier?: File) => {
     if (!fichier) return;
     if (fichier.size > VIDEO_TAILLE_MAX) {
-      toast({ title: 'Vidéo trop lourde', description: 'Une vidéo fait au plus 100 Mo.', variant: 'destructive' });
+      toast({ title: t('videos.videoTropLourde'), description: t('videos.videoFaitPlus100'), variant: 'destructive' });
       return;
     }
     setEnvoi(`${fichier.name} · ${poidsLisible(fichier.size)}`);
@@ -67,7 +68,7 @@ export function GestionVideos({
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
-          Vidéos ({enPlace}/{VIDEOS_MAX})
+          {t('videos.videosB', { a: enPlace, b: VIDEOS_MAX })}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -77,17 +78,17 @@ export function GestionVideos({
             <div className="min-w-0 flex-1 text-sm">
               <p className="font-medium">
                 {video.statut === 'prete'
-                  ? ['Prête', dureeLisible(video.duree), poidsLisible(video.taille)].filter(Boolean).join(' · ')
+                  ? [t('reste.prete'), dureeLisible(video.duree), poidsLisible(video.taille)].filter(Boolean).join(' · ')
                   : video.statut === 'en_traitement'
-                    ? 'En préparation…'
-                    : 'Échec de la préparation'}
+                    ? t('videos.preparation')
+                    : t('videos.echecPreparation')}
               </p>
               {video.statut === 'erreur' && video.erreur && <p className="text-muted-foreground">{video.erreur}</p>}
             </div>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Supprimer la vidéo"
+              aria-label={t('videos.supprimerVideo')}
               disabled={supprimer.isPending}
               onClick={() => supprimer.mutate(video.id)}
             >
@@ -110,13 +111,12 @@ export function GestionVideos({
             />
             <Button type="button" variant="outline" disabled={envoyer.isPending} onClick={() => champ.current?.click()}>
               {envoyer.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-              {envoyer.isPending ? `Envoi de ${envoi ?? 'la vidéo'}…` : 'Ajouter une vidéo'}
+              {envoyer.isPending ? t('videos.envoiDe', { nom: envoi ?? t('videos.laVideo') }) : t('videos.ajouterVideo')}
             </Button>
           </>
         )}
         <p className="text-sm text-muted-foreground">
-          {VIDEO_DUREE_MAX} secondes au plus : le tour de la maison. VillaGo l’allège ensuite pour ceux qui la
-          regardent ; sur la fiche, elle ne se lance jamais toute seule.
+          {t('reste.videoConsigne', { n: VIDEO_DUREE_MAX })}
         </p>
       </CardContent>
     </Card>

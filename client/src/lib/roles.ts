@@ -1,4 +1,5 @@
 import type { UserRole } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * Rôles du produit — source unique.
@@ -12,18 +13,21 @@ import type { UserRole } from '@shared/schema';
  */
 
 const LIBELLES: Record<UserRole, string> = {
-  client: 'Client',
-  proprietaire: 'Propriétaire',
-  agence: 'Agence',
-  commissionnaire: 'Commissionnaire',
-  agent: 'Agent',
-  admin: 'Administrateur',
-  moderateur: 'Modérateur VillaGo',
+  get client() { return t('role.client'); },
+  get proprietaire() { return t('role.proprietaire'); },
+  get agence() { return t('role.agence'); },
+  get commissionnaire() { return t('role.commissionnaire'); },
+  get agent() { return t('role.agent'); },
+  get admin() { return t('role.admin'); },
+  get moderateur() { return t('role.moderateur'); },
 };
 
-export const ROLES = Object.entries(LIBELLES).map(([valeur, libelle]) => ({
-  valeur: valeur as UserRole,
-  libelle,
+// Getter : le libellé se lit au moment de l'affichage, dans la langue active.
+export const ROLES = (Object.keys(LIBELLES) as UserRole[]).map((valeur) => ({
+  valeur,
+  get libelle() {
+    return LIBELLES[valeur];
+  },
 }));
 
 export function estUnRole(valeur?: string | null): valeur is UserRole {
@@ -41,6 +45,7 @@ export function libelleRole(
   valeur?: string | null,
   libelleServeur?: string | null,
 ): string {
-  if (libelleServeur) return libelleServeur;
-  return estUnRole(valeur) ? LIBELLES[valeur] : (valeur ?? '—');
+  // Le libellé du serveur est en français : seulement pour un rôle inconnu.
+  if (estUnRole(valeur)) return LIBELLES[valeur];
+  return libelleServeur || valeur || '—';
 }

@@ -1,4 +1,5 @@
 import type { BienList } from '@shared/schema';
+import { t } from '@/i18n';
 
 /** Le motif du dernier refus d'une annonce, pour son auteur et pour la
  *  modération.
@@ -14,13 +15,13 @@ export function MotifRefus({ bien }: { bien: Pick<BienList, 'id' | 'statut_valid
   if (bien.statut_validation === 'rejete') {
     return (
       <p className="text-sm text-statut-defavorable" data-testid={`motif-refus-${bien.id}`}>
-        Refusée : « {motif} ». Corrigez l’annonce, elle repartira en validation.
+        {t('motifRefus.refuseeCorrigezAnnonceElle', { a: motif })}
       </p>
     );
   }
   return (
     <p className="text-sm text-muted-foreground" data-testid={`motif-refus-${bien.id}`}>
-      Corrigée après un refus (« {motif} »), en attente de validation.
+      {t('motifRefus.corrigeeApresRefusAttente', { a: motif })}
     </p>
   );
 }

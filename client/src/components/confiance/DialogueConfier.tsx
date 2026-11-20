@@ -19,6 +19,7 @@ import { queryClient } from '@/lib/queryClient';
 import { getDjangoImageUrl } from '@/lib/utils';
 import type { BienList, CommissionnaireAnnuaire } from '@shared/schema';
 import { AffichageNote } from './NoteCommissionnaire';
+import { t } from '@/i18n';
 
 /**
  * Le propriétaire choisit à qui confier son bien. Ceux qui ont déjà des
@@ -40,13 +41,13 @@ export function DialogueConfier({ bien, onFermer }: { bien: BienList; onFermer: 
       api.post(`/api/v1/biens/proprietaire/${bien.id}/confier/`, { commissionnaire: choisi!.id, message }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/proprietaire/'] });
-      toast({ title: 'Proposition envoyée', description: `${choisi?.full_name} va accepter ou refuser.` });
+      toast({ title: t('confier.propositionEnvoyee'), description: t('confier.vaRepondre', { nom: choisi?.full_name }) });
       onFermer();
     },
     onError: (e) =>
       toast({
-        title: 'Proposition non envoyée',
-        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        title: t('confier.propositionNonEnvoyee'),
+        description: e instanceof Error ? e.message : t('confier.erreurEstSurvenue'),
         variant: 'destructive',
       }),
   });
@@ -55,18 +56,18 @@ export function DialogueConfier({ bien, onFermer }: { bien: BienList; onFermer: 
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Confier « {bien.titre} »</DialogTitle>
+          <DialogTitle>{t('confier.titre', { titre: bien.titre })}</DialogTitle>
           <DialogDescription>
-            Le commissionnaire reçoit les demandes et fait visiter. Vous gardez votre compte, et vous pouvez lui reprendre le bien à tout moment.
+            {t('confier.commissionnaireRecoitDemandesFait')}
           </DialogDescription>
         </DialogHeader>
 
         {annuaire.isLoading ? (
-          <EtatChargement texte="Chargement des commissionnaires…" />
+          <EtatChargement texte={t('confier.chargementCommissionnaires')} />
         ) : annuaire.error ? (
           <ErreurRequete erreur={annuaire.error} onReessayer={() => void annuaire.refetch()} />
         ) : !annuaire.data?.length ? (
-          <EtatVide titre="Aucun commissionnaire inscrit" description="Revenez bientôt : ils s’inscrivent au fil des semaines." />
+          <EtatVide titre={t('confier.aucunCommissionnaireInscrit')} description={t('confier.revenezBientotIlsS')} />
         ) : (
           <ul className="space-y-2" role="radiogroup">
             {annuaire.data.map((c) => (
@@ -89,12 +90,12 @@ export function DialogueConfier({ bien, onFermer }: { bien: BienList; onFermer: 
                     <p className="text-xs text-muted-foreground">
                       {c.identite_verifiee && (
                         <span className="inline-flex items-center gap-1 text-statut-favorable">
-                          <ShieldCheck className="h-3 w-3" /> Identité vérifiée ·{' '}
+                          <ShieldCheck className="h-3 w-3" /> {t('confier.identiteVerifiee')}{' '}
                         </span>
                       )}
                       {c.biens_dans_la_ville
-                        ? `${c.biens_dans_la_ville} bien(s) dans votre ville`
-                        : 'Pas encore de bien dans votre ville'}
+                        ? t('confier.biensVille', { n: c.biens_dans_la_ville })
+                        : t('confier.pasEncoreBienDans')}
                     </p>
                   </div>
                 </button>
@@ -107,14 +108,14 @@ export function DialogueConfier({ bien, onFermer }: { bien: BienList; onFermer: 
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Un mot pour lui : disponibilités pour les visites, clés… (facultatif)"
+            placeholder={t('confier.motLuiDisponibilitesVisites')}
           />
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('confier.annuler')}</Button>
           <Button disabled={!choisi || confier.isPending} onClick={() => confier.mutate()} data-testid="button-confier">
-            Proposer
+            {t('confier.proposer')}
           </Button>
         </DialogFooter>
       </DialogContent>

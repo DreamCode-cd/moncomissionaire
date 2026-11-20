@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import { formaterDateCourte } from '@/lib/dates';
 import type { BienList } from '@shared/schema';
+import { t } from '@/i18n';
 
 const JOUR = 24 * 60 * 60 * 1000;
 
@@ -21,10 +22,10 @@ export function Expiration({ bien, routeApi, cle }: { bien: BienList; routeApi: 
     mutationFn: () => api.post(`${routeApi}${bien.id}/reconfirmer/`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cle });
-      toast({ title: 'Annonce reconfirmée', description: 'Elle reste en ligne trente jours de plus.' });
+      toast({ title: t('expiration.annonceReconfirmee'), description: t('expiration.elleResteLigneTrente') });
     },
     onError: (e) =>
-      toast({ title: 'Erreur', description: e instanceof Error ? e.message : '', variant: 'destructive' }),
+      toast({ title: t('expiration.erreur'), description: e instanceof Error ? e.message : '', variant: 'destructive' }),
   });
 
   if (bien.statut_validation !== 'valide' || bien.statut_location === 'loue' || !bien.expire_le) return null;
@@ -38,8 +39,8 @@ export function Expiration({ bien, routeApi, cle }: { bien: BienList; routeApi: 
     >
       <span>
         {bien.est_expiree
-          ? 'Masquée : les clients ne la voient plus.'
-          : `Masquée le ${formaterDateCourte(bien.expire_le)} sans confirmation.`}
+          ? t('expiration.masqueeClientsNeVoient')
+          : t('expiration.masqueeLe', { date: formaterDateCourte(bien.expire_le) })}
       </span>
       <Button
         size="sm"
@@ -49,7 +50,7 @@ export function Expiration({ bien, routeApi, cle }: { bien: BienList; routeApi: 
         onClick={() => reconfirmer.mutate()}
         data-testid={`button-reconfirmer-${bien.id}`}
       >
-        <RefreshCw className="mr-1 h-3 w-3" /> Toujours libre
+        <RefreshCw className="mr-1 h-3 w-3" /> {t('expiration.toujoursLibre')}
       </Button>
     </div>
   );

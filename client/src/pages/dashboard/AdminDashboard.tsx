@@ -60,6 +60,7 @@ import { ROLES, libelleRole } from '@/lib/roles';
 import { queryClient } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import type { PaginatedResponse, UserList, UserRole } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * Espace d'administration de l'équipe VillaGo.
@@ -132,26 +133,26 @@ interface VilleAdmin {
 }
 
 const ROLES_D_EQUIPE: { valeur: UserRole; libelle: string }[] = [
-  { valeur: 'moderateur', libelle: 'Modérateur VillaGo' },
-  { valeur: 'agent', libelle: 'Agent' },
-  { valeur: 'admin', libelle: 'Administrateur' },
+  { valeur: 'moderateur', get libelle() { return t('role.moderateur'); } },
+  { valeur: 'agent', get libelle() { return t('role.agent'); } },
+  { valeur: 'admin', get libelle() { return t('role.admin'); } },
 ];
 
 const FILTRES_COMPTES = [
-  { valeur: 'tous', libelle: 'Tous les rôles' },
-  { valeur: 'a_verifier', libelle: 'Identités à vérifier' },
+  { valeur: 'tous', get libelle() { return t('admin.tousRoles'); } },
+  { valeur: 'a_verifier', get libelle() { return t('admin.identitesAVerifier'); } },
   ...ROLES,
 ];
 
 const FILTRES_JOURNAL = [
-  { valeur: 'tout', libelle: 'Toute l’activité', actions: '' },
-  { valeur: 'equipe', libelle: 'Rôles et comptes d’équipe', actions: 'changement_role,creation_compte' },
-  { valeur: 'identite', libelle: 'Vérifications d’identité', actions: 'verification_identite' },
-  { valeur: 'annonces', libelle: 'Validations d’annonces', actions: 'validation_bien,rejet_bien' },
-  { valeur: 'comptes', libelle: 'Activations et désactivations', actions: 'modification_profil' },
-  { valeur: 'securite', libelle: 'Mots de passe refusés', actions: 'confirmation_refusee' },
-  { valeur: 'villes', libelle: 'Villes et communes', actions: 'gestion_villes' },
-  { valeur: 'pages', libelle: 'Pages légales', actions: 'gestion_pages' },
+  { valeur: 'tout', get libelle() { return t('admin.journalTout'); }, actions: '' },
+  { valeur: 'equipe', get libelle() { return t('admin.journalEquipe'); }, actions: 'changement_role,creation_compte' },
+  { valeur: 'identite', get libelle() { return t('admin.journalIdentite'); }, actions: 'verification_identite' },
+  { valeur: 'annonces', get libelle() { return t('admin.journalAnnonces'); }, actions: 'validation_bien,rejet_bien' },
+  { valeur: 'comptes', get libelle() { return t('admin.journalComptes'); }, actions: 'modification_profil' },
+  { valeur: 'securite', get libelle() { return t('admin.journalSecurite'); }, actions: 'confirmation_refusee' },
+  { valeur: 'villes', get libelle() { return t('admin.journalVilles'); }, actions: 'gestion_villes' },
+  { valeur: 'pages', get libelle() { return t('admin.journalPages'); }, actions: 'gestion_pages' },
 ];
 
 function invaliderAdministration() {
@@ -170,15 +171,15 @@ export default function AdminDashboard() {
   return (
     <Layout>
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <h1 className="text-xl font-semibold text-foreground md:text-2xl">Administration</h1>
+        <h1 className="text-xl font-semibold text-foreground md:text-2xl">{t('admin.administration')}</h1>
 
         <Tabs value={onglet} onValueChange={setOnglet} className="mt-4">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="apercu" data-testid="onglet-apercu">À traiter</TabsTrigger>
-            <TabsTrigger value="comptes" data-testid="onglet-comptes">Comptes</TabsTrigger>
-            <TabsTrigger value="villes" data-testid="onglet-villes">Villes</TabsTrigger>
-            <TabsTrigger value="pages" data-testid="onglet-pages">Pages</TabsTrigger>
-            <TabsTrigger value="journal" data-testid="onglet-journal">Journal</TabsTrigger>
+            <TabsTrigger value="apercu" data-testid="onglet-apercu">{t('admin.traiter')}</TabsTrigger>
+            <TabsTrigger value="comptes" data-testid="onglet-comptes">{t('admin.comptes')}</TabsTrigger>
+            <TabsTrigger value="villes" data-testid="onglet-villes">{t('admin.villes')}</TabsTrigger>
+            <TabsTrigger value="pages" data-testid="onglet-pages">{t('admin.pages')}</TabsTrigger>
+            <TabsTrigger value="journal" data-testid="onglet-journal">{t('admin.journal')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="apercu" className="mt-4">
@@ -217,7 +218,7 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
     refetchInterval: 60000,
   });
 
-  if (isPending) return <EtatChargement texte="Chargement des chiffres…" />;
+  if (isPending) return <EtatChargement texte={t('admin.chargementChiffres')} />;
   if (error) {
     return <EtatErreur description={(error as Error).message} onReessayer={() => void refetch()} />;
   }
@@ -229,15 +230,15 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
     <div className="space-y-6">
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          À traiter
+          {t('admin.traiter')}
         </h2>
 
         {rienATraiter ? (
           <EtatVide
             icone={CircleCheck}
             ton="favorable"
-            titre="Rien n’attend"
-            description="Aucune annonce, aucune demande, aucune identité ni aucune agence en attente."
+            titre={t('admin.rienNAttend')}
+            description={t('admin.aucuneAnnonceAucuneDemande')}
             className="rounded-lg border border-card-border bg-card py-8"
           />
         ) : (
@@ -245,7 +246,7 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
             <Link href="/moderation">
               <Tuile
                 icone={House}
-                libelle="Annonces à valider"
+                libelle={t('admin.annoncesValider')}
                 valeur={aTraiter.biens_en_attente}
                 ton={aTraiter.biens_en_attente > 0 ? 'attente' : 'neutre'}
               />
@@ -253,7 +254,7 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
             <button type="button" className="text-left" onClick={onVoirIdentites} data-testid="tuile-identites">
               <Tuile
                 icone={BadgeCheck}
-                libelle="Identités à vérifier"
+                libelle={t('admin.identitesVerifier')}
                 valeur={aTraiter.commissionnaires_a_verifier + aTraiter.agences_non_verifiees}
                 ton={aTraiter.commissionnaires_a_verifier + aTraiter.agences_non_verifiees > 0 ? 'attente' : 'neutre'}
               />
@@ -261,7 +262,7 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
             <Link href="/moderation">
               <Tuile
                 icone={Clock}
-                libelle="Demandes à traiter"
+                libelle={t('admin.demandesTraiter')}
                 valeur={aTraiter.demandes_en_attente}
                 ton={aTraiter.demandes_en_attente > 0 ? 'attente' : 'neutre'}
               />
@@ -270,7 +271,7 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
             <button type="button" className="text-left" onClick={onVoirIdentites} data-testid="tuile-agences">
               <Tuile
                 icone={Building2}
-                libelle="Agences à vérifier"
+                libelle={t('admin.agencesVerifier')}
                 valeur={aTraiter.agences_non_verifiees}
                 ton={aTraiter.agences_non_verifiees > 0 ? 'attente' : 'neutre'}
               />
@@ -280,39 +281,39 @@ function VueDEnsemble({ onVoirIdentites }: { onVoirIdentites: () => void }) {
       </section>
 
       <Repartition
-        titre="Comptes par rôle"
+        titre={t('admin.comptesRole')}
         total={data.utilisateurs.total}
         lignes={[
-          { libelle: 'Clients', valeur: data.utilisateurs.clients },
-          { libelle: 'Commissionnaires', valeur: data.utilisateurs.commissionnaires },
-          { libelle: 'Propriétaires', valeur: data.utilisateurs.proprietaires },
-          { libelle: 'Agences', valeur: data.utilisateurs.agences },
-          { libelle: 'Modérateurs', valeur: data.utilisateurs.moderateurs },
-          { libelle: 'Agents', valeur: data.utilisateurs.agents },
+          { libelle: t('admin.clients'), valeur: data.utilisateurs.clients },
+          { libelle: t('admin.commissionnaires'), valeur: data.utilisateurs.commissionnaires },
+          { libelle: t('admin.proprietaires'), valeur: data.utilisateurs.proprietaires },
+          { libelle: t('admin.agences'), valeur: data.utilisateurs.agences },
+          { libelle: t('admin.moderateurs'), valeur: data.utilisateurs.moderateurs },
+          { libelle: t('admin.agents'), valeur: data.utilisateurs.agents },
         ]}
         pied={`${data.utilisateurs.nouveaux_30_jours} inscription(s) sur 30 jours · ${data.utilisateurs.actifs} compte(s) actif(s)`}
       />
 
       <Repartition
-        titre="Annonces par statut"
+        titre={t('admin.annoncesStatut')}
         total={data.biens.total}
         lignes={[
-          { libelle: 'Validées', valeur: data.biens.valides },
-          { libelle: 'En attente', valeur: data.biens.en_attente },
-          { libelle: 'Rejetées', valeur: data.biens.rejetes },
+          { libelle: t('admin.validees'), valeur: data.biens.valides },
+          { libelle: t('admin.attente'), valeur: data.biens.en_attente },
+          { libelle: t('admin.rejetees'), valeur: data.biens.rejetes },
         ]}
-        pied={`${data.biens.disponibles} annonce(s) disponible(s) · ${data.biens.nouveaux_30_jours} publiée(s) sur 30 jours`}
+        pied={`${t('admin.nDisponibles', { n: data.biens.disponibles })} · ${t('admin.nPubliees30', { n: data.biens.nouveaux_30_jours })}`}
       />
 
       <Repartition
-        titre="Visites"
+        titre={t('admin.visites')}
         total={data.visites.total}
         lignes={[
-          { libelle: 'Planifiées', valeur: data.visites.planifiees },
-          { libelle: 'Terminées', valeur: data.visites.terminees },
-          { libelle: 'Avec rapport', valeur: data.visites.avec_rapport },
+          { libelle: t('admin.planifiees'), valeur: data.visites.planifiees },
+          { libelle: t('admin.terminees'), valeur: data.visites.terminees },
+          { libelle: t('admin.avecRapport'), valeur: data.visites.avec_rapport },
         ]}
-        pied={`${data.demandes.en_attente} demande(s) de visite en attente sur ${data.demandes.total}`}
+        pied={t('admin.demandesEnAttente', { n: data.demandes.en_attente, total: data.demandes.total })}
       />
     </div>
   );
@@ -341,16 +342,16 @@ function GestionDesComptes({ filtre, onFiltre }: { filtre: string; onFiltre: (f:
     onSuccess: (_, { chemin }) => {
       invaliderAdministration();
       const titres: Record<string, string> = {
-        activer: 'Compte activé',
-        desactiver: 'Compte désactivé',
-        'retirer-verification': 'Vérification retirée',
+        activer: t('admin.compteActive'),
+        desactiver: t('admin.compteDesactive'),
+        'retirer-verification': t('admin.verificationRetiree'),
       };
-      toast({ title: titres[chemin] ?? 'Fait' });
+      toast({ title: titres[chemin] ?? t('admin.fait') });
     },
     // Le serveur refuse pour de bonnes raisons — un agent en mission, son
     // propre compte — et son message explique laquelle.
     onError: (erreur: Error) =>
-      toast({ title: 'Action impossible', description: messageLisible(erreur), variant: 'destructive' }),
+      toast({ title: t('admin.actionImpossible'), description: messageLisible(erreur), variant: 'destructive' }),
   });
 
   return (
@@ -359,11 +360,11 @@ function GestionDesComptes({ filtre, onFiltre }: { filtre: string; onFiltre: (f:
         <Input
           value={recherche}
           onChange={(e) => setRecherche(e.target.value)}
-          placeholder="Nom, e-mail, téléphone…"
+          placeholder={t('admin.nomEMailTelephone')}
           data-testid="input-recherche-comptes"
         />
         <Button onClick={() => setCreation(true)} data-testid="bouton-nouveau-compte" className="shrink-0">
-          <UserPlus className="mr-1 h-4 w-4" /> Nouveau
+          <UserPlus className="mr-1 h-4 w-4" /> {t('admin.nouveau')}
         </Button>
       </div>
       <Select value={filtre} onValueChange={onFiltre}>
@@ -378,18 +379,18 @@ function GestionDesComptes({ filtre, onFiltre }: { filtre: string; onFiltre: (f:
       </Select>
 
       {isPending ? (
-        <EtatChargement texte="Chargement des comptes…" />
+        <EtatChargement texte={t('admin.chargementComptes')} />
       ) : error ? (
         <EtatErreur description={(error as Error).message} onReessayer={() => void refetch()} />
       ) : !data?.results?.length ? (
         <EtatVide
           icone={filtre === 'a_verifier' ? CircleCheck : Users}
           ton={filtre === 'a_verifier' ? 'favorable' : undefined}
-          titre={filtre === 'a_verifier' ? 'Toutes les identités sont vérifiées' : 'Aucun compte'}
+          titre={filtre === 'a_verifier' ? t('admin.toutesIdentitesSontVerifiees') : t('admin.aucunCompte')}
           description={
             filtre === 'a_verifier'
-              ? 'Aucun commissionnaire ni aucune agence n’attend de vérification.'
-              : 'Aucun compte ne correspond à cette recherche.'
+              ? t('admin.aucunCommissionnaireNiAucune')
+              : t('admin.aucunCompteNeCorrespond')
           }
         />
       ) : (
@@ -447,19 +448,19 @@ function CarteCompte({
         <div className="min-w-0 space-y-1">
           <p className="truncate font-medium text-foreground">
             {compte.full_name || compte.username}
-            {estMoi ? <span className="text-muted-foreground"> · vous</span> : null}
+            {estMoi ? <span className="text-muted-foreground"> {t('admin.vous')}</span> : null}
           </p>
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge variant="secondary">{libelleRole(compte.user_type ?? compte.role, compte.user_type_display)}</Badge>
-            {!actif && <BadgeStatut valeur="rejete" libelle="Désactivé" famille="validation" compact />}
+            {!actif && <BadgeStatut valeur="rejete" libelle={t('admin.desactive')} famille="validation" compact />}
             {aVerifier &&
               (verifie ? (
                 <Badge variant="outline" className="gap-1 border-transparent bg-statut-favorable-fond text-statut-favorable">
-                  <BadgeCheck className="h-3 w-3" /> {estAgence ? 'Agence vérifiée' : 'Identité vérifiée'}
+                  <BadgeCheck className="h-3 w-3" /> {estAgence ? t('admin.agenceVerifiee') : t('admin.identiteVerifiee')}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="border-transparent bg-statut-attente-fond text-statut-attente">
-                  {estAgence ? 'Agence à vérifier' : 'Identité à vérifier'}
+                  {estAgence ? t('admin.agenceVerifier') : t('admin.identiteVerifier')}
                 </Badge>
               ))}
           </div>
@@ -474,7 +475,7 @@ function CarteCompte({
           </p>
           {verifie && (
             <p className="text-xs text-muted-foreground">
-              Vérifiée par {compte.identite_verifiee_par_nom ?? '—'} le {formaterDateCourte(compte.identite_verifiee_le)}
+              {t('admin.verifieeB', { a: compte.identite_verifiee_par_nom ?? '—', b: formaterDateCourte(compte.identite_verifiee_le) })}
               {compte.identite_verification_note ? ` — ${compte.identite_verification_note}` : ''}
             </p>
           )}
@@ -483,7 +484,7 @@ function CarteCompte({
         {!estMoi && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label="Actions" disabled={enCours} data-testid={`actions-compte-${compte.id}`}>
+              <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label={t('admin.actions')} disabled={enCours} data-testid={`actions-compte-${compte.id}`}>
                 <EllipsisVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
@@ -491,22 +492,22 @@ function CarteCompte({
               {aVerifier &&
                 (verifie ? (
                   <DropdownMenuItem onClick={() => onAction('retirer-verification')}>
-                    Retirer la vérification
+                    {t('admin.retirerVerification')}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem onClick={onVerifier} data-testid={`verifier-${compte.id}`}>
-                    {estAgence ? 'Vérifier l’agence' : 'Vérifier l’identité'}
+                    {estAgence ? t('admin.verifierAgence') : t('admin.verifierIdentite')}
                   </DropdownMenuItem>
                 ))}
               <DropdownMenuItem onClick={onChangerRole} data-testid={`changer-role-${compte.id}`}>
-                Changer le rôle
+                {t('admin.changerRole')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onAction(actif ? 'desactiver' : 'activer')}
                 className={actif ? 'text-destructive' : undefined}
               >
-                {actif ? 'Désactiver le compte' : 'Réactiver le compte'}
+                {actif ? t('admin.desactiverCompte') : t('admin.reactiverCompte')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -520,7 +521,7 @@ function CarteCompte({
 function ChampConfirmation({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-1 rounded-md border border-border bg-muted/40 p-3">
-      <Label htmlFor="confirmation-mot-de-passe">Votre mot de passe</Label>
+      <Label htmlFor="confirmation-mot-de-passe">{t('admin.votreMotPasse')}</Label>
       <Input
         id="confirmation-mot-de-passe"
         type="password"
@@ -530,7 +531,7 @@ function ChampConfirmation({ valeur, onChange }: { valeur: string; onChange: (v:
         data-testid="input-confirmation"
       />
       <p className="text-xs text-muted-foreground">
-        Cette action donne ou retire du pouvoir sur la plateforme. Elle est inscrite au journal à votre nom.
+        {t('admin.cetteActionDonneOu')}
       </p>
     </div>
   );
@@ -546,18 +547,18 @@ function DialogueChangerRole({ compte, onFermer }: { compte: CompteAdmin; onFerm
       api.post(`${CHEMIN_COMPTES}${compte.id}/changer-role/`, { user_type: role, mot_de_passe: motDePasse }),
     onSuccess: () => {
       invaliderAdministration();
-      toast({ title: 'Rôle modifié', description: `${compte.full_name || compte.username} a désormais le rôle « ${libelleRole(role)} ».` });
+      toast({ title: t('admin.roleModifie'), description: t('admin.roleDesormais', { nom: compte.full_name || compte.username, role: libelleRole(role) }) });
       onFermer();
     },
     onError: (erreur: Error) =>
-      toast({ title: 'Rôle inchangé', description: messageLisible(erreur), variant: 'destructive' }),
+      toast({ title: t('admin.roleInchange'), description: messageLisible(erreur), variant: 'destructive' }),
   });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Changer le rôle</DialogTitle>
+          <DialogTitle>{t('admin.changerRole')}</DialogTitle>
           <DialogDescription>{compte.full_name || compte.username}</DialogDescription>
         </DialogHeader>
         <Select value={role} onValueChange={setRole}>
@@ -572,13 +573,13 @@ function DialogueChangerRole({ compte, onFermer }: { compte: CompteAdmin; onFerm
         </Select>
         <ChampConfirmation valeur={motDePasse} onChange={setMotDePasse} />
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('admin.annuler')}</Button>
           <Button
             onClick={() => changer.mutate()}
             disabled={!motDePasse || role === compte.user_type || changer.isPending}
             data-testid="bouton-confirmer-role"
           >
-            Confirmer
+            {t('admin.confirmer')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -596,43 +597,43 @@ function DialogueVerifierIdentite({ compte, onFermer }: { compte: CompteAdmin; o
     onSuccess: () => {
       invaliderAdministration();
       toast({
-        title: estAgence ? 'Agence vérifiée' : 'Identité vérifiée',
-        description: 'Le badge apparaît désormais sur ses annonces.',
+        title: estAgence ? t('admin.agenceVerifiee') : t('admin.identiteVerifiee'),
+        description: t('admin.badgeApparaitDesormaisSes'),
       });
       onFermer();
     },
     onError: (erreur: Error) =>
-      toast({ title: 'Vérification non enregistrée', description: messageLisible(erreur), variant: 'destructive' }),
+      toast({ title: t('admin.verificationNonEnregistree'), description: messageLisible(erreur), variant: 'destructive' }),
   });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{estAgence ? 'Vérifier l’agence' : 'Vérifier l’identité'}</DialogTitle>
+          <DialogTitle>{estAgence ? t('admin.verifierAgence') : t('admin.verifierIdentite')}</DialogTitle>
           <DialogDescription>
             {compte.full_name || compte.username}.{' '}
             {estAgence
-              ? 'Ne validez que si vous avez vu le RCCM de l’agence et la pièce d’identité de son gérant, en personne ou en appel vidéo.'
-              : 'Ne validez que si vous avez vu sa pièce d’identité, en personne ou en appel vidéo.'}
+              ? t('admin.neValidezQueSi')
+              : t('admin.neValidezQueSi2')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1">
-          <Label htmlFor="note-identite">Comment l’avez-vous vérifiée ?</Label>
+          <Label htmlFor="note-identite">{t('admin.commentAvezVousVerifiee')}</Label>
           <Input
             id="note-identite"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder={estAgence ? 'Ex : RCCM et carte d’électeur du gérant vus au bureau' : 'Ex : carte d’électeur vue au bureau'}
+            placeholder={estAgence ? t('admin.exRccmCarteElecteur') : t('admin.exCarteElecteurVue')}
             maxLength={200}
             data-testid="input-note-identite"
           />
-          <p className="text-xs text-muted-foreground">N’écrivez jamais le numéro d’une pièce : VillaGo n’a pas à le conserver.</p>
+          <p className="text-xs text-muted-foreground">{t('admin.nEcrivezJamaisNumero')}</p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('admin.annuler')}</Button>
           <Button onClick={() => verifier.mutate()} disabled={!note.trim() || verifier.isPending} data-testid="bouton-confirmer-identite">
-            {estAgence ? 'Agence vérifiée' : 'Identité vérifiée'}
+            {estAgence ? t('admin.agenceVerifiee') : t('admin.identiteVerifiee')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -654,15 +655,15 @@ function DialogueNouveauCompte({ ouvert, onFermer }: { ouvert: boolean; onFermer
     onSuccess: () => {
       invaliderAdministration();
       toast({
-        title: 'Compte créé',
-        description: 'Transmettez le mot de passe initial de vive voix, jamais par SMS ou WhatsApp.',
+        title: t('admin.compteCree'),
+        description: t('admin.transmettezMotPasseInitial'),
       });
       setChamps(vide);
       setMotDePasse('');
       onFermer();
     },
     onError: (erreur: Error) =>
-      toast({ title: 'Compte non créé', description: messageLisible(erreur), variant: 'destructive' }),
+      toast({ title: t('admin.compteNonCree'), description: messageLisible(erreur), variant: 'destructive' }),
   });
 
   const complet = Object.values(champs).every((v) => v.trim()) && motDePasse;
@@ -671,9 +672,9 @@ function DialogueNouveauCompte({ ouvert, onFermer }: { ouvert: boolean; onFermer
     <Dialog open={ouvert} onOpenChange={(o) => !o && onFermer()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nouveau compte d’équipe</DialogTitle>
+          <DialogTitle>{t('admin.nouveauCompteEquipe')}</DialogTitle>
           <DialogDescription>
-            Modérateur, agent ou administrateur. Les commissionnaires, eux, s’inscrivent seuls.
+            {t('admin.moderateurAgentOuAdministrateur')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -688,14 +689,14 @@ function DialogueNouveauCompte({ ouvert, onFermer }: { ouvert: boolean; onFermer
             </SelectContent>
           </Select>
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Prénom" value={champs.first_name} onChange={modifier('first_name')} data-testid="input-equipe-prenom" />
-            <Input placeholder="Nom" value={champs.last_name} onChange={modifier('last_name')} data-testid="input-equipe-nom" />
+            <Input placeholder={t('admin.prenom')} value={champs.first_name} onChange={modifier('first_name')} data-testid="input-equipe-prenom" />
+            <Input placeholder={t('admin.nom')} value={champs.last_name} onChange={modifier('last_name')} data-testid="input-equipe-nom" />
           </div>
-          <Input placeholder="Nom d’utilisateur" autoCapitalize="none" value={champs.username} onChange={modifier('username')} data-testid="input-equipe-username" />
+          <Input placeholder={t('admin.nomUtilisateur')} autoCapitalize="none" value={champs.username} onChange={modifier('username')} data-testid="input-equipe-username" />
           <Input placeholder="E-mail" type="email" value={champs.email} onChange={modifier('email')} data-testid="input-equipe-email" />
-          <Input placeholder="Téléphone (+243 …)" type="tel" inputMode="tel" value={champs.phone} onChange={modifier('phone')} data-testid="input-equipe-telephone" />
+          <Input placeholder={t('admin.telephone243')} type="tel" inputMode="tel" value={champs.phone} onChange={modifier('phone')} data-testid="input-equipe-telephone" />
           <Input
-            placeholder="Mot de passe initial"
+            placeholder={t('admin.motPasseInitial')}
             type="password"
             autoComplete="new-password"
             value={champs.password}
@@ -705,9 +706,9 @@ function DialogueNouveauCompte({ ouvert, onFermer }: { ouvert: boolean; onFermer
           <ChampConfirmation valeur={motDePasse} onChange={setMotDePasse} />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('admin.annuler')}</Button>
           <Button onClick={() => creer.mutate()} disabled={!complet || creer.isPending} data-testid="bouton-creer-compte">
-            Créer le compte
+            {t('admin.creerCompte')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -729,19 +730,19 @@ function GestionDesVilles() {
     void queryClient.invalidateQueries({ queryKey: [CHEMIN_JOURNAL] });
   };
   const surErreur = (erreur: Error) =>
-    toast({ title: 'Modification refusée', description: messageLisible(erreur), variant: 'destructive' });
+    toast({ title: t('admin.modificationRefusee'), description: messageLisible(erreur), variant: 'destructive' });
 
   const creer = useMutation({
     mutationFn: () => api.post(CHEMIN_VILLES, { nom: nouvelleVille }),
     onSuccess: () => {
-      toast({ title: `${nouvelleVille.trim()} ajoutée`, description: 'Ajoutez maintenant ses communes.' });
+      toast({ title: t('reste.villeAjoutee', { ville: nouvelleVille.trim() }), description: t('admin.ajoutezMaintenantSesCommunes') });
       setNouvelleVille('');
       rafraichir();
     },
     onError: surErreur,
   });
 
-  if (isPending) return <EtatChargement texte="Chargement des villes…" />;
+  if (isPending) return <EtatChargement texte={t('admin.chargementVilles')} />;
   if (error) return <EtatErreur description={(error as Error).message} onReessayer={() => void refetch()} />;
 
   return (
@@ -756,11 +757,11 @@ function GestionDesVilles() {
         <Input
           value={nouvelleVille}
           onChange={(e) => setNouvelleVille(e.target.value)}
-          placeholder="Ouvrir une ville (ex : Likasi)"
+          placeholder={t('admin.ouvrirVilleExLikasi')}
           data-testid="input-nouvelle-ville"
         />
         <Button type="submit" disabled={!nouvelleVille.trim() || creer.isPending} className="shrink-0" data-testid="bouton-ajouter-ville">
-          <Plus className="mr-1 h-4 w-4" /> Ajouter
+          <Plus className="mr-1 h-4 w-4" /> {t('admin.ajouter')}
         </Button>
       </form>
 
@@ -816,13 +817,13 @@ function CarteVille({
               <MapPin className="h-4 w-4 text-muted-foreground" /> {ville.nom}
             </p>
             <p className="text-xs text-muted-foreground">
-              {ville.nombre_biens} annonce(s) · {ville.communes.length} commune(s)
-              {ville.is_active ? '' : ' · fermée aux nouvelles annonces'}
+              {t('admin.nAnnonces', { n: ville.nombre_biens })} · {t('admin.nCommunes', { n: ville.communes.length })}
+              {ville.is_active ? '' : t('admin.fermeeNouvellesAnnonces')}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Label htmlFor={`ville-active-${ville.id}`} className="text-xs text-muted-foreground">
-              {ville.is_active ? 'Ouverte' : 'Fermée'}
+              {ville.is_active ? t('admin.ouverte') : t('admin.fermee')}
             </Label>
             <Switch
               id={`ville-active-${ville.id}`}
@@ -840,7 +841,7 @@ function CarteVille({
               className="inline-flex items-center gap-1 rounded-full bg-muted py-1 pl-3 pr-1 text-sm"
               data-testid={`commune-${commune.nom}`}
             >
-              <button type="button" onClick={() => setARenommer(commune)} className="hover:underline" title="Corriger le nom">
+              <button type="button" onClick={() => setARenommer(commune)} className="hover:underline" title={t('admin.corrigerNom')}>
                 {commune.nom}
               </button>
               <button
@@ -848,7 +849,7 @@ function CarteVille({
                 onClick={() => retirer.mutate(commune.id)}
                 className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-background"
                 aria-label={`Retirer ${commune.nom} de la liste`}
-                title={commune.nombre_biens ? `${commune.nombre_biens} annonce(s) la gardent` : 'Retirer de la liste'}
+                title={commune.nombre_biens ? `${commune.nombre_biens} annonce(s) la gardent` : t('admin.retirerListe')}
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -866,12 +867,12 @@ function CarteVille({
           <Input
             value={nouvelleCommune}
             onChange={(e) => setNouvelleCommune(e.target.value)}
-            placeholder="Ajouter une commune"
+            placeholder={t('admin.ajouterCommune')}
             className="h-9"
             data-testid={`input-commune-${ville.nom}`}
           />
           <Button type="submit" size="sm" variant="outline" disabled={!nouvelleCommune.trim() || ajouter.isPending}>
-            Ajouter
+            {t('admin.ajouter')}
           </Button>
         </form>
 
@@ -881,15 +882,15 @@ function CarteVille({
       <Dialog open={aDesactiver} onOpenChange={setADesactiver}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Fermer {ville.nom} ?</DialogTitle>
+            <DialogTitle>{t('admin.fermer')} {ville.nom} ?</DialogTitle>
             <DialogDescription>
-              Plus aucune annonce ne pourra y être publiée, et la ville disparaîtra de la recherche. Les {ville.nombre_biens} annonce(s) existante(s) restent en ligne et modifiables.
+              {t('reste.fermerVille', { n: ville.nombre_biens })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setADesactiver(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setADesactiver(false)}>{t('admin.annuler')}</Button>
             <Button variant="destructive" onClick={() => basculer.mutate(false)} disabled={basculer.isPending}>
-              Fermer la ville
+              {t('admin.fermerVille')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -938,7 +939,7 @@ function PlafondsFraisVisite({
         frais_visite_plafond_cdf: cdf || '0',
       }),
     onSuccess: () => {
-      toast({ title: `Plafond enregistré pour ${ville.nom}` });
+      toast({ title: t('admin.plafondEnregistre', { ville: ville.nom }) });
       onChange();
     },
     onError: onErreur,
@@ -952,10 +953,10 @@ function PlafondsFraisVisite({
         enregistrer.mutate();
       }}
     >
-      <p className="text-sm font-medium">Frais de visite au plus</p>
+      <p className="text-sm font-medium">{t('admin.fraisVisitePlus')}</p>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label htmlFor={`plafond-usd-${ville.id}`} className="text-xs text-muted-foreground">En dollars ($)</Label>
+          <Label htmlFor={`plafond-usd-${ville.id}`} className="text-xs text-muted-foreground">{t('admin.dollars')}</Label>
           <Input
             id={`plafond-usd-${ville.id}`}
             type="number"
@@ -969,7 +970,7 @@ function PlafondsFraisVisite({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor={`plafond-cdf-${ville.id}`} className="text-xs text-muted-foreground">En francs (FC)</Label>
+          <Label htmlFor={`plafond-cdf-${ville.id}`} className="text-xs text-muted-foreground">{t('admin.francsFc')}</Label>
           <Input
             id={`plafond-cdf-${ville.id}`}
             type="number"
@@ -984,11 +985,11 @@ function PlafondsFraisVisite({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        0 interdit les frais de visite dans la ville. Un plafond abaissé s’applique tout de suite aux annonces publiées.
+        {t('admin.0InterditFraisVisite')}
       </p>
       {modifie && (
         <Button type="submit" size="sm" disabled={enregistrer.isPending} data-testid={`bouton-plafond-${ville.nom}`}>
-          Enregistrer le plafond
+          {t('admin.enregistrerPlafond')}
         </Button>
       )}
     </form>
@@ -1013,7 +1014,7 @@ function DialogueRenommerCommune({
   const renommer = useMutation({
     mutationFn: () => api.patch(chemin, { nom }),
     onSuccess: () => {
-      toast({ title: 'Commune corrigée', description: `${commune.nombre_biens} annonce(s) mise(s) à jour.` });
+      toast({ title: t('admin.communeCorrigee'), description: t('reste.annoncesMisesAJour', { n: commune.nombre_biens }) });
       onChange();
       onFermer();
     },
@@ -1024,18 +1025,18 @@ function DialogueRenommerCommune({
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Corriger « {commune.nom} »</DialogTitle>
+          <DialogTitle>{t('admin.corrigerCommune', { nom: commune.nom })}</DialogTitle>
           <DialogDescription>
             {commune.nombre_biens
-              ? `Les ${commune.nombre_biens} annonce(s) qui portent ce nom seront corrigées aussi.`
-              : 'Aucune annonce ne porte encore ce nom.'}
+              ? t('admin.annoncesCorrigees', { n: commune.nombre_biens })
+              : t('admin.aucuneAnnonceNePorte')}
           </DialogDescription>
         </DialogHeader>
         <Input value={nom} onChange={(e) => setNom(e.target.value)} data-testid="input-renommer-commune" />
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('admin.annuler')}</Button>
           <Button onClick={() => renommer.mutate()} disabled={!nom.trim() || nom.trim() === commune.nom || renommer.isPending}>
-            Corriger
+            {t('admin.corriger')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1059,7 +1060,7 @@ function Journal() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Qui a fait quoi, et quand. À trois, c’est ce qui permet de ne jamais se demander lequel a désactivé un compte.
+        {t('admin.quiFaitQuoiQuand')}
       </p>
       <Select value={filtre} onValueChange={setFiltre}>
         <SelectTrigger data-testid="select-filtre-journal">
@@ -1071,14 +1072,14 @@ function Journal() {
           ))}
         </SelectContent>
       </Select>
-      <Input value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder="Rechercher un nom, une annonce…" />
+      <Input value={recherche} onChange={(e) => setRecherche(e.target.value)} placeholder={t('admin.rechercherNomAnnonce')} />
 
       {isPending ? (
-        <EtatChargement texte="Chargement du journal…" />
+        <EtatChargement texte={t('admin.chargementJournal')} />
       ) : error ? (
         <EtatErreur description={(error as Error).message} onReessayer={() => void refetch()} />
       ) : !data?.results?.length ? (
-        <EtatVide icone={ScrollText} titre="Rien dans le journal" description="Aucune action ne correspond à ce filtre." />
+        <EtatVide icone={ScrollText} titre={t('admin.rienDansJournal')} description={t('admin.aucuneActionNeCorrespond')} />
       ) : (
         <Card>
           <CardContent className="divide-y divide-border p-0">
@@ -1092,7 +1093,7 @@ function Journal() {
                 </div>
                 <p className="text-sm text-muted-foreground">{entree.description}</p>
                 <p className="text-xs text-muted-foreground">
-                  par {entree.user_detail?.full_name || entree.user_detail?.username || 'un visiteur'}
+                  {t('admin.texte', { a: entree.user_detail?.full_name || entree.user_detail?.username || t('admin.visiteur') })}
                 </p>
               </div>
             ))}
@@ -1176,7 +1177,7 @@ function Repartition({
         <CardTitle className="flex items-baseline justify-between text-base">
           <span>{titre}</span>
           <span className="text-sm font-normal tabular-nums text-muted-foreground">
-            {total} au total
+            {t('admin.total', { a: total })}
           </span>
         </CardTitle>
       </CardHeader>

@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { DEVISES, formaterPrix, type Devise } from '@/lib/prix';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { t } from '@/i18n';
 
 interface Ville {
   id: number;
@@ -58,24 +59,24 @@ interface SearchBarProps {
 }
 
 const propertyTypes = [
-  { value: 'all', label: 'Tous les types' },
-  { value: 'maison', label: 'Maison' },
-  { value: 'appartement', label: 'Appartement' },
-  { value: 'studio', label: 'Studio' },
-  { value: 'villa', label: 'Villa' },
-  { value: 'duplex', label: 'Duplex' },
-  { value: 'terrain', label: 'Terrain' },
+  { value: 'all', get label() { return t('typeBien.tous'); } },
+  { value: 'maison', get label() { return t('typeBien.maison'); } },
+  { value: 'appartement', get label() { return t('typeBien.appartement'); } },
+  { value: 'studio', get label() { return t('typeBien.studio'); } },
+  { value: 'villa', get label() { return t('typeBien.villa'); } },
+  { value: 'duplex', get label() { return t('typeBien.duplex'); } },
+  { value: 'terrain', get label() { return t('typeBien.terrain'); } },
 ];
 
 
 const amenities = [
-  { key: 'eau_tous_les_jours' as const, label: 'Eau tous les jours', icon: Droplet },
-  { key: 'courant_sans_coupure' as const, label: 'Courant sans coupure', icon: Zap },
-  { key: 'parking' as const, label: 'Parking', icon: Car },
-  { key: 'jardin' as const, label: 'Jardin', icon: Trees },
-  { key: 'meuble' as const, label: 'Meublé', icon: Sofa },
-  { key: 'climatisation' as const, label: 'Climatisation', icon: Snowflake },
-  { key: 'gardien' as const, label: 'Gardien', icon: ShieldCheck },
+  { key: 'eau_tous_les_jours' as const, get label() { return t('filtre.eauTousLesJours'); }, icon: Droplet },
+  { key: 'courant_sans_coupure' as const, get label() { return t('filtre.courantSansCoupure'); }, icon: Zap },
+  { key: 'parking' as const, get label() { return t('equipement.parking'); }, icon: Car },
+  { key: 'jardin' as const, get label() { return t('equipement.jardin'); }, icon: Trees },
+  { key: 'meuble' as const, get label() { return t('equipement.meuble'); }, icon: Sofa },
+  { key: 'climatisation' as const, get label() { return t('equipement.climatisation'); }, icon: Snowflake },
+  { key: 'gardien' as const, get label() { return t('equipement.gardien'); }, icon: ShieldCheck },
 ];
 
 // Bornes du curseur, par devise. Un loyer de 5 000 $ est un maximum
@@ -209,8 +210,8 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
           <Input
             type="search"
             enterKeyHint="search"
-            placeholder="Quartier, commune…"
-            aria-label="Rechercher un quartier, une commune ou un type de bien"
+            placeholder={t('recherche.placeholder')}
+            aria-label={t('recherche.aria')}
             className="pl-10 h-12"
             value={texte}
             onChange={(e) => setTexte(e.target.value)}
@@ -219,7 +220,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
         </div>
         <Sheet open={isOpen} onOpenChange={ouvrir}>
           <SheetTrigger asChild>
-            <Button type="button" variant="outline" size="lg" className="relative h-12" aria-label="Filtres" data-testid="button-filters">
+            <Button type="button" variant="outline" size="lg" className="relative h-12" aria-label={t('filtre.titre')} data-testid="button-filters">
               <SlidersHorizontal className="w-5 h-5" />
               {activeFiltersCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
@@ -230,12 +231,12 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[85dvh] rounded-t-xl flex flex-col">
             <SheetHeader>
-              <SheetTitle>Filtres</SheetTitle>
+              <SheetTitle>{t('filtre.titre')}</SheetTitle>
             </SheetHeader>
             <ScrollArea className="min-h-0 flex-1">
             <div className="space-y-6 py-6 pr-4">
               <div className="space-y-2">
-                <Label>Type de bien</Label>
+                <Label>{t('filtre.typeBien')}</Label>
                 <Select
                   value={brouillon.type_bien || 'all'}
                   onValueChange={(value) => modifier({ type_bien: value === 'all' ? undefined : value })}
@@ -254,7 +255,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Ville</Label>
+                <Label>{t('filtre.ville')}</Label>
                 <Select
                   value={brouillon.ville || 'all'}
                   onValueChange={(value) => modifier({ ville: value === 'all' ? undefined : value })}
@@ -263,7 +264,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Toutes les villes</SelectItem>
+                    <SelectItem value="all">{t('filtre.toutesVilles')}</SelectItem>
                     {villes.map((ville) => (
                       <SelectItem key={ville.id} value={ville.id.toString()}>
                         {ville.nom}
@@ -274,7 +275,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Devise</Label>
+                <Label>{t('filtre.devise')}</Label>
                 <Select value={devise} onValueChange={(v) => changerDevise(v as Devise)}>
                   <SelectTrigger data-testid="select-devise-recherche">
                     <SelectValue />
@@ -291,9 +292,10 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
 
               <div className="space-y-4">
                 <Label>
-                  Loyer par mois : {formaterPrix(priceRange[0], devise)} –{' '}
-                  {formaterPrix(priceRange[1], devise)}
-                  {priceRange[1] >= echelle.max ? ' et plus' : ''}
+                  {t(priceRange[1] >= echelle.max ? 'filtre.loyerEtPlus' : 'filtre.loyer', {
+                    min: formaterPrix(priceRange[0], devise),
+                    max: formaterPrix(priceRange[1], devise),
+                  })}
                 </Label>
                 <Slider
                   min={0}
@@ -307,7 +309,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Chambres minimum</Label>
+                <Label>{t('filtre.chambresMin')}</Label>
                 <Select
                   value={brouillon.min_chambres?.toString() || 'any'}
                   onValueChange={(value) => modifier({ min_chambres: value === 'any' ? undefined : parseInt(value) })}
@@ -316,7 +318,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="any">Peu importe</SelectItem>
+                    <SelectItem value="any">{t('filtre.peuImporte')}</SelectItem>
                     <SelectItem value="1">1+</SelectItem>
                     <SelectItem value="2">2+</SelectItem>
                     <SelectItem value="3">3+</SelectItem>
@@ -327,7 +329,7 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
               </div>
 
               <div className="space-y-3">
-                <Label>Équipements</Label>
+                <Label>{t('filtre.equipements')}</Label>
                 <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
                   {amenities.map((amenity) => {
                     const Icon = amenity.icon;
@@ -357,10 +359,10 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
 
             <div className="flex gap-3 pt-4 border-t">
               <Button type="button" variant="outline" className="flex-1" onClick={handleResetFilters} data-testid="button-reset-filters">
-                Tout effacer
+                {t('filtre.toutEffacer')}
               </Button>
               <Button type="button" className="flex-1" onClick={handleApplyFilters} data-testid="button-apply-filters">
-                Appliquer
+                {t('filtre.appliquer')}
               </Button>
             </div>
           </SheetContent>
@@ -370,19 +372,19 @@ export function SearchBar({ filters, onFiltersChange }: SearchBarProps) {
       {activeFiltersCount > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
           {filters.type_bien && filters.type_bien !== 'all' && (
-            <PastilleFiltre libelle={propertyTypes.find(t => t.value === filters.type_bien)?.label ?? filters.type_bien} onRetirer={() => removeFilter('type_bien')} />
+            <PastilleFiltre libelle={propertyTypes.find((p) => p.value === filters.type_bien)?.label ?? filters.type_bien} onRetirer={() => removeFilter('type_bien')} />
           )}
           {filters.ville && filters.ville !== 'all' && (
             <PastilleFiltre libelle={villes.find(v => v.id.toString() === filters.ville)?.nom || filters.ville} onRetirer={() => removeFilter('ville')} />
           )}
           {filters.min_price ? (
-            <PastilleFiltre libelle={`À partir de ${formaterPrix(filters.min_price, deviseAppliquee)}`} onRetirer={() => removeFilter('min_price')} />
+            <PastilleFiltre libelle={t('filtre.aPartirDe', { prix: formaterPrix(filters.min_price, deviseAppliquee) })} onRetirer={() => removeFilter('min_price')} />
           ) : null}
           {filters.max_price ? (
-            <PastilleFiltre libelle={`Jusqu’à ${formaterPrix(filters.max_price, deviseAppliquee)}`} onRetirer={() => removeFilter('max_price')} />
+            <PastilleFiltre libelle={t('filtre.jusqua', { prix: formaterPrix(filters.max_price, deviseAppliquee) })} onRetirer={() => removeFilter('max_price')} />
           ) : null}
           {filters.min_chambres ? (
-            <PastilleFiltre libelle={`${filters.min_chambres} ch. et plus`} onRetirer={() => removeFilter('min_chambres')} />
+            <PastilleFiltre libelle={t('filtre.chambresEtPlus', { n: filters.min_chambres })} onRetirer={() => removeFilter('min_chambres')} />
           ) : null}
           {amenities.filter(a => filters[a.key]).map((amenity) => (
             <PastilleFiltre key={amenity.key} libelle={amenity.label} icone={amenity.icon} onRetirer={() => removeFilter(amenity.key)} />
@@ -410,7 +412,7 @@ function PastilleFiltre({
     <button
       type="button"
       onClick={onRetirer}
-      aria-label={`Retirer le filtre « ${libelle} »`}
+      aria-label={t('filtre.retirer', { libelle })}
       className="flex min-h-[44px] flex-shrink-0 items-center gap-1.5 rounded-full bg-secondary px-3 text-xs font-medium text-secondary-foreground"
     >
       {Icone ? <Icone className="h-3.5 w-3.5" aria-hidden /> : null}

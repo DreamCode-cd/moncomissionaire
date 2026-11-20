@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { chargerLangue, langueActive } from "./i18n";
 // Même police que l'application mobile, embarquée avec le site : un seul
 // fichier variable de 34 Ko pour l'alphabet latin, mis en cache une fois.
 import "@fontsource-variable/atkinson-hyperlegible-next/wght.css";
@@ -17,4 +18,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Le dictionnaire de la langue choisie avant le premier affichage : pas de
+// passage du français à l'anglais sous les yeux de l'utilisateur.
+chargerLangue(langueActive())
+  .catch(() => {})
+  .finally(() => createRoot(document.getElementById("root")!).render(<App />));

@@ -6,6 +6,7 @@ import {
   Play,
   type LucideIcon,
 } from 'lucide-react';
+import { t } from '@/i18n';
 
 /**
  * Statuts du produit — source unique.
@@ -41,36 +42,36 @@ export interface Statut {
 
 /** Validation d'un bien par le commissionnaire. */
 const VALIDATION: Record<string, Statut> = {
-  valide: { libelle: 'Validé', ton: 'favorable', icone: CircleCheck },
-  en_attente: { libelle: 'En attente de validation', ton: 'attente', icone: Clock },
-  rejete: { libelle: 'Rejeté', ton: 'defavorable', icone: CircleX },
+  valide: { get libelle() { return t('statut.validation.valide'); }, ton: 'favorable', icone: CircleCheck },
+  en_attente: { get libelle() { return t('statut.validation.en_attente'); }, ton: 'attente', icone: Clock },
+  rejete: { get libelle() { return t('statut.validation.rejete'); }, ton: 'defavorable', icone: CircleX },
 };
 
 /** Disponibilité locative d'un bien. */
 const LOCATION: Record<string, Statut> = {
-  disponible: { libelle: 'Disponible', ton: 'favorable' },
-  en_visite: { libelle: 'En cours de visite', ton: 'attente' },
-  loue: { libelle: 'Loué', ton: 'neutre' },
-  indisponible: { libelle: 'Indisponible', ton: 'neutre' },
+  disponible: { get libelle() { return t('statut.location.disponible'); }, ton: 'favorable' },
+  en_visite: { get libelle() { return t('statut.location.en_visite'); }, ton: 'attente' },
+  loue: { get libelle() { return t('statut.location.loue'); }, ton: 'neutre' },
+  indisponible: { get libelle() { return t('statut.location.indisponible'); }, ton: 'neutre' },
 };
 
 /** Déroulé d'une visite. */
 const VISITE: Record<string, Statut> = {
-  planifiee: { libelle: 'Planifiée', ton: 'attente', icone: Calendar },
-  en_cours: { libelle: 'En cours', ton: 'information', icone: Play },
-  terminee: { libelle: 'Terminée', ton: 'favorable', icone: CircleCheck },
-  reportee: { libelle: 'Reportée', ton: 'attente', icone: Clock },
-  annulee: { libelle: 'Annulée', ton: 'defavorable', icone: CircleX },
-  non_faite: { libelle: 'N’a pas eu lieu', ton: 'neutre', icone: CircleX },
+  planifiee: { get libelle() { return t('statut.visite.planifiee'); }, ton: 'attente', icone: Calendar },
+  en_cours: { get libelle() { return t('statut.visite.en_cours'); }, ton: 'information', icone: Play },
+  terminee: { get libelle() { return t('statut.visite.terminee'); }, ton: 'favorable', icone: CircleCheck },
+  reportee: { get libelle() { return t('statut.visite.reportee'); }, ton: 'attente', icone: Clock },
+  annulee: { get libelle() { return t('statut.annulee'); }, ton: 'defavorable', icone: CircleX },
+  non_faite: { get libelle() { return t('statut.visite.non_faite'); }, ton: 'neutre', icone: CircleX },
 };
 
 /** Traitement d'une demande de visite. */
 const DEMANDE: Record<string, Statut> = {
-  en_attente: { libelle: 'En attente', ton: 'attente', icone: Clock },
-  acceptee: { libelle: 'Acceptée', ton: 'favorable', icone: CircleCheck },
-  rejetee: { libelle: 'Rejetée', ton: 'defavorable', icone: CircleX },
-  annulee: { libelle: 'Annulée', ton: 'neutre', icone: CircleX },
-  expiree: { libelle: 'Expirée', ton: 'neutre', icone: Clock },
+  en_attente: { get libelle() { return t('statut.demande.en_attente'); }, ton: 'attente', icone: Clock },
+  acceptee: { get libelle() { return t('statut.demande.acceptee'); }, ton: 'favorable', icone: CircleCheck },
+  rejetee: { get libelle() { return t('statut.demande.rejetee'); }, ton: 'defavorable', icone: CircleX },
+  annulee: { get libelle() { return t('statut.annulee'); }, ton: 'neutre', icone: CircleX },
+  expiree: { get libelle() { return t('statut.demande.expiree'); }, ton: 'neutre', icone: Clock },
 };
 
 /**
@@ -81,19 +82,19 @@ const DEMANDE: Record<string, Statut> = {
  * par l'emphase du badge, pas par une sixième couleur.
  */
 const APPRECIATION: Record<string, Statut> = {
-  tres_interessant: { libelle: 'Très intéressant', ton: 'favorable' },
-  interessant: { libelle: 'Intéressant', ton: 'favorable' },
-  moyen: { libelle: 'Moyen', ton: 'attente' },
-  peu_interessant: { libelle: 'Peu intéressant', ton: 'attente' },
-  non_recommande: { libelle: 'Non recommandé', ton: 'defavorable' },
+  tres_interessant: { get libelle() { return t('statut.appreciation.tres_interessant'); }, ton: 'favorable' },
+  interessant: { get libelle() { return t('statut.appreciation.interessant'); }, ton: 'favorable' },
+  moyen: { get libelle() { return t('statut.appreciation.moyen'); }, ton: 'attente' },
+  peu_interessant: { get libelle() { return t('statut.appreciation.peu_interessant'); }, ton: 'attente' },
+  non_recommande: { get libelle() { return t('statut.appreciation.non_recommande'); }, ton: 'defavorable' },
 };
 
 /** Règlement d'une commission, du point de vue de celui qui l'attend. */
 const COMMISSION: Record<string, Statut> = {
-  due: { libelle: 'À encaisser', ton: 'attente', icone: Clock },
-  partiellement_reglee: { libelle: 'En partie réglée', ton: 'information', icone: Clock },
-  reglee: { libelle: 'Réglée', ton: 'favorable', icone: CircleCheck },
-  annulee: { libelle: 'Annulée', ton: 'neutre', icone: CircleX },
+  due: { get libelle() { return t('statut.commission.due'); }, ton: 'attente', icone: Clock },
+  partiellement_reglee: { get libelle() { return t('statut.commission.partiellement_reglee'); }, ton: 'information', icone: Clock },
+  reglee: { get libelle() { return t('statut.commission.reglee'); }, ton: 'favorable', icone: CircleCheck },
+  annulee: { get libelle() { return t('statut.annulee'); }, ton: 'neutre', icone: CircleX },
 };
 
 const FAMILLES = {
@@ -142,7 +143,9 @@ export function lireStatut(
   if (!connu) {
     return libelleServeur ? { libelle: libelleServeur, ton: 'neutre' } : INCONNU;
   }
-  return libelleServeur ? { ...connu, libelle: libelleServeur } : connu;
+  // Le libellé du serveur est rédigé en français : on ne s'en sert que pour
+  // une valeur inconnue du site. Les connues suivent la langue de l'écran.
+  return connu;
 }
 
 /**
@@ -164,7 +167,7 @@ export function lireStatutQuelconque(
   for (const famille of ORDRE_RECHERCHE) {
     const trouve = valeur ? FAMILLES[famille][valeur] : undefined;
     if (trouve) {
-      return libelleServeur ? { ...trouve, libelle: libelleServeur } : trouve;
+      return trouve;
     }
   }
   return libelleServeur ? { libelle: libelleServeur, ton: 'neutre' } : INCONNU;

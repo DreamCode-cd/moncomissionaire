@@ -9,9 +9,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { t } from '@/i18n';
 
 /** Ces statuts sortent la maison des annonces : on confirme, comme sur le mobile. */
-const STATUTS_QUI_RETIRENT: Record<string, string> = { loue: 'loué', indisponible: 'indisponible' };
+const STATUTS_QUI_RETIRENT: Record<string, () => string> = {
+  loue: () => t('statutLocation.loue'),
+  indisponible: () => t('statutLocation.indisponible'),
+};
 
 interface BienConcerne {
   id: number;
@@ -36,21 +40,20 @@ export function useConfirmerStatutLocation(changer: (id: number, statut: string)
     else changer(bien.id, statut);
   };
 
-  const libelle = enAttente ? STATUTS_QUI_RETIRENT[enAttente.statut] : '';
+  const libelle = enAttente ? STATUTS_QUI_RETIRENT[enAttente.statut]() : '';
   const dialogue = (
     <AlertDialog open={!!enAttente} onOpenChange={(ouvert) => !ouvert && setEnAttente(null)}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Marquer « {enAttente?.bien.titre} » comme {libelle} ?
+            {t('statutLocation.marquerComme', { titre: enAttente?.bien.titre, statut: libelle })}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            La maison sort des annonces et plus personne ne peut demander à la visiter. Vous pourrez la remettre en
-            « Disponible » à tout moment.
+            {t('statutLocation.sortDesAnnonces')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Garder en ligne</AlertDialogCancel>
+          <AlertDialogCancel>{t('statutLocation.garderEnLigne')}</AlertDialogCancel>
           <AlertDialogAction
             data-testid="confirmer-statut-location"
             onClick={() => {
@@ -58,7 +61,7 @@ export function useConfirmerStatutLocation(changer: (id: number, statut: string)
               setEnAttente(null);
             }}
           >
-            Oui, {libelle}
+            {t('statutLocation.oui', { statut: libelle })}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

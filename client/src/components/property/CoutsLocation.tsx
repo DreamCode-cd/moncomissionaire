@@ -1,5 +1,6 @@
 import { estPositif, formaterMontant } from '@/lib/prix';
 import type { BienList } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * Ce que coûtera la location, au-delà du loyer et de la garantie, annoncé
@@ -24,22 +25,22 @@ export function CoutsLocation({ bien, compact = false }: { bien: BienList; compa
     >
       {commission != null && (
         <li>
-          {'Commission si vous louez : '}
+          {t('couts.commissionSiLoue')}
           <span className="font-medium text-foreground">{formaterMontant(commission, bien.devise)}</span>
           {bien.commission_payee_par === 'moitie'
-            ? ' (la moitié d’un mois de loyer, le bailleur paie l’autre moitié)'
-            : ' (un mois de loyer, comme le prévoit la loi)'}
+            ? t('couts.moitie')
+            : t('couts.unMois')}
         </li>
       )}
       <li>
-        {'Frais de visite : '}
+        {t('couts.fraisVisite')}
         {estPositif(fraisVisite) ? (
           <>
             <span className="font-medium text-foreground">{formaterMontant(fraisVisite, bien.devise)}</span>
-            {', une seule fois pour ce bien'}
+            {t('couts.uneFois')}
           </>
         ) : (
-          <span className="font-medium text-foreground">aucun</span>
+          <span className="font-medium text-foreground">{t('paiement.aucun')}</span>
         )}
       </li>
     </ul>
