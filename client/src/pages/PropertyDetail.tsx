@@ -150,6 +150,12 @@ export default function PropertyDetail() {
     refetchOnWindowFocus: true,
   });
 
+  const { data: noteBien } = useQuery<{ note_moyenne: number | null; nombre_avis: number }>({
+    queryKey: ['/api/v1/biens/', propertyId, 'note-moyenne'],
+    queryFn: () => api.get(`/api/v1/biens/${propertyId}/note-moyenne/`),
+    enabled: !!propertyId,
+  });
+
   const { data: reviews } = useQuery<PaginatedResponse<AvisBien>>({
     queryKey: ['/api/v1/biens/', propertyId, 'avis'],
     enabled: !!propertyId,
@@ -488,9 +494,10 @@ export default function PropertyDetail() {
     a => property[a.key as keyof BienDetail]
   );
 
-  const averageRating = reviews?.results?.length 
-    ? reviews.results.reduce((acc, r) => acc + r.note, 0) / reviews.results.length
-    : null;
+  // La note vient du serveur, qui ne la donne qu'à partir de trois avis
+  // (même règle que pour les commissionnaires, décision du 20/11/2026).
+  // Avant, la fiche la calculait sur la seule première page d'avis.
+  const averageRating = noteBien?.note_moyenne ?? null;
 
   return (
     <Layout barreAction>
@@ -651,9 +658,9 @@ export default function PropertyDetail() {
               {averageRating && (
                 <div className="flex items-center gap-1 bg-muted px-3 py-1 rounded-full">
                   <Star className="w-4 h-4 fill-note text-note" />
-                  <span className="font-semibold">{averageRating.toFixed(1)}</span>
+                  <span className="font-semibold">{averageRating.toLocaleString('fr-CD')}</span>
                   <span className="text-muted-foreground text-sm">
-                    ({reviews?.count})
+                    ({noteBien?.nombre_avis})
                   </span>
                 </div>
               )}
@@ -783,7 +790,7 @@ export default function PropertyDetail() {
                           d'identité n'existe encore, il ne faut pas l'affirmer. */}
                       <p className="text-sm text-muted-foreground">
                         {libelle === 'Commissionnaire'
-                          ? 'C’est lui qui reçoit votre demande et vous fait visiter.'
+                          ? 'C’est la personne qui reçoit votre demande et vous fait visiter.'
                           : 'Votre demande de visite est suivie par l’équipe VillaGo.'}
                       </p>
                     </div>

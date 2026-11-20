@@ -560,7 +560,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-demandes-count">{pendingDemandesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Demandes</p>
+                  <p className="text-xs text-muted-foreground truncate">À traiter</p>
                 </div>
               </div>
             </CardContent>
@@ -568,8 +568,8 @@ export default function ModerateurDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4 text-indigo-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-attente-fond flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4 text-statut-attente" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-accepted-demandes-count">{acceptedDemandesWithoutVisite}</p>
@@ -581,12 +581,12 @@ export default function ModerateurDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-teal-500/10 flex items-center justify-center shrink-0">
-                  <Users className="w-4 h-4 text-teal-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-favorable-fond flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 text-statut-favorable" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-active-visits-count">{activeVisitesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Visites</p>
+                  <p className="text-xs text-muted-foreground truncate">Visites à venir</p>
                 </div>
               </div>
             </CardContent>
@@ -594,8 +594,8 @@ export default function ModerateurDashboard() {
           <Card>
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-purple-600" />
+                <div className="w-9 h-9 rounded-full bg-statut-information-fond flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 text-statut-information" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-reports-count">{rapportsCount}</p>

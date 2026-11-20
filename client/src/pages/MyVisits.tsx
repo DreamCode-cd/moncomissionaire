@@ -151,6 +151,17 @@ export default function MyVisits() {
   // cinq plus récentes, le reste à un clic.
   const enCours = allDemandes.filter((d) => pendingDemandes.includes(d) || acceptedDemandes.includes(d));
   const closesTriees = [...rejectedDemandes].sort((x, y) => (y.id ?? 0) - (x.id ?? 0));
+
+  // Comme sur le mobile (« Choisir une autre date ») : une demande close sans
+  // faute du client — expirée, visite non faite, ou annulée par le
+  // commissionnaire avec un motif — se redemande en un geste, sauf si une
+  // autre demande court déjà pour ce bien.
+  const bienDe = (d: DemandeVisite) => d.bien_detail?.id ?? d.bien;
+  const peutRedemander = (d: DemandeVisite) =>
+    (d.statut === 'expiree' ||
+      d.visite?.statut === 'non_faite' ||
+      (d.visite?.statut === 'annulee' && Boolean(d.visite.motif_annulation))) &&
+    !enCours.some((e) => bienDe(e) === bienDe(d));
   const closesCachees = Math.max(0, closesTriees.length - CLOSES_VISIBLES);
   const sections = [
     { cle: 'en-cours', titre: 'En cours', demandes: enCours },
@@ -298,6 +309,11 @@ export default function MyVisits() {
                   </Button>
                 )}
               </div>
+            )}
+            {peutRedemander(demande) && (
+              <Button asChild size="sm" className="mt-2 mr-4" data-testid={`button-redemander-${demande.id}`}>
+                <Link href={`/property/${bienDe(demande)}`}>Choisir une autre date</Link>
+              </Button>
             )}
             {annulable(demande) && (
               <Button

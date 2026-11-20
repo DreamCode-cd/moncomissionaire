@@ -61,7 +61,7 @@ import {
   CLE_VISITES,
 } from '@/components/commission/commun';
 import { lieuAnnonce } from '@/lib/annonce';
-import { formaterDateCourte } from '@/lib/dates';
+import { formaterDateCourte, formaterHeure } from '@/lib/dates';
 import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { messageErreur } from '@/lib/erreurs';
 import type {
@@ -148,7 +148,7 @@ export default function CommissionnaireDashboard() {
         <Tabs value={onglet} onValueChange={setOnglet}>
           {/* Six onglets : sur un téléphone, la barre défile plutôt que
               d'écraser les libellés. */}
-          <TabsList className="mb-4 flex w-full justify-start overflow-x-auto">
+          <TabsList className="mb-4 flex h-auto w-full flex-wrap justify-start">
             <TabsTrigger value="biens" data-testid="tab-biens">
               Biens ({biens.data?.count ?? 0})
             </TabsTrigger>
@@ -450,7 +450,7 @@ function OngletDemandes({
                 <p className="text-sm text-muted-foreground">
                   {nomAffiche(d.client)}
                   {' · souhaitée le '}
-                  {formaterDateCourte(d.date_souhaitee)} à {d.heure_souhaitee?.slice(0, 5)}
+                  {formaterDateCourte(d.date_souhaitee)} à {formaterHeure(d.heure_souhaitee)}
                 </p>
               </div>
               <BadgeStatut famille="demande" valeur={d.statut} libelle={d.statut_display} compact />
@@ -575,7 +575,7 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
                 <BadgeStatut famille="visite" valeur={v.statut} libelle={v.statut_display} compact />
               </div>
               <p className="text-sm">
-                {formaterDateCourte(v.date_visite)} à {v.heure_visite?.slice(0, 5)}
+                {formaterDateCourte(v.date_visite)} à {formaterHeure(v.heure_visite)}
               </p>
               {demande?.client && (
                 <p className="text-sm text-muted-foreground">

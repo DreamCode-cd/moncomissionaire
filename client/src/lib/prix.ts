@@ -64,7 +64,9 @@ export function formaterLoyer(
   devise?: string | null,
 ): string {
   const prix = formaterPrix(montant, devise);
-  return prix === '—' ? prix : `${prix}/mois`;
+  // « par mois » et non « /mois » : la même écriture que la fiche, les
+  // annonces et le mobile (audit du 20/11/2026).
+  return prix === '—' ? prix : `${prix} par mois`;
 }
 
 /**

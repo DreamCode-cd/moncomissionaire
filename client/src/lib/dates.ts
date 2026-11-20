@@ -50,13 +50,22 @@ export function formaterJourEtMois(valeur?: string | Date | null): string {
 }
 
 /** « 14:30 » — l'API renvoie souvent « 14:30:00 », les secondes n'apprennent rien. */
+/** « 10 h », « 10 h 30 » : comme l'application mobile et les textes du
+ *  serveur (audit du 20/11/2026). Espaces insécables : « 10 h » ne se coupe
+ *  jamais en fin de ligne. */
 export function formaterHeure(valeur?: string | Date | null): string {
+  let heures: number;
+  let minutes: number;
   if (typeof valeur === 'string' && /^\d{2}:\d{2}/.test(valeur)) {
-    return valeur.slice(0, 5);
+    heures = Number(valeur.slice(0, 2));
+    minutes = Number(valeur.slice(3, 5));
+  } else {
+    const date = versDate(valeur);
+    if (!date) return ABSENT;
+    heures = date.getHours();
+    minutes = date.getMinutes();
   }
-  const date = versDate(valeur);
-  if (!date) return ABSENT;
-  return date.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
+  return minutes ? `${heures}\u00A0h\u00A0${String(minutes).padStart(2, '0')}` : `${heures}\u00A0h`;
 }
 
 /** « 25/09/2026 à 14:30 ». */
