@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { assembler, decouper, PAYS } from '@shared/telephone';
+import { t, traduireSiCle } from '@/i18n';
 
 interface ChampTelephoneProps {
   /** Le numéro complet, « +243812345678 », tel que l'API le stocke. */
@@ -44,7 +45,7 @@ export const ChampTelephone = forwardRef<HTMLInputElement, ChampTelephoneProps>(
             onChange(assembler(nouveau, saisie));
           }}
         >
-          <SelectTrigger className="w-[6.5rem] shrink-0" aria-label="Indicatif du pays" data-testid="select-indicatif">
+          <SelectTrigger className="w-[6.5rem] shrink-0" aria-label={t('telephone.indicatifPays')} data-testid="select-indicatif">
             {/* Le bouton ne montre que l'indicatif ; le nom du pays est dans
                 la liste. « +243 RD… » tronqué ne disait rien. */}
             <SelectValue>+{indicatif}</SelectValue>
@@ -52,7 +53,7 @@ export const ChampTelephone = forwardRef<HTMLInputElement, ChampTelephoneProps>(
           <SelectContent>
             {PAYS.map((pays) => (
               <SelectItem key={pays.indicatif} value={pays.indicatif}>
-                +{pays.indicatif} {pays.nom}
+                +{pays.indicatif} {nomPays(pays.indicatif, pays.nom)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -90,3 +91,11 @@ export const ChampTelephone = forwardRef<HTMLInputElement, ChampTelephoneProps>(
   },
 );
 ChampTelephone.displayName = 'ChampTelephone';
+
+/** Nom du pays dans la langue de l'écran ; le nom français de
+ *  shared/telephone.ts sert de repli pour un pays ajouté sans traduction. */
+function nomPays(indicatif: string, repli: string): string {
+  const cle = `pays.${indicatif}`;
+  const nom = traduireSiCle(cle);
+  return nom === cle ? repli : nom;
+}

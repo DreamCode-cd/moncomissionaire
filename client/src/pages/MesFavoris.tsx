@@ -6,6 +6,7 @@ import { PropertyGrid } from '@/components/property/PropertyGrid';
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { Button } from '@/components/ui/button';
 import type { BienList, PaginatedResponse } from '@shared/schema';
+import { t } from '@/i18n';
 
 interface Favori {
   id: number;
@@ -30,17 +31,17 @@ export default function MesFavoris() {
   return (
     <Layout>
       <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-        <h1 className="mb-4 text-2xl font-bold">Mes favoris</h1>
+        <h1 className="mb-4 text-2xl font-bold">{t('favoris.mesFavoris')}</h1>
         {error && !data ? (
           <ErreurRequete erreur={error} onReessayer={() => void refetch()} className="py-12" />
         ) : !isLoading && biens.length === 0 ? (
           <EtatVide
             icone={Heart}
-            titre="Aucun favori pour l’instant"
-            description="Touchez le cœur sur la fiche d’un bien pour le retrouver ici."
+            titre={t('favoris.aucunFavoriLinstant')}
+            description={t('favoris.touchezCurFicheDun')}
             action={
               <Link href="/search">
-                <Button>Voir les annonces</Button>
+                <Button>{t('favoris.voirAnnonces')}</Button>
               </Link>
             }
             className="py-12"

@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { poserErreursSurChamps } from '@/lib/erreurs';
+import { t } from '@/i18n';
 
 const CHEMIN = '/supprimer-mon-compte';
 
@@ -40,7 +41,7 @@ export default function SupprimerCompte() {
     e.preventDefault();
     setErreur('');
     if (!motDePasse) {
-      setErreur('Saisissez votre mot de passe.');
+      setErreur(t('supprimer.saisissezVotreMotPasse'));
       return;
     }
     setEnCours(true);
@@ -49,11 +50,11 @@ export default function SupprimerCompte() {
       // Les sessions sont déjà révoquées par le serveur : il reste à oublier
       // celle de ce navigateur et les données gardées en cache.
       await logout();
-      toast({ title: 'Votre compte a été supprimé', description: 'Merci d’avoir utilisé VillaGo.' });
+      toast({ title: t('supprimer.votreCompteEteSupprime'), description: t('supprimer.merciAvoirUtiliseVillago') });
       setLocation('/');
     } catch (err) {
       const reste = poserErreursSurChamps(err, ['mot_de_passe'] as const, (_, message) => setErreur(message));
-      if (reste) toast({ title: 'Suppression impossible', description: reste, variant: 'destructive' });
+      if (reste) toast({ title: t('supprimer.suppressionImpossible'), description: reste, variant: 'destructive' });
     } finally {
       setEnCours(false);
     }
@@ -64,46 +65,44 @@ export default function SupprimerCompte() {
       <div className="container mx-auto px-4 py-8 max-w-xl">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Supprimer mon compte VillaGo</CardTitle>
+            <CardTitle className="text-xl">{t('supprimer.supprimerMonCompteVillago')}</CardTitle>
             <CardDescription>
-              Vous pouvez supprimer votre compte à tout moment, depuis ce site ou depuis l’application.
+              {t('supprimer.vousPouvezSupprimerVotre')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 text-sm">
             <section className="space-y-2">
-              <h2 className="font-semibold text-base">Ce qui disparaît</h2>
+              <h2 className="font-semibold text-base">{t('supprimer.ceQuiDisparait')}</h2>
               <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                <li>Votre nom, votre adresse e-mail, votre téléphone, votre photo et votre présentation.</li>
-                <li>Vos favoris et vos notifications.</li>
-                <li>Vos annonces, qui quittent la recherche.</li>
-                <li>Vos demandes de visite en cours. Les personnes concernées sont prévenues.</li>
-                <li>Si vous êtes commissionnaire : les numéros et les notes de votre carnet de bailleurs.</li>
+                <li>{t('supprimer.votreNomVotreAdresse')}</li>
+                <li>{t('supprimer.vosFavorisVosNotifications')}</li>
+                <li>{t('supprimer.vosAnnoncesQuiQuittent')}</li>
+                <li>{t('supprimer.vosDemandesVisiteCours')}</li>
+                <li>{t('supprimer.siVousEtesCommissionnaire')}</li>
               </ul>
             </section>
             <section className="space-y-2">
-              <h2 className="font-semibold text-base">Ce qui reste, sans votre nom</h2>
+              <h2 className="font-semibold text-base">{t('supprimer.ceQuiResteSans')}</h2>
               <p className="text-muted-foreground">
-                Les commissions, les paiements et les états des lieux déjà enregistrés, ainsi que vos avis et vos
-                messages. Ils concernent aussi d’autres personnes (un locataire, un bailleur, un confrère) et
-                servent de preuve en cas de désaccord. Ils sont rattachés à « Compte supprimé ».
+                {t('supprimer.commissionsPaiementsEtatsLieux')}
               </p>
             </section>
-            <p className="font-medium">La suppression est immédiate et définitive.</p>
+            <p className="font-medium">{t('supprimer.suppressionEstImmediateDefinitive')}</p>
 
             {isLoading ? (
-              <p className="text-muted-foreground">Chargement…</p>
+              <p className="text-muted-foreground">{t('supprimer.chargement')}</p>
             ) : !user ? (
               <div className="space-y-3 border-t pt-5">
-                <p>Connectez-vous d’abord avec le compte à supprimer.</p>
+                <p>{t('supprimer.connectezVousAbordAvec')}</p>
                 <Button asChild className="w-full">
-                  <Link href={`/login?suite=${encodeURIComponent(CHEMIN)}`}>Se connecter</Link>
+                  <Link href={`/login?suite=${encodeURIComponent(CHEMIN)}`}>{t('supprimer.seConnecter')}</Link>
                 </Button>
                 <p className="text-muted-foreground">
-                  Mot de passe perdu ?{' '}
+                  {t('supprimer.mdpPerdu')}{' '}
                   <Link href="/mot-de-passe-oublie" className="underline">
-                    Recevoir un code par e-mail
+                    {t('supprimer.recevoirCodeEMail')}
                   </Link>
-                  , puis revenez sur cette page.
+                  {t('supprimer.puisRevenezCettePage')}
                 </p>
               </div>
             ) : (
@@ -112,7 +111,7 @@ export default function SupprimerCompte() {
                   Compte : <span className="font-medium">{user.email}</span>
                 </p>
                 <div className="space-y-2">
-                  <Label htmlFor="mot-de-passe">Votre mot de passe</Label>
+                  <Label htmlFor="mot-de-passe">{t('supprimer.votreMotPasse')}</Label>
                   <div className="relative">
                     <Input
                       id="mot-de-passe"
@@ -128,7 +127,7 @@ export default function SupprimerCompte() {
                       type="button"
                       className="absolute right-0 top-0 h-full w-11 flex items-center justify-center text-muted-foreground"
                       onClick={() => setVisible((v) => !v)}
-                      aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                      aria-label={visible ? t('supprimer.masquerMotPasse') : t('supprimer.afficherMotPasse')}
                     >
                       {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -147,7 +146,7 @@ export default function SupprimerCompte() {
                     data-testid="checkbox-compris"
                   />
                   <Label htmlFor="compris" className="font-normal leading-snug">
-                    J’ai compris que mon compte sera supprimé tout de suite, sans retour en arrière possible.
+                    {t('supprimer.jAiComprisQue')}
                   </Label>
                 </div>
                 <Button
@@ -158,10 +157,10 @@ export default function SupprimerCompte() {
                   data-testid="button-supprimer-compte"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {enCours ? 'Suppression…' : 'Supprimer mon compte'}
+                  {enCours ? t('supprimer.suppression') : t('supprimer.supprimerMonCompte')}
                 </Button>
                 <Button asChild variant="ghost" className="w-full">
-                  <Link href="/profile">Annuler</Link>
+                  <Link href="/profile">{t('supprimer.annuler')}</Link>
                 </Button>
               </form>
             )}

@@ -49,21 +49,24 @@ import { queryClient } from '@/lib/queryClient';
 import type { Visite, RapportVisite, RapportVisiteCreate, PaginatedResponse, BienDetail } from '@shared/schema';
 import { generateVisiteReportPDF, generateVisiteSummaryPDF } from '@/lib/pdf-generator';
 import { getDjangoImageUrl, nomAffiche, vignetteDe } from '@/lib/utils';
-import { initiale } from '@/lib/annonce';
+import { initiale, libelleTypeBien } from '@/lib/annonce';
 import { lieuVisite } from '@/lib/visite';
 import { libelleRole } from '@/lib/roles';
 import { installerMarqueurParDefaut } from '@/lib/leaflet-marqueur';
 import { formaterPrix } from '@/lib/prix';
+import { t } from '@/i18n';
+import { libelleChoixCourant, libelleChoixEau } from '@/lib/terrain';
+import { lireStatut } from '@/lib/statuts';
 
 // Marqueur dessiné en SVG inline : plus aucune requête vers un CDN tiers.
 installerMarqueurParDefaut();
 
 const etatOptions = [
-  { value: 'tres_interessant', label: 'Très intéressant' },
-  { value: 'interessant', label: 'Intéressant' },
-  { value: 'moyen', label: 'Moyen' },
-  { value: 'peu_interessant', label: 'Peu intéressant' },
-  { value: 'non_recommande', label: 'Non recommandé' },
+  { value: 'tres_interessant', get label() { return t('statut.appreciation.tres_interessant'); } },
+  { value: 'interessant', get label() { return t('statut.appreciation.interessant'); } },
+  { value: 'moyen', get label() { return t('statut.appreciation.moyen'); } },
+  { value: 'peu_interessant', get label() { return t('statut.appreciation.peu_interessant'); } },
+  { value: 'non_recommande', get label() { return t('statut.appreciation.non_recommande'); } },
 ];
 
 // Extended report data with all optional fields
@@ -129,14 +132,14 @@ export default function AgentDashboard() {
       setSelectedVisite(null);
       resetReportData();
       toast({
-        title: 'Rapport créé',
-        description: 'Le rapport de visite a été enregistré et la visite est terminée.',
+        title: t('agentTableau.rapportCree'),
+        description: t('agentTableau.rapportVisiteEteEnregistre'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('agentTableau.erreur'),
+        description: error instanceof Error ? error.message : t('agentTableau.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -245,18 +248,18 @@ export default function AgentDashboard() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="font-semibold">
-                  {formaterDateLongue(visite.date_visite)} à {formatTime(visite.heure_visite)}
+                  {t('date.dateEtHeure', { date: formaterDateLongue(visite.date_visite), heure: formatTime(visite.heure_visite) })}
                 </span>
                 <BadgeStatut valeur={visite.statut} />
                 {visitHasReport && (
                   <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
-                    <FileText className="w-3 h-3 mr-1" />Rapport
+                    <FileText className="w-3 h-3 mr-1" />{t('agentTableau.rapport')}
                   </Badge>
                 )}
               </div>
               
               <h3 className="font-medium mb-1 truncate" data-testid={`visite-title-${visite.id}`}>
-                {bien?.titre || 'Bien non spécifié'}
+                {bien?.titre || t('agentTableau.bienNonSpecifie')}
               </h3>
               
               <div className="flex items-start text-sm text-muted-foreground mb-2">
@@ -274,7 +277,7 @@ export default function AgentDashboard() {
                     <AvatarFallback className="text-xs">{initiale(client)}</AvatarFallback>
                   </Avatar>
                   <span className="text-sm text-muted-foreground" data-testid={`visite-client-${visite.id}`}>
-                    Client : {nomAffiche(client, 'non précisé')}
+                    {t('agentTableau.clientNom', { nom: nomAffiche(client, t('agentTableau.nonPrecise')) })}
                   </span>
                   {client.phone && (
                     <a href={`tel:${client.phone}`} className="text-sm text-primary underline-offset-2 hover:underline">
@@ -286,7 +289,7 @@ export default function AgentDashboard() {
 
               {visite.notes_commissionnaire && (
                 <p className="text-sm text-muted-foreground mt-2 italic">
-                  Note : {visite.notes_commissionnaire}
+                  {t('agentTableau.note', { a: visite.notes_commissionnaire })}
                 </p>
               )}
             </div>
@@ -303,7 +306,7 @@ export default function AgentDashboard() {
                 data-testid={`button-detail-${visite.id}`}
               >
                 <Eye className="w-4 h-4 mr-1" />
-                Détails
+                {t('agentTableau.details')}
               </Button>
 
               {/* Plus de liste déroulante de statut (audit du 19/11/2026,
@@ -320,7 +323,7 @@ export default function AgentDashboard() {
                   data-testid={`button-terminer-${visite.id}`}
                 >
                   <CircleCheck className="w-4 h-4 mr-1" />
-                  Elle a eu lieu : rapport
+                  {t('agentTableau.elleEuLieuRapport')}
                 </Button>
               )}
               <ConfirmerVisite visite={visite} cle={['/api/v1/visites/agent/visites/']} espace="agent" />
@@ -332,7 +335,7 @@ export default function AgentDashboard() {
                   data-testid={`button-create-report-${visite.id}`}
                 >
                   <FileText className="w-4 h-4 mr-1" />
-                  Créer rapport
+                  {t('agentTableau.creerRapport')}
                 </Button>
               )}
             </div>
@@ -357,11 +360,11 @@ export default function AgentDashboard() {
               <h1 className="text-2xl font-bold" data-testid="text-dashboard-title">
                 {user?.first_name} {user?.last_name}
               </h1>
-              <p className="text-muted-foreground">Agent</p>
+              <p className="text-muted-foreground">{t('agentTableau.agent')}</p>
             </div>
           </div>
           <p className="text-muted-foreground">
-            Gérez vos visites assignées et soumettez vos rapports
+            {t('agentTableau.gerezVosVisitesAssignees')}
           </p>
         </div>
 
@@ -375,7 +378,7 @@ export default function AgentDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-today">{todayVisites.length}</p>
-                  <p className="text-xs text-muted-foreground">Aujourd'hui</p>
+                  <p className="text-xs text-muted-foreground">{t('agentTableau.aujourdHui')}</p>
                 </div>
               </div>
             </CardContent>
@@ -388,7 +391,7 @@ export default function AgentDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-planifiees">{planifiedVisites.length}</p>
-                  <p className="text-xs text-muted-foreground">Planifiées</p>
+                  <p className="text-xs text-muted-foreground">{t('agentTableau.planifiees')}</p>
                 </div>
               </div>
             </CardContent>
@@ -401,7 +404,7 @@ export default function AgentDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-terminees">{completedVisites.length}</p>
-                  <p className="text-xs text-muted-foreground">Terminées</p>
+                  <p className="text-xs text-muted-foreground">{t('agentTableau.terminees')}</p>
                 </div>
               </div>
             </CardContent>
@@ -414,7 +417,7 @@ export default function AgentDashboard() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-rapports">{reports?.results?.length || 0}</p>
-                  <p className="text-xs text-muted-foreground">Rapports</p>
+                  <p className="text-xs text-muted-foreground">{t('agentTableau.rapports')}</p>
                 </div>
               </div>
             </CardContent>
@@ -425,10 +428,10 @@ export default function AgentDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="visites" data-testid="tab-visites">
-              Mes visites
+              {t('agentTableau.mesVisites')}
             </TabsTrigger>
             <TabsTrigger value="rapports" data-testid="tab-rapports">
-              Mes rapports ({reports?.results?.length || 0})
+              {t('agentTableau.mesRapports', { a: reports?.results?.length || 0 })}
             </TabsTrigger>
           </TabsList>
 
@@ -438,7 +441,7 @@ export default function AgentDashboard() {
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Filtrer:</span>
+                <span className="text-sm text-muted-foreground">{t('agentTableau.filtrer')}</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -447,7 +450,7 @@ export default function AgentDashboard() {
                   onClick={() => setVisiteFilter('all')}
                   data-testid="filter-all"
                 >
-                  Toutes ({allVisites.length})
+                  {t('agentTableau.filtreToutes', { n: allVisites.length })}
                 </Button>
                 <Button
                   variant={visiteFilter === 'planifiee' ? 'default' : 'outline'}
@@ -455,7 +458,7 @@ export default function AgentDashboard() {
                   onClick={() => setVisiteFilter('planifiee')}
                   data-testid="filter-planifiee"
                 >
-                  Planifiées ({planifiedVisites.length})
+                  {t('agentTableau.filtrePlanifiees', { n: planifiedVisites.length })}
                 </Button>
                 <Button
                   variant={visiteFilter === 'terminee' ? 'default' : 'outline'}
@@ -463,7 +466,7 @@ export default function AgentDashboard() {
                   onClick={() => setVisiteFilter('terminee')}
                   data-testid="filter-terminee"
                 >
-                  Terminées ({completedVisites.length})
+                  {t('agentTableau.filtreTerminees', { n: completedVisites.length })}
                 </Button>
                 <Button
                   variant={visiteFilter === 'annulee' ? 'default' : 'outline'}
@@ -471,7 +474,7 @@ export default function AgentDashboard() {
                   onClick={() => setVisiteFilter('annulee')}
                   data-testid="filter-annulee"
                 >
-                  Annulées ({cancelledVisites.length})
+                  {t('agentTableau.filtreAnnulees', { n: cancelledVisites.length })}
                 </Button>
               </div>
             </div>
@@ -483,12 +486,12 @@ export default function AgentDashboard() {
                 ))}
               </div>
             ) : erreurVisites && !visites ? (
-              <ErreurRequete erreur={erreurVisites} titre="Vos visites n’ont pas pu être chargées" onReessayer={() => void rechargerVisites()} />
+              <ErreurRequete erreur={erreurVisites} titre={t('agentTableau.vosVisitesNOnt')} onReessayer={() => void rechargerVisites()} />
             ) : allVisites.length === 0 ? (
               <EtatVide
                 icone={Calendar}
-                titre="Aucune visite"
-                description="Les visites que le commissionnaire vous assignera apparaîtront ici."
+                titre={t('agentTableau.aucuneVisite')}
+                description={t('agentTableau.visitesQueCommissionnaireVous')}
               />
             ) : (
               <div className="space-y-4">
@@ -508,8 +511,8 @@ export default function AgentDashboard() {
             ) : !reports?.results?.length ? (
               <EtatVide
                 icone={FileText}
-                titre="Aucun rapport"
-                description="Vos rapports apparaîtront ici une fois vos visites terminées."
+                titre={t('agentTableau.aucunRapport')}
+                description={t('agentTableau.vosRapportsApparaitrontIci')}
               />
             ) : (
               <div className="space-y-4">
@@ -519,27 +522,27 @@ export default function AgentDashboard() {
                       <div className="flex flex-col md:flex-row gap-4 items-start">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="font-semibold">Rapport #{report.id}</span>
+                            <span className="font-semibold">{t('agentTableau.rapport2')}{report.id}</span>
                             <BadgeStatut famille="appreciation" valeur={report.etat_general} />
                             {report.conformite_annonce && (
                               <Badge variant="outline" className="bg-statut-favorable-fond text-statut-favorable">
-                                <CircleCheck className="w-3 h-3 mr-1" />Conforme
+                                <CircleCheck className="w-3 h-3 mr-1" />{t('agentTableau.conforme')}
                               </Badge>
                             )}
                             {report.client_interesse && (
                               <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
-                                <User className="w-3 h-3 mr-1" />Client intéressé
+                                <User className="w-3 h-3 mr-1" />{t('agentTableau.clientInteresse')}
                               </Badge>
                             )}
                           </div>
 
                           <p className="text-sm text-muted-foreground mb-2">
-                            Visite #{report.visite} - Créé le {formaterDateLongue(report.created_at)}
+                            {t('agentTableau.visiteCreeB', { a: report.visite, b: formaterDateLongue(report.created_at) })}
                           </p>
 
                           {report.points_positifs && (
                             <p className="text-sm mb-1">
-                              <span className="font-medium text-statut-favorable">Points positifs:</span>{' '}
+                              <span className="font-medium text-statut-favorable">{t('agentTableau.pointsPositifs')}</span>{' '}
                               {report.points_positifs.substring(0, 100)}
                               {report.points_positifs.length > 100 ? '...' : ''}
                             </p>
@@ -547,7 +550,7 @@ export default function AgentDashboard() {
 
                           {report.points_negatifs && (
                             <p className="text-sm">
-                              <span className="font-medium text-statut-defavorable">Points négatifs:</span>{' '}
+                              <span className="font-medium text-statut-defavorable">{t('agentTableau.pointsNegatifs')}</span>{' '}
                               {report.points_negatifs.substring(0, 100)}
                               {report.points_negatifs.length > 100 ? '...' : ''}
                             </p>
@@ -565,7 +568,7 @@ export default function AgentDashboard() {
                             data-testid={`button-view-report-${report.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
-                            Voir
+                            {t('agentTableau.voir')}
                           </Button>
                           <Button
                             variant="outline"
@@ -599,9 +602,9 @@ export default function AgentDashboard() {
         }}>
           <DialogContent className="w-[95vw] max-w-4xl h-[90vh] sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col p-4 sm:p-6">
             <DialogHeader className="flex-shrink-0">
-              <DialogTitle>Détails de la visite</DialogTitle>
+              <DialogTitle>{t('agentTableau.detailsVisite')}</DialogTitle>
               <DialogDescription>
-                Informations complètes sur la visite et le bien assigné
+                {t('agentTableau.informationsCompletesVisiteBien')}
               </DialogDescription>
             </DialogHeader>
             {selectedVisite && (() => {
@@ -626,7 +629,7 @@ export default function AgentDashboard() {
                       <div>
                         <h4 className="font-semibold mb-3 flex items-center gap-2">
                           <Image className="w-4 h-4" />
-                          Photos du bien ({allPhotos.length})
+                          {t('agentTableau.photosBien', { a: allPhotos.length })}
                         </h4>
                         <div className="relative">
                           <div className="aspect-video rounded-lg overflow-hidden bg-muted">
@@ -686,25 +689,25 @@ export default function AgentDashboard() {
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <House className="w-4 h-4" />
-                        Informations du bien
+                        {t('agentTableau.informationsBien')}
                       </h4>
                       <Card>
                         <CardContent className="p-4 space-y-4">
                           <div>
                             <h5 className="text-lg font-semibold">{bien?.titre}</h5>
                             <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="secondary">{bien?.type_bien_display}</Badge>
-                              <Badge variant="outline">{bien?.statut_location_display || bien?.statut_location}</Badge>
+                              <Badge variant="secondary">{libelleTypeBien(bien?.type_bien)}</Badge>
+                              <Badge variant="outline">{lireStatut('location', bien?.statut_location).libelle}</Badge>
                             </div>
                           </div>
 
                           <p className="text-2xl font-bold text-primary">
-                            {formaterPrix(bien?.prix_mensuel, bien?.devise)}<span className="text-sm font-normal text-muted-foreground"> par mois</span>
+                            {formaterPrix(bien?.prix_mensuel, bien?.devise)}<span className="text-sm font-normal text-muted-foreground">{t('fiche.parMois')}</span>
                           </p>
 
                           {bien?.description && (
                             <div>
-                              <Label className="text-muted-foreground">Description</Label>
+                              <Label className="text-muted-foreground">{t('agentTableau.description')}</Label>
                               <p className="text-sm mt-1">{bien.description}</p>
                             </div>
                           )}
@@ -731,48 +734,48 @@ export default function AgentDashboard() {
                             {bien?.nombre_pieces !== undefined && (
                               <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                                 <Building className="w-4 h-4 text-muted-foreground" />
-                                <span className="text-sm">{bien.nombre_pieces} pièce{bien.nombre_pieces > 1 ? 's' : ''}</span>
+                                <span className="text-sm">{t('reste.pieces', { n: bien.nombre_pieces })}</span>
                               </div>
                             )}
                           </div>
 
                           {/* Amenities */}
                           <div>
-                            <Label className="text-muted-foreground mb-2 block">Équipements</Label>
+                            <Label className="text-muted-foreground mb-2 block">{t('agentTableau.equipements')}</Label>
                             <div className="flex flex-wrap gap-2">
                               {bien?.eau_display && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Droplets className="w-3 h-3" /> {bien.eau_display}
+                                  <Droplets className="w-3 h-3" /> {libelleChoixEau(bien.eau ?? '') ?? bien.eau_display}
                                 </Badge>
                               )}
                               {bien?.electricite_display && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Zap className="w-3 h-3" /> {bien.electricite_display}
+                                  <Zap className="w-3 h-3" /> {libelleChoixCourant(bien.electricite ?? '') ?? bien.electricite_display}
                                 </Badge>
                               )}
                               {bien?.parking && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Car className="w-3 h-3" /> Parking
+                                  <Car className="w-3 h-3" /> {t('agentTableau.parking')}
                                 </Badge>
                               )}
                               {bien?.jardin && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Trees className="w-3 h-3" /> Jardin
+                                  <Trees className="w-3 h-3" /> {t('agentTableau.jardin')}
                                 </Badge>
                               )}
                               {bien?.meuble && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Sofa className="w-3 h-3" /> Meublé
+                                  <Sofa className="w-3 h-3" /> {t('agentTableau.meuble')}
                                 </Badge>
                               )}
                               {bien?.climatisation && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Wind className="w-3 h-3" /> Climatisation
+                                  <Wind className="w-3 h-3" /> {t('agentTableau.climatisation')}
                                 </Badge>
                               )}
                               {bien?.gardien && (
                                 <Badge variant="outline" className="flex items-center gap-1">
-                                  <Shield className="w-3 h-3" /> Gardien
+                                  <Shield className="w-3 h-3" /> {t('agentTableau.gardien')}
                                 </Badge>
                               )}
                             </div>
@@ -785,7 +788,7 @@ export default function AgentDashboard() {
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <Navigation className="w-4 h-4" />
-                        Adresse et localisation
+                        {t('agentTableau.adresseLocalisation')}
                       </h4>
                       <Card>
                         <CardContent className="p-4 space-y-4">
@@ -796,7 +799,7 @@ export default function AgentDashboard() {
                                 {lieu.adresse ? (
                                   <p className="font-medium">{lieu.adresse}</p>
                                 ) : (
-                                  <p className="font-medium text-muted-foreground">Adresse exacte non communiquée</p>
+                                  <p className="font-medium text-muted-foreground">{t('agentTableau.adresseExacteNonCommuniquee')}</p>
                                 )}
                                 <p className="text-sm text-muted-foreground">{lieu.secteur}</p>
                               </div>
@@ -837,7 +840,7 @@ export default function AgentDashboard() {
                               }}
                             >
                               <Navigation className="w-4 h-4 mr-2" />
-                              Ouvrir dans Google Maps
+                              {t('agentTableau.ouvrirDansGoogleMaps')}
                             </Button>
                           )}
                         </CardContent>
@@ -848,29 +851,29 @@ export default function AgentDashboard() {
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        Informations de la visite
+                        {t('agentTableau.informationsVisite')}
                       </h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-muted-foreground">Date</Label>
+                          <Label className="text-muted-foreground">{t('agentTableau.date')}</Label>
                           <p className="font-medium">{formaterDateLongue(selectedVisite.date_visite)}</p>
                         </div>
                         <div>
-                          <Label className="text-muted-foreground">Heure</Label>
+                          <Label className="text-muted-foreground">{t('agentTableau.heure')}</Label>
                           <p className="font-medium">{formatTime(selectedVisite.heure_visite)}</p>
                         </div>
                         <div>
-                          <Label className="text-muted-foreground">Statut</Label>
+                          <Label className="text-muted-foreground">{t('agentTableau.statut')}</Label>
                           <div className="mt-1"><BadgeStatut valeur={selectedVisite.statut} /></div>
                         </div>
                         <div>
-                          <Label className="text-muted-foreground">ID Visite</Label>
+                          <Label className="text-muted-foreground">{t('agentTableau.idVisite')}</Label>
                           <p className="font-medium">#{selectedVisite.id}</p>
                         </div>
                       </div>
                       {selectedVisite.notes_commissionnaire && (
                         <div className="mt-4">
-                          <Label className="text-muted-foreground">Notes du commissionnaire</Label>
+                          <Label className="text-muted-foreground">{t('agentTableau.notesCommissionnaire')}</Label>
                           <p className="mt-1 p-3 bg-muted rounded-lg text-sm">
                             {selectedVisite.notes_commissionnaire}
                           </p>
@@ -882,7 +885,7 @@ export default function AgentDashboard() {
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        Client
+                        {t('agentTableau.client')}
                       </h4>
                       <Card>
                         <CardContent className="p-4">
@@ -892,12 +895,12 @@ export default function AgentDashboard() {
                               <AvatarFallback>{initiale(client)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                              <p className="font-medium" data-testid="detail-client">{nomAffiche(client, 'Non précisé')}</p>
+                              <p className="font-medium" data-testid="detail-client">{nomAffiche(client, t('agentTableau.nonPrecise2'))}</p>
                             </div>
                             {client?.phone && (
                               <Button variant="outline" size="sm" asChild>
                                 <a href={`tel:${client.phone}`}>
-                                  <Phone className="w-4 h-4 mr-1" /> Appeler
+                                  <Phone className="w-4 h-4 mr-1" /> {t('agentTableau.appeler')}
                                 </a>
                               </Button>
                             )}
@@ -911,7 +914,7 @@ export default function AgentDashboard() {
                       <div>
                         {/* Celui qui a fixé la visite : un commissionnaire, ou un
                             membre de l'équipe pour un bien de propriétaire. */}
-                        <h4 className="font-semibold mb-3">Visite fixée par</h4>
+                        <h4 className="font-semibold mb-3">{t('agentTableau.visiteFixee')}</h4>
                         <div className="flex items-center gap-3 flex-wrap">
                           <Avatar className="w-8 h-8">
                             <AvatarFallback className="text-xs">{initiale(selectedVisite.commissionnaire_detail)}</AvatarFallback>
@@ -942,7 +945,7 @@ export default function AgentDashboard() {
                           disabled={createReportMutation.isPending}
                         >
                           <CircleCheck className="w-4 h-4 mr-2" />
-                          Terminer la visite
+                          {t('agentTableau.terminerVisite')}
                         </Button>
                       )}
                       {selectedVisite.statut === 'terminee' && !hasReport(selectedVisite.id) && (
@@ -951,13 +954,13 @@ export default function AgentDashboard() {
                           handleOpenReportDialog(selectedVisite);
                         }}>
                           <FileText className="w-4 h-4 mr-2" />
-                          Créer un rapport
+                          {t('agentTableau.creerRapport2')}
                         </Button>
                       )}
                       <Link href={`/property/${selectedVisite.demande_detail?.bien}`}>
                         <Button variant="outline">
                           <Eye className="w-4 h-4 mr-2" />
-                          Voir la page du bien
+                          {t('agentTableau.voirPageBien')}
                         </Button>
                       </Link>
                     </div>
@@ -972,9 +975,9 @@ export default function AgentDashboard() {
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
           <DialogContent className="w-[95vw] max-w-2xl h-[90vh] sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col p-4 sm:p-6">
             <DialogHeader className="pb-2 flex-shrink-0">
-              <DialogTitle className="text-lg sm:text-xl">Créer un rapport de visite</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">{t('agentTableau.creerRapportVisite')}</DialogTitle>
               <DialogDescription className="text-sm">
-                Rapport pour la visite #{selectedVisite?.id}
+                {t('agentTableau.rapportVisite', { a: selectedVisite?.id })}
               </DialogDescription>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto min-h-0 pr-2 sm:pr-4">
@@ -982,17 +985,17 @@ export default function AgentDashboard() {
                 {/* Required Fields */}
                 <div className="space-y-4">
                   <h4 className="font-semibold text-sm uppercase text-muted-foreground">
-                    Informations requises
+                    {t('agentTableau.informationsRequises')}
                   </h4>
                   
                   <div>
-                    <Label>Appréciation générale *</Label>
+                    <Label>{t('agentTableau.appreciationGenerale')}</Label>
                     <Select
                       value={reportData.etat_general}
                       onValueChange={(value) => setReportData({ ...reportData, etat_general: value as any })}
                     >
                       <SelectTrigger data-testid="select-etat">
-                        <SelectValue placeholder="Sélectionner l'état" />
+                        <SelectValue placeholder={t('agentTableau.selectionnerEtat')} />
                       </SelectTrigger>
                       <SelectContent>
                         {etatOptions.map((option) => (
@@ -1005,7 +1008,7 @@ export default function AgentDashboard() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Label>Conforme à l'annonce *</Label>
+                    <Label>{t('agentTableau.conformeAnnonce')}</Label>
                     <Switch
                       checked={reportData.conformite_annonce}
                       onCheckedChange={(checked) => setReportData({ ...reportData, conformite_annonce: checked })}
@@ -1014,7 +1017,7 @@ export default function AgentDashboard() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Label>Client intéressé *</Label>
+                    <Label>{t('agentTableau.clientInteresse2')}</Label>
                     <Switch
                       checked={reportData.client_interesse}
                       onCheckedChange={(checked) => setReportData({ ...reportData, client_interesse: checked })}
@@ -1028,59 +1031,59 @@ export default function AgentDashboard() {
                 {/* Technical State */}
                 <div className="space-y-4">
                   <h4 className="font-semibold text-sm uppercase text-muted-foreground">
-                    État technique (optionnel)
+                    {t('agentTableau.etatTechniqueOptionnel')}
                   </h4>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <Label className="text-sm">Électricité</Label>
+                      <Label className="text-sm">{t('agentTableau.electricite')}</Label>
                       <Input
-                        placeholder="État électrique"
+                        placeholder={t('agentTableau.etatElectrique')}
                         value={reportData.etat_electricite || ''}
                         onChange={(e) => setReportData({ ...reportData, etat_electricite: e.target.value })}
                         data-testid="input-electricite"
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Plomberie</Label>
+                      <Label className="text-sm">{t('agentTableau.plomberie')}</Label>
                       <Input
-                        placeholder="État plomberie"
+                        placeholder={t('agentTableau.etatPlomberie')}
                         value={reportData.etat_plomberie || ''}
                         onChange={(e) => setReportData({ ...reportData, etat_plomberie: e.target.value })}
                         data-testid="input-plomberie"
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Peinture</Label>
+                      <Label className="text-sm">{t('agentTableau.peinture')}</Label>
                       <Input
-                        placeholder="État peinture"
+                        placeholder={t('agentTableau.etatPeinture')}
                         value={reportData.etat_peinture || ''}
                         onChange={(e) => setReportData({ ...reportData, etat_peinture: e.target.value })}
                         data-testid="input-peinture"
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Sols</Label>
+                      <Label className="text-sm">{t('agentTableau.sols')}</Label>
                       <Input
-                        placeholder="État sols"
+                        placeholder={t('agentTableau.etatSols')}
                         value={reportData.etat_sols || ''}
                         onChange={(e) => setReportData({ ...reportData, etat_sols: e.target.value })}
                         data-testid="input-sols"
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Fenêtres</Label>
+                      <Label className="text-sm">{t('agentTableau.fenetres')}</Label>
                       <Input
-                        placeholder="État fenêtres"
+                        placeholder={t('agentTableau.etatFenetres')}
                         value={reportData.etat_fenetres || ''}
                         onChange={(e) => setReportData({ ...reportData, etat_fenetres: e.target.value })}
                         data-testid="input-fenetres"
                       />
                     </div>
                     <div>
-                      <Label className="text-sm">Portes</Label>
+                      <Label className="text-sm">{t('agentTableau.portes')}</Label>
                       <Input
-                        placeholder="État portes"
+                        placeholder={t('agentTableau.etatPortes')}
                         value={reportData.etat_portes || ''}
                         onChange={(e) => setReportData({ ...reportData, etat_portes: e.target.value })}
                         data-testid="input-portes"
@@ -1094,22 +1097,22 @@ export default function AgentDashboard() {
                 {/* Environment */}
                 <div className="space-y-4">
                   <h4 className="font-semibold text-sm uppercase text-muted-foreground">
-                    Environnement (optionnel)
+                    {t('agentTableau.environnementOptionnel')}
                   </h4>
                   
                   <div>
-                    <Label>Accessibilité</Label>
+                    <Label>{t('agentTableau.accessibilite')}</Label>
                     <Input
-                      placeholder="Accès aux transports, parking, etc."
+                      placeholder={t('agentTableau.accesTransportsParkingEtc')}
                       value={reportData.accessibilite || ''}
                       onChange={(e) => setReportData({ ...reportData, accessibilite: e.target.value })}
                       data-testid="input-accessibilite"
                     />
                   </div>
                   <div>
-                    <Label>Environnement</Label>
+                    <Label>{t('agentTableau.environnement')}</Label>
                     <Input
-                      placeholder="Quartier, voisinage, sécurité, etc."
+                      placeholder={t('agentTableau.quartierVoisinageSecuriteEtc')}
                       value={reportData.environnement || ''}
                       onChange={(e) => setReportData({ ...reportData, environnement: e.target.value })}
                       data-testid="input-environnement"
@@ -1122,13 +1125,13 @@ export default function AgentDashboard() {
                 {/* Evaluation */}
                 <div className="space-y-4">
                   <h4 className="font-semibold text-sm uppercase text-muted-foreground">
-                    Évaluation (optionnel)
+                    {t('agentTableau.evaluationOptionnel')}
                   </h4>
                   
                   <div>
-                    <Label>Points positifs</Label>
+                    <Label>{t('agentTableau.pointsPositifs2')}</Label>
                     <Textarea
-                      placeholder="Décrivez les points positifs du bien..."
+                      placeholder={t('agentTableau.decrivezPointsPositifsBien')}
                       value={reportData.points_positifs || ''}
                       onChange={(e) => setReportData({ ...reportData, points_positifs: e.target.value })}
                       data-testid="input-positifs"
@@ -1136,9 +1139,9 @@ export default function AgentDashboard() {
                   </div>
 
                   <div>
-                    <Label>Points négatifs</Label>
+                    <Label>{t('agentTableau.pointsNegatifs2')}</Label>
                     <Textarea
-                      placeholder="Décrivez les points négatifs du bien..."
+                      placeholder={t('agentTableau.decrivezPointsNegatifsBien')}
                       value={reportData.points_negatifs || ''}
                       onChange={(e) => setReportData({ ...reportData, points_negatifs: e.target.value })}
                       data-testid="input-negatifs"
@@ -1146,9 +1149,9 @@ export default function AgentDashboard() {
                   </div>
 
                   <div>
-                    <Label>Recommandations</Label>
+                    <Label>{t('agentTableau.recommandations')}</Label>
                     <Textarea
-                      placeholder="Vos recommandations concernant ce bien..."
+                      placeholder={t('agentTableau.vosRecommandationsConcernantCe')}
                       value={reportData.recommandations || ''}
                       onChange={(e) => setReportData({ ...reportData, recommandations: e.target.value })}
                       data-testid="input-recommandations"
@@ -1156,9 +1159,9 @@ export default function AgentDashboard() {
                   </div>
 
                   <div>
-                    <Label>Commentaires additionnels</Label>
+                    <Label>{t('agentTableau.commentairesAdditionnels')}</Label>
                     <Textarea
-                      placeholder="Autres commentaires ou observations..."
+                      placeholder={t('agentTableau.autresCommentairesOuObservations')}
                       value={reportData.commentaires || ''}
                       onChange={(e) => setReportData({ ...reportData, commentaires: e.target.value })}
                       data-testid="input-commentaires"
@@ -1173,7 +1176,7 @@ export default function AgentDashboard() {
                     disabled={createReportMutation.isPending}
                     data-testid="button-submit-report"
                   >
-                    {createReportMutation.isPending ? 'Création...' : 'Créer le rapport'}
+                    {createReportMutation.isPending ? t('agentTableau.creation') : t('agentTableau.creerRapport3')}
                   </Button>
                   <Button
                     variant="outline"
@@ -1182,7 +1185,7 @@ export default function AgentDashboard() {
                       resetReportData();
                     }}
                   >
-                    Annuler
+                    {t('agentTableau.annuler')}
                   </Button>
                 </div>
               </div>
@@ -1194,9 +1197,9 @@ export default function AgentDashboard() {
         <Dialog open={reportDetailDialogOpen} onOpenChange={setReportDetailDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
             <DialogHeader>
-              <DialogTitle>Détails du rapport</DialogTitle>
+              <DialogTitle>{t('agentTableau.detailsRapport')}</DialogTitle>
               <DialogDescription>
-                Rapport #{selectedReport?.id} - Créé le {formaterDateLongue(selectedReport?.created_at)}
+                {t('agentTableau.rapportCreeB', { a: selectedReport?.id, b: formaterDateLongue(selectedReport?.created_at) })}
               </DialogDescription>
             </DialogHeader>
             {selectedReport && (
@@ -1204,22 +1207,22 @@ export default function AgentDashboard() {
                 <div className="space-y-6 py-4">
                   {/* Summary */}
                   <div>
-                    <h4 className="font-semibold mb-3">Résumé</h4>
+                    <h4 className="font-semibold mb-3">{t('agentTableau.resume')}</h4>
                     <div className="flex flex-wrap gap-2 mb-4">
                       <BadgeStatut famille="appreciation" valeur={selectedReport.etat_general} />
                       {selectedReport.conformite_annonce && (
                         <Badge variant="outline" className="bg-statut-favorable-fond text-statut-favorable">
-                          <CircleCheck className="w-3 h-3 mr-1" />Conforme à l'annonce
+                          <CircleCheck className="w-3 h-3 mr-1" />{t('agentTableau.conformeAnnonce2')}
                         </Badge>
                       )}
                       {!selectedReport.conformite_annonce && (
                         <Badge variant="outline" className="bg-statut-defavorable-fond text-statut-defavorable">
-                          <CircleAlert className="w-3 h-3 mr-1" />Non conforme
+                          <CircleAlert className="w-3 h-3 mr-1" />{t('agentTableau.nonConforme')}
                         </Badge>
                       )}
                       {selectedReport.client_interesse && (
                         <Badge variant="outline" className="bg-statut-information-fond text-statut-information">
-                          <User className="w-3 h-3 mr-1" />Client intéressé
+                          <User className="w-3 h-3 mr-1" />{t('agentTableau.clientInteresse')}
                         </Badge>
                       )}
                     </div>
@@ -1230,41 +1233,41 @@ export default function AgentDashboard() {
                     selectedReport.etat_peinture || selectedReport.etat_sols || 
                     selectedReport.etat_fenetres || selectedReport.etat_portes) && (
                     <div>
-                      <h4 className="font-semibold mb-3">État technique</h4>
+                      <h4 className="font-semibold mb-3">{t('agentTableau.etatTechnique')}</h4>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         {selectedReport.etat_electricite && (
                           <div>
-                            <Label className="text-muted-foreground">Électricité</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.electricite')}</Label>
                             <p>{selectedReport.etat_electricite}</p>
                           </div>
                         )}
                         {selectedReport.etat_plomberie && (
                           <div>
-                            <Label className="text-muted-foreground">Plomberie</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.plomberie')}</Label>
                             <p>{selectedReport.etat_plomberie}</p>
                           </div>
                         )}
                         {selectedReport.etat_peinture && (
                           <div>
-                            <Label className="text-muted-foreground">Peinture</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.peinture')}</Label>
                             <p>{selectedReport.etat_peinture}</p>
                           </div>
                         )}
                         {selectedReport.etat_sols && (
                           <div>
-                            <Label className="text-muted-foreground">Sols</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.sols')}</Label>
                             <p>{selectedReport.etat_sols}</p>
                           </div>
                         )}
                         {selectedReport.etat_fenetres && (
                           <div>
-                            <Label className="text-muted-foreground">Fenêtres</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.fenetres')}</Label>
                             <p>{selectedReport.etat_fenetres}</p>
                           </div>
                         )}
                         {selectedReport.etat_portes && (
                           <div>
-                            <Label className="text-muted-foreground">Portes</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.portes')}</Label>
                             <p>{selectedReport.etat_portes}</p>
                           </div>
                         )}
@@ -1275,17 +1278,17 @@ export default function AgentDashboard() {
                   {/* Environment */}
                   {(selectedReport.accessibilite || selectedReport.environnement) && (
                     <div>
-                      <h4 className="font-semibold mb-3">Environnement</h4>
+                      <h4 className="font-semibold mb-3">{t('agentTableau.environnement')}</h4>
                       <div className="space-y-3 text-sm">
                         {selectedReport.accessibilite && (
                           <div>
-                            <Label className="text-muted-foreground">Accessibilité</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.accessibilite')}</Label>
                             <p>{selectedReport.accessibilite}</p>
                           </div>
                         )}
                         {selectedReport.environnement && (
                           <div>
-                            <Label className="text-muted-foreground">Environnement</Label>
+                            <Label className="text-muted-foreground">{t('agentTableau.environnement')}</Label>
                             <p>{selectedReport.environnement}</p>
                           </div>
                         )}
@@ -1295,29 +1298,29 @@ export default function AgentDashboard() {
 
                   {/* Evaluation */}
                   <div>
-                    <h4 className="font-semibold mb-3">Évaluation</h4>
+                    <h4 className="font-semibold mb-3">{t('agentTableau.evaluation')}</h4>
                     <div className="space-y-4">
                       {selectedReport.points_positifs && (
                         <div className="p-3 bg-statut-favorable-fond rounded-lg">
-                          <Label className="text-statut-favorable">Points positifs</Label>
+                          <Label className="text-statut-favorable">{t('agentTableau.pointsPositifs2')}</Label>
                           <p className="text-sm mt-1">{selectedReport.points_positifs}</p>
                         </div>
                       )}
                       {selectedReport.points_negatifs && (
                         <div className="p-3 bg-statut-defavorable-fond rounded-lg">
-                          <Label className="text-statut-defavorable">Points négatifs</Label>
+                          <Label className="text-statut-defavorable">{t('agentTableau.pointsNegatifs2')}</Label>
                           <p className="text-sm mt-1">{selectedReport.points_negatifs}</p>
                         </div>
                       )}
                       {selectedReport.recommandations && (
                         <div className="p-3 bg-statut-information-fond rounded-lg">
-                          <Label className="text-statut-information">Recommandations</Label>
+                          <Label className="text-statut-information">{t('agentTableau.recommandations')}</Label>
                           <p className="text-sm mt-1">{selectedReport.recommandations}</p>
                         </div>
                       )}
                       {selectedReport.commentaires && (
                         <div className="p-3 bg-muted rounded-lg">
-                          <Label className="text-muted-foreground">Commentaires</Label>
+                          <Label className="text-muted-foreground">{t('agentTableau.commentaires')}</Label>
                           <p className="text-sm mt-1">{selectedReport.commentaires}</p>
                         </div>
                       )}

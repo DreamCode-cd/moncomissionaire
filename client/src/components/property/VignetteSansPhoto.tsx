@@ -1,5 +1,6 @@
 import { ImageOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { t } from '@/i18n';
 
 /**
  * Ce qu'on montre quand une annonce n'a pas encore de photo.
@@ -18,10 +19,10 @@ export function VignetteSansPhoto({ className, compacte = false }: { className?:
         className,
       )}
       role="img"
-      aria-label="Pas encore de photo"
+      aria-label={t('vignette.pasDePhoto')}
     >
       <ImageOff className={compacte ? 'h-5 w-5' : 'h-8 w-8'} aria-hidden />
-      {!compacte && <span className="text-xs">Pas encore de photo</span>}
+      {!compacte && <span className="text-xs">{t('vignette.pasDePhoto')}</span>}
     </div>
   );
 }

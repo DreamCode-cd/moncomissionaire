@@ -31,6 +31,7 @@ import {
   type PieceEtatDesLieux,
   type TypeEtatDesLieux,
 } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * L'état des lieux d'entrée, établi par le commissionnaire devant la maison.
@@ -48,7 +49,21 @@ import {
  * et ses réserves sont le moyen de contester une retenue.
  */
 
-const PIECES_COURANTES = ['Salon', 'Chambre 1', 'Chambre 2', 'Cuisine', 'Douche et WC', 'Parcelle et clôture'];
+// Des suggestions de noms de pièces, dans la langue de l'écran : une fois
+// choisi, le nom est enregistré tel quel (c'est le contenu de l'état des lieux).
+const piecesCourantes = () => [
+  t('edl.salon'),
+  t('edl.chambre1'),
+  t('edl.chambre2'),
+  t('edl.cuisine'),
+  t('edl.doucheWc'),
+  t('edl.parcelle'),
+];
+
+/** Libellé d'un état de pièce dans la langue de l'écran (le `etat_display`
+ *  du serveur est rédigé en français). */
+const libelleEtatPiece = (valeur?: string | null, repli?: string | null) =>
+  valeur === 'bon' || valeur === 'usage' || valeur === 'mauvais' ? t(`etatPiece.${valeur}`) : (repli ?? '');
 
 export default function EtatDesLieuxEdition() {
   const { commissionId, type: typeDemande } = useParams<{ commissionId: string; type?: string }>();
@@ -62,16 +77,16 @@ export default function EtatDesLieuxEdition() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
         <div className="flex items-center gap-2">
           <Link href="/mon-portefeuille">
-            <Button variant="ghost" size="icon" aria-label="Retour"><ChevronLeft className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" aria-label={t('edl.retour')}><ChevronLeft className="w-5 h-5" /></Button>
           </Link>
-          <h1 className="text-xl font-bold">État des lieux {type === 'sortie' ? 'de sortie' : 'd’entrée'}</h1>
+          <h1 className="text-xl font-bold">{type === 'sortie' ? t('edlPublic.titreSortie') : t('edlPublic.titreEntree')}</h1>
         </div>
         {etats.isLoading ? (
-          <EtatChargement texte="Chargement…" />
+          <EtatChargement texte={t('edl.chargement')} />
         ) : etats.error && !etats.data ? (
           // Surtout pas le formulaire de création : on ne sait pas s'il en
           // existe déjà un, et en recréer un perdrait le travail commencé.
-          <ErreurRequete erreur={etats.error} titre="L’état des lieux n’a pas pu être chargé" onReessayer={() => void etats.refetch()} />
+          <ErreurRequete erreur={etats.error} titre={t('edl.etatLieuxNPas')} onReessayer={() => void etats.refetch()} />
         ) : etat ? (
           <Edition etat={etat} cle={cle} />
         ) : (
@@ -86,7 +101,7 @@ function Creation({ commissionId, type, cle }: { commissionId: number; type: Typ
   const { toast } = useToast();
   const [date, setDate] = useState(aujourdhui());
   const [compteurs, setCompteurs] = useState('');
-  const [pieces, setPieces] = useState<string[]>(PIECES_COURANTES.slice(0, 4));
+  const [pieces, setPieces] = useState<string[]>(() => piecesCourantes().slice(0, 4));
   const [garantie, setGarantie] = useState('');
   const sortie = type === 'sortie';
 
@@ -103,29 +118,29 @@ function Creation({ commissionId, type, cle }: { commissionId: number; type: Typ
           : { pieces: pieces.map((nom) => ({ nom, etat: 'bon' })) }),
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: cle }),
-    onError: (e) => toast({ title: 'Non créé', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('edl.nonCree'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   return (
     <Card>
       <CardContent className="p-4 space-y-4">
         <div className="space-y-1">
-          <Label htmlFor="edl-date">Date</Label>
+          <Label htmlFor="edl-date">{t('edl.date')}</Label>
           <Input id="edl-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="edl-compteurs">Compteurs</Label>
+          <Label htmlFor="edl-compteurs">{t('edl.compteurs')}</Label>
           <Input
             id="edl-compteurs"
             value={compteurs}
             onChange={(e) => setCompteurs(e.target.value)}
-            placeholder="Ex : SNEL prépayé, 42 kWh restants ; REGIDESO index 1 204"
+            placeholder={t('edl.exSnelPrepaye42')}
           />
         </div>
         {sortie ? (
           <>
             <div className="space-y-1">
-              <Label htmlFor="edl-garantie">Garantie versée à l’entrée (facultatif)</Label>
+              <Label htmlFor="edl-garantie">{t('edl.garantieVerseeEntreeFacultatif')}</Label>
               <Input
                 id="edl-garantie"
                 type="number"
@@ -134,18 +149,18 @@ function Creation({ commissionId, type, cle }: { commissionId: number; type: Typ
                 step="any"
                 value={garantie}
                 onChange={(e) => setGarantie(e.target.value)}
-                placeholder="Vide : la garantie de l’annonce"
+                placeholder={t('edl.videGarantieAnnonce')}
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Les pièces de l’état des lieux d’entrée sont reprises, chacune dans l’état où elle était. Vous n’aurez qu’à changer ce qui s’est dégradé.
+              {t('edl.piecesEtatLieuxEntree')}
             </p>
           </>
         ) : (
         <div className="space-y-2">
-          <Label>Pièces à visiter</Label>
+          <Label>{t('edl.piecesVisiter')}</Label>
           <div className="flex flex-wrap gap-2">
-            {PIECES_COURANTES.map((nom) => {
+            {piecesCourantes().map((nom) => {
               const choisie = pieces.includes(nom);
               return (
                 <button
@@ -160,11 +175,11 @@ function Creation({ commissionId, type, cle }: { commissionId: number; type: Typ
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground">Vous pourrez en ajouter d’autres ensuite.</p>
+          <p className="text-xs text-muted-foreground">{t('edl.vousPourrezAjouterAutres')}</p>
         </div>
         )}
         <Button className="w-full" disabled={!date || (!sortie && !pieces.length) || creer.isPending} onClick={() => creer.mutate()}>
-          Commencer l’état des lieux {sortie ? 'de sortie' : ''}
+          {sortie ? t('edl.commencerSortie') : t('edl.commencer')}
         </Button>
       </CardContent>
     </Card>
@@ -175,7 +190,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
   const { toast } = useToast();
   const base = `/api/v1/commissions/etats-des-lieux/${etat.id}/`;
   const rafraichir = () => queryClient.invalidateQueries({ queryKey: cle });
-  const surErreur = (e: unknown) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' });
+  const surErreur = (e: unknown) => toast({ title: t('edl.erreur'), description: messageErreur(e), variant: 'destructive' });
   const [nouvellePiece, setNouvellePiece] = useState('');
   const [lien, setLien] = useState<string | null>(null);
   const [observations, setObservations] = useState(etat.observations);
@@ -209,7 +224,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
         <p className="text-muted-foreground">
           {etat.locataire_nom} · {formaterDateCourte(etat.date)}
         </p>
-        {etat.releves_compteurs && <p>Compteurs : {etat.releves_compteurs}</p>}
+        {etat.releves_compteurs && <p>{t('edl.compteurs2')} {etat.releves_compteurs}</p>}
       </CardContent>
     </Card>
   );
@@ -221,14 +236,14 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
         <Card>
           <CardContent className="p-4 space-y-1 text-sm">
             <p className="font-medium text-statut-favorable">
-              Validé par {etat.valide_par_nom} le {formaterDateCourte(etat.valide_le ?? '')}
+              {t('edl.valideB', { a: etat.valide_par_nom, b: formaterDateCourte(etat.valide_le ?? '') })}
             </p>
             {etat.reserves_locataire ? (
-              <p>Réserves du locataire : {etat.reserves_locataire}</p>
+              <p>{t('edl.reservesLocataire')} {etat.reserves_locataire}</p>
             ) : (
-              <p className="text-muted-foreground">Sans réserve.</p>
+              <p className="text-muted-foreground">{t('edl.sansReserve')}</p>
             )}
-            <p className="text-muted-foreground">Il ne se modifie plus.</p>
+            <p className="text-muted-foreground">{t('edl.ilNeSeModifie')}</p>
           </CardContent>
         </Card>
         {etat.type === 'sortie' && <BilanGarantie etat={etat} />}
@@ -251,14 +266,14 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
           if (nouvellePiece.trim()) ajouterPiece.mutate();
         }}
       >
-        <Input value={nouvellePiece} onChange={(e) => setNouvellePiece(e.target.value)} placeholder="Ajouter une pièce" />
+        <Input value={nouvellePiece} onChange={(e) => setNouvellePiece(e.target.value)} placeholder={t('edl.ajouterPiece')} />
         <Button type="submit" variant="outline" disabled={!nouvellePiece.trim() || ajouterPiece.isPending}>
           <Plus className="w-4 h-4" />
         </Button>
       </form>
 
       <div className="space-y-1">
-        <Label htmlFor="edl-observations">Observations générales</Label>
+        <Label htmlFor="edl-observations">{t('edl.observationsGenerales')}</Label>
         <Textarea
           id="edl-observations"
           value={observations}
@@ -272,7 +287,7 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
       <Card>
         <CardContent className="p-4 space-y-3">
           <p className="text-sm">
-            Quand tout est noté, envoyez le lien au locataire. Il le lit sur son téléphone et le valide, avec ses réserves s’il en a. Il n’a pas besoin de compte.
+            {t('edl.quandToutEstNote')}
           </p>
           {lien ? (
             <div className="space-y-2">
@@ -282,24 +297,24 @@ function Edition({ etat, cle }: { etat: EtatDesLieux; cle: string[] }) {
                   variant="outline"
                   onClick={() => {
                     void navigator.clipboard?.writeText(lien);
-                    toast({ title: 'Lien copié' });
+                    toast({ title: t('edl.lienCopie') });
                   }}
                 >
-                  <Copy className="w-4 h-4 mr-1" /> Copier
+                  <Copy className="w-4 h-4 mr-1" /> {t('edl.copier')}
                 </Button>
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`État des lieux ${etat.type === 'sortie' ? 'de sortie' : 'd’entrée'} de « ${etat.bien_titre} » à valider : ${lien}`)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(t(etat.type === 'sortie' ? 'reste.lienSortie' : 'reste.lienEntree', { titre: etat.bien_titre, lien }))}`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <Button><Send className="w-4 h-4 mr-1" /> WhatsApp</Button>
+                  <Button><Send className="w-4 h-4 mr-1" /> {t('edl.whatsapp')}</Button>
                 </a>
               </div>
-              <p className="text-xs text-muted-foreground">Ce lien remplace le précédent, s’il y en avait un.</p>
+              <p className="text-xs text-muted-foreground">{t('edl.ceLienRemplacePrecedent')}</p>
             </div>
           ) : (
             <Button className="w-full" disabled={envoyer.isPending} onClick={() => envoyer.mutate()} data-testid="button-envoyer-locataire">
-              <Send className="w-4 h-4 mr-1" /> {etat.lien_envoye ? 'Renvoyer un lien au locataire' : 'Envoyer au locataire'}
+              <Send className="w-4 h-4 mr-1" /> {etat.lien_envoye ? t('edl.renvoyerLienLocataire') : t('edl.envoyerLocataire')}
             </Button>
           )}
         </CardContent>
@@ -363,14 +378,14 @@ function PieceEdition({
         <Select value={piece.etat} onValueChange={(etat) => modifier.mutate({ etat: etat as EtatPiece })}>
           <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
-            {ETATS_PIECE.map((e) => <SelectItem key={e.valeur} value={e.valeur}>{e.libelle}</SelectItem>)}
+            {ETATS_PIECE.map((e) => <SelectItem key={e.valeur} value={e.valeur}>{libelleEtatPiece(e.valeur, e.libelle)}</SelectItem>)}
           </SelectContent>
         </Select>
         <Textarea
           value={observations}
           onChange={(e) => setObservations(e.target.value)}
           onBlur={() => observations !== piece.observations && modifier.mutate({ observations })}
-          placeholder="Ex : vitre fêlée, prise murale arrachée"
+          placeholder={t('edl.exVitreFeleePrise')}
           className="min-h-[60px]"
         />
         <div className="flex flex-wrap gap-2">
@@ -381,7 +396,7 @@ function PieceEdition({
                 type="button"
                 onClick={() => retirerPhoto.mutate(photo.id)}
                 className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-background border"
-                aria-label="Retirer la photo"
+                aria-label={t('edl.retirerPhoto')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -395,7 +410,7 @@ function PieceEdition({
               className="flex h-20 w-20 flex-col items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground"
             >
               <Camera className="h-5 w-5" />
-              {ajouterPhoto.isPending ? 'Envoi…' : 'Photo'}
+              {ajouterPhoto.isPending ? t('edl.envoi') : t('edl.photo')}
             </button>
           )}
           <input
@@ -422,7 +437,7 @@ export function PieceLecture({ piece, sortie = false }: { piece: PieceEtatDesLie
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <p className="font-medium">{piece.nom}</p>
-          <span className="text-sm text-muted-foreground">{piece.etat_display}</span>
+          <span className="text-sm text-muted-foreground">{libelleEtatPiece(piece.etat, piece.etat_display)}</span>
         </div>
         <ComparaisonEntree piece={piece} sortie={sortie} />
         {piece.observations && <p className="text-sm">{piece.observations}</p>}
@@ -445,7 +460,7 @@ export function PieceLecture({ piece, sortie = false }: { piece: PieceEtatDesLie
 export function ComparaisonEntree({ piece, sortie }: { piece: PieceEtatDesLieux; sortie: boolean }) {
   if (!sortie) return null;
   if (!piece.a_l_entree) {
-    return <p className="text-xs text-muted-foreground">Pièce absente de l’état des lieux d’entrée.</p>;
+    return <p className="text-xs text-muted-foreground">{t('edl.pieceAbsenteEtatLieux')}</p>;
   }
   const avant = piece.a_l_entree;
   return (
@@ -454,15 +469,15 @@ export function ComparaisonEntree({ piece, sortie }: { piece: PieceEtatDesLieux;
       data-testid={`comparaison-${piece.id}`}
     >
       <p>
-        {piece.degradee && <span className="font-semibold text-statut-defavorable">Dégradée depuis l’entrée · </span>}
-        À l’entrée : {avant.etat_display}
+        {piece.degradee && <span className="font-semibold text-statut-defavorable">{t('edl.degradeeDepuis')}</span>}
+        {t('edl.aLEntree', { etat: libelleEtatPiece(avant.etat, avant.etat_display) })}
         {avant.observations ? ` · ${avant.observations}` : ''}
       </p>
       {avant.photos.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {avant.photos.map((photo) => (
             <a key={photo.id} href={getDjangoImageUrl(photo.image) || '#'} target="_blank" rel="noreferrer">
-              <img src={getDjangoImageUrl(photo.image) || ''} alt={`${piece.nom} à l’entrée`} className="h-12 w-12 rounded object-cover" loading="lazy" />
+              <img src={getDjangoImageUrl(photo.image) || ''} alt={t('reste.aLEntreeAlt', { nom: piece.nom })} className="h-12 w-12 rounded object-cover" loading="lazy" />
             </a>
           ))}
         </div>
@@ -479,13 +494,13 @@ export function BilanGarantie({ etat }: { etat: EtatDesLieux }) {
   return (
     <Card>
       <CardContent className="p-4 space-y-1 text-sm" data-testid="bilan-garantie">
-        <p className="font-medium">Garantie</p>
-        <p>Versée à l’entrée : {formaterMontant(etat.garantie_versee, etat.devise)}</p>
+        <p className="font-medium">{t('edl.garantie')}</p>
+        <p>{t('edl.verseeEntree', { montant: formaterMontant(etat.garantie_versee, etat.devise) })}</p>
         <p>
-          Retenue : {formaterMontant(retenue, etat.devise)}
-          {retenue > 0 && etat.motif_retenue ? `, pour : ${etat.motif_retenue}` : ''}
+          {t('edl.retenue', { montant: formaterMontant(retenue, etat.devise) })}
+          {retenue > 0 && etat.motif_retenue ? t('edl.pour', { motif: etat.motif_retenue }) : ''}
         </p>
-        <p className="font-semibold">À rendre au locataire : {formaterMontant(etat.garantie_restituee, etat.devise)}</p>
+        <p className="font-semibold">{t('edl.aRendre', { montant: formaterMontant(etat.garantie_restituee, etat.devise) })}</p>
       </CardContent>
     </Card>
   );
@@ -525,44 +540,43 @@ function SaisieGarantie({
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <p className="font-medium">Garantie</p>
+        <p className="font-medium">{t('edl.garantie')}</p>
         {degradees.length > 0 && (
-          <p className="text-sm text-statut-defavorable">Dégradé depuis l’entrée : {degradees.join(', ')}.</p>
+          <p className="text-sm text-statut-defavorable">{t('edl.degradesListe', { pieces: degradees.join(', ') })}</p>
         )}
         <div className={retenuePossible ? 'grid grid-cols-2 gap-3' : 'space-y-1'}>
           <div className="space-y-1">
-            <Label htmlFor="garantie-versee">Versée ({symbole})</Label>
+            <Label htmlFor="garantie-versee">{t('edl.versee', { symbole })}</Label>
             <Input id="garantie-versee" type="number" inputMode="decimal" min="0" step="any" value={garantie} onChange={(e) => setGarantie(e.target.value)} />
           </div>
           {retenuePossible && (
           <div className="space-y-1">
-            <Label htmlFor="garantie-retenue">Retenue ({symbole})</Label>
+            <Label htmlFor="garantie-retenue">{t('edl.retenueSymbole', { symbole })}</Label>
             <Input id="garantie-retenue" type="number" inputMode="decimal" min="0" step="any" value={retenue} onChange={(e) => setRetenue(e.target.value)} placeholder="0" data-testid="input-retenue" />
           </div>
           )}
         </div>
         {!retenuePossible && (
           <p className="text-sm text-muted-foreground" data-testid="text-retenue-impossible">
-            Aucune retenue possible : l’état des lieux d’entrée n’a pas été validé par le locataire, donc rien ne prouve
-            l’état du logement à son arrivée. La garantie lui revient en entier.
+            {t('edl.aucuneRetenuePossibleEtat')}
           </p>
         )}
         {retenuePossible && (
         <div className="space-y-1">
-          <Label htmlFor="garantie-motif">Motif de la retenue</Label>
+          <Label htmlFor="garantie-motif">{t('edl.motifRetenue')}</Label>
           <Textarea
             id="garantie-motif"
             value={motif}
             onChange={(e) => setMotif(e.target.value)}
-            placeholder="Ex : évier de la cuisine cassé, devis du plombier 150 $"
+            placeholder={t('edl.exEvierCuisineCasse')}
           />
           <p className="text-xs text-muted-foreground">
-            Obligatoire dès qu’il y a une retenue. Le locataire le lira avant de valider, et pourra le contester dans ses réserves.
+            {t('edl.obligatoireQuIlY')}
           </p>
         </div>
         )}
         <Button variant="outline" disabled={enregistrer.isPending} onClick={() => enregistrer.mutate()} data-testid="button-enregistrer-garantie">
-          Enregistrer la garantie
+          {t('edl.enregistrerGarantie')}
         </Button>
         <BilanGarantie etat={etat} />
       </CardContent>

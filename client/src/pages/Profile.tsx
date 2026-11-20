@@ -31,10 +31,11 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { ChampTelephone } from '@/components/ChampTelephone';
 import { erreurTelephone } from '@shared/telephone';
-import { MESSAGE_DECONNEXION_HORS_LIGNE } from '@/lib/api';
+import { messageDeconnexionHorsLigne } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useLocation } from 'wouter';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { t } from '@/i18n';
 
 interface ProfileFormData {
   first_name: string;
@@ -86,8 +87,8 @@ export default function Profile() {
   const onSubmit = async (data: ProfileFormData) => {
     if (data.password && data.password !== data.password2) {
       toast({
-        title: 'Erreur',
-        description: 'Les mots de passe ne correspondent pas',
+        title: t('profil.erreur'),
+        description: t('profil.motsPasseNeCorrespondent'),
         variant: 'destructive',
       });
       return;
@@ -119,8 +120,8 @@ export default function Profile() {
 
       await updateProfile(updateData);
       toast({
-        title: 'Profil mis à jour',
-        description: 'Vos informations ont été enregistrées.',
+        title: t('profil.profilMisJour'),
+        description: t('profil.vosInformationsOntEte'),
       });
       setIsEditDialogOpen(false);
       form.reset({
@@ -130,8 +131,8 @@ export default function Profile() {
       });
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('profil.erreur'),
+        description: error instanceof Error ? error.message : t('profil.erreurEstSurvenue'),
         variant: 'destructive',
       });
     }
@@ -142,8 +143,8 @@ export default function Profile() {
     setLocation('/');
     toast(
       revoquee
-        ? { title: 'Vous êtes déconnecté' }
-        : { title: 'Déconnecté sans réseau', description: MESSAGE_DECONNEXION_HORS_LIGNE },
+        ? { title: t('profil.vousEtesDeconnecte') }
+        : { title: t('profil.deconnecteSansReseau'), description: messageDeconnexionHorsLigne() },
     );
   };
 
@@ -156,14 +157,14 @@ export default function Profile() {
   const getRoleLabel = (role?: string) => {
     switch (role) {
       // Pas « Locataire » : on peut chercher un logement sans louer encore.
-      case 'client': return 'Client';
-      case 'proprietaire': return 'Propriétaire';
-      case 'agence': return 'Agence';
-      case 'commissionnaire': return 'Commissionnaire';
-      case 'moderateur': return 'Modérateur VillaGo';
-      case 'agent': return 'Agent';
-      case 'admin': return 'Administrateur';
-      default: return 'Utilisateur';
+      case 'client': return t('role.client');
+      case 'proprietaire': return t('role.proprietaire');
+      case 'agence': return t('role.agence');
+      case 'commissionnaire': return t('role.commissionnaire');
+      case 'moderateur': return t('role.moderateur');
+      case 'agent': return t('role.agent');
+      case 'admin': return t('role.admin');
+      default: return t('profil.utilisateur');
     }
   };
 
@@ -172,7 +173,7 @@ export default function Profile() {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-pulse text-muted-foreground">Chargement...</div>
+          <div className="animate-pulse text-muted-foreground">{t('profil.chargement')}</div>
         </div>
       </Layout>
     );
@@ -182,8 +183,8 @@ export default function Profile() {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <p className="text-muted-foreground">Vous devez être connecté pour voir cette page.</p>
-          <Button onClick={() => setLocation('/login')}>Se connecter</Button>
+          <p className="text-muted-foreground">{t('profil.vousDevezEtreConnecte')}</p>
+          <Button onClick={() => setLocation('/login')}>{t('profil.seConnecter')}</Button>
         </div>
       </Layout>
     );
@@ -216,14 +217,14 @@ export default function Profile() {
                 <DialogTrigger asChild>
                   <Button variant="outline" className="w-full sm:w-auto" data-testid="button-edit-profile">
                     <SquarePen className="w-4 h-4 mr-2" />
-                    Modifier le profil
+                    {t('profil.modifierProfil')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Modifier mes informations</DialogTitle>
+                    <DialogTitle>{t('profil.modifierMesInformations')}</DialogTitle>
                     <DialogDescription>
-                      Modifiez vos informations personnelles ci-dessous
+                      {t('profil.modifiezVosInformationsPersonnelles')}
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
@@ -234,7 +235,7 @@ export default function Profile() {
                           name="first_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Prénom</FormLabel>
+                              <FormLabel>{t('profil.prenom')}</FormLabel>
                               <FormControl>
                                 <Input {...field} data-testid="input-edit-firstname" />
                               </FormControl>
@@ -247,7 +248,7 @@ export default function Profile() {
                           name="last_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Nom</FormLabel>
+                              <FormLabel>{t('profil.nom')}</FormLabel>
                               <FormControl>
                                 <Input {...field} data-testid="input-edit-lastname" />
                               </FormControl>
@@ -262,7 +263,7 @@ export default function Profile() {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Téléphone</FormLabel>
+                            <FormLabel>{t('profil.telephone')}</FormLabel>
                             <FormControl>
                               <ChampTelephone {...field} data-testid="input-edit-phone" />
                             </FormControl>
@@ -276,9 +277,9 @@ export default function Profile() {
                         name="address"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Adresse</FormLabel>
+                            <FormLabel>{t('profil.adresse')}</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Votre adresse" data-testid="input-edit-address" />
+                              <Input {...field} placeholder={t('profil.votreAdresse')} data-testid="input-edit-address" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -290,11 +291,11 @@ export default function Profile() {
                         name="bio"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Bio</FormLabel>
+                            <FormLabel>{t('profil.bio')}</FormLabel>
                             <FormControl>
                               <Textarea 
                                 {...field} 
-                                placeholder="Décrivez-vous en quelques mots..."
+                                placeholder={t('profil.decrivezVousQuelquesMots')}
                                 data-testid="input-edit-bio" 
                               />
                             </FormControl>
@@ -310,9 +311,9 @@ export default function Profile() {
                           render={({ field }) => (
                             <FormItem className="flex items-center justify-between">
                               <div>
-                                <FormLabel>Disponibilité</FormLabel>
+                                <FormLabel>{t('profil.disponibilite')}</FormLabel>
                                 <p className="text-sm text-muted-foreground">
-                                  Indiquez si vous êtes disponible pour des visites
+                                  {t('profil.indiquezSiVousEtes')}
                                 </p>
                               </div>
                               <FormControl>
@@ -331,20 +332,20 @@ export default function Profile() {
 
                       <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          Laissez vide si vous ne souhaitez pas changer le mot de passe
+                          {t('profil.laissezVideSiVous')}
                         </p>
                         <FormField
                           control={form.control}
                           name="password"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Nouveau mot de passe</FormLabel>
+                              <FormLabel>{t('profil.nouveauMotPasse')}</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Input 
                                     type={showPassword ? 'text' : 'password'} 
                                     {...field} 
-                                    placeholder="Nouveau mot de passe"
+                                    placeholder={t('profil.nouveauMotPasse')}
                                     data-testid="input-edit-password" 
                                   />
                                   <Button
@@ -368,12 +369,12 @@ export default function Profile() {
                           name="password2"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Confirmer le mot de passe</FormLabel>
+                              <FormLabel>{t('profil.confirmerMotPasse')}</FormLabel>
                               <FormControl>
                                 <Input 
                                   type={showPassword ? 'text' : 'password'} 
                                   {...field} 
-                                  placeholder="Confirmer le mot de passe"
+                                  placeholder={t('profil.confirmerMotPasse')}
                                   data-testid="input-edit-password2" 
                                 />
                               </FormControl>
@@ -390,14 +391,14 @@ export default function Profile() {
                           onClick={() => setIsEditDialogOpen(false)}
                           data-testid="button-cancel-edit"
                         >
-                          Annuler
+                          {t('profil.annuler')}
                         </Button>
                         <Button 
                           type="submit" 
                           disabled={form.formState.isSubmitting}
                           data-testid="button-save-profile"
                         >
-                          {form.formState.isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                          {form.formState.isSubmitting ? t('profil.enregistrement') : t('profil.enregistrer')}
                         </Button>
                       </div>
                     </form>
@@ -410,14 +411,14 @@ export default function Profile() {
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Informations du compte</CardTitle>
-            <CardDescription>Vos informations personnelles et de contact</CardDescription>
+            <CardTitle className="text-lg">{t('profil.informationsCompte')}</CardTitle>
+            <CardDescription>{t('profil.vosInformationsPersonnellesContact')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="text-sm text-muted-foreground">{t('profil.email')}</p>
                 <p className="font-medium" data-testid="text-user-email">{user.email}</p>
               </div>
             </div>
@@ -425,24 +426,24 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Téléphone</p>
-                <p className="font-medium" data-testid="text-user-phone">{user.phone || 'Non renseigné'}</p>
+                <p className="text-sm text-muted-foreground">{t('profil.telephone')}</p>
+                <p className="font-medium" data-testid="text-user-phone">{user.phone || t('profil.nonRenseigne')}</p>
               </div>
             </div>
             <Separator />
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Adresse</p>
-                <p className="font-medium" data-testid="text-user-address">{user.address || 'Non renseignée'}</p>
+                <p className="text-sm text-muted-foreground">{t('profil.adresse')}</p>
+                <p className="font-medium" data-testid="text-user-address">{user.address || t('profil.nonRenseignee')}</p>
               </div>
             </div>
             <Separator />
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Bio</p>
-                <p className="font-medium" data-testid="text-user-bio">{user.bio || 'Non renseignée'}</p>
+                <p className="text-sm text-muted-foreground">{t('profil.bio')}</p>
+                <p className="font-medium" data-testid="text-user-bio">{user.bio || t('profil.nonRenseignee')}</p>
               </div>
             </div>
             {user.role === 'agent' && (
@@ -451,7 +452,7 @@ export default function Profile() {
                 <div className="flex items-center gap-3">
                   <CircleCheck className="w-5 h-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Disponibilité</p>
+                    <p className="text-sm text-muted-foreground">{t('profil.disponibilite')}</p>
                     <Badge 
                       variant="secondary"
                       className={user.is_available 
@@ -460,7 +461,7 @@ export default function Profile() {
                       }
                       data-testid="badge-availability"
                     >
-                      {user.is_available ? 'Disponible' : 'Indisponible'}
+                      {user.is_available ? t('profil.disponible') : t('profil.indisponible')}
                     </Badge>
                   </div>
                 </div>
@@ -470,7 +471,7 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-sm text-muted-foreground">Membre depuis</p>
+                <p className="text-sm text-muted-foreground">{t('profil.membreDepuis')}</p>
                 <p className="font-medium" data-testid="text-user-member-since">{formaterDateLongue(user.created_at || user.date_joined)}</p>
               </div>
             </div>
@@ -480,8 +481,8 @@ export default function Profile() {
         {isSupported && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg">Notifications</CardTitle>
-              <CardDescription>Gérez vos préférences de notifications push</CardDescription>
+              <CardTitle className="text-lg">{t('profil.notifications')}</CardTitle>
+              <CardDescription>{t('profil.gerezVosPreferencesNotifications')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between gap-4">
@@ -492,13 +493,13 @@ export default function Profile() {
                     <BellOff className="w-5 h-5 text-muted-foreground" />
                   )}
                   <div>
-                    <p className="font-medium">Notifications push</p>
+                    <p className="font-medium">{t('profil.notificationsPush')}</p>
                     <p className="text-sm text-muted-foreground">
                       {permission === 'granted' 
-                        ? 'Activées - Vous recevrez des alertes pour vos messages et visites'
+                        ? t('profil.activeesVousRecevrezAlertes')
                         : permission === 'denied'
-                        ? 'Bloquées - Modifiez les paramètres de votre navigateur'
-                        : 'Désactivées - Activez pour recevoir des alertes'}
+                        ? t('profil.bloqueesModifiezParametresVotre')
+                        : t('profil.desactiveesActivezRecevoirAlertes')}
                     </p>
                   </div>
                 </div>
@@ -508,21 +509,21 @@ export default function Profile() {
                     onClick={async () => {
                       const granted = await requestPermission();
                       toast({
-                        title: granted ? 'Notifications activées' : 'Notifications non activées',
+                        title: granted ? t('profil.notificationsActivees') : t('profil.notificationsNonActivees'),
                         description: granted 
-                          ? 'Vous recevrez désormais des alertes push.'
-                          : 'Vous pouvez les activer plus tard dans les paramètres.',
+                          ? t('profil.vousRecevrezDesormaisAlertes')
+                          : t('profil.vousPouvezActiverPlus'),
                       });
                     }}
                     data-testid="button-enable-notifications-profile"
                   >
-                    Activer
+                    {t('profil.activer')}
                   </Button>
                 )}
                 {permission === 'granted' && (
                   <Badge variant="secondary" className="text-statut-favorable">
                     <Bell className="w-3 h-3 mr-1" />
-                    Actif
+                    {t('profil.actif')}
                   </Badge>
                 )}
               </div>
@@ -537,7 +538,7 @@ export default function Profile() {
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/favoris" data-testid="link-favoris">
                 <Heart className="mr-2 h-4 w-4" />
-                Mes favoris
+                {t('profil.mesFavoris')}
               </Link>
             </Button>
           </CardContent>
@@ -552,11 +553,11 @@ export default function Profile() {
               data-testid="button-logout"
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Se déconnecter
+              {t('profil.seDeconnecter')}
             </Button>
             <Button asChild variant="ghost" className="w-full mt-2 text-muted-foreground">
               <a href="/supprimer-mon-compte" data-testid="link-supprimer-compte">
-                Supprimer mon compte
+                {t('profil.supprimerMonCompte')}
               </a>
             </Button>
           </CardContent>

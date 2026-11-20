@@ -24,6 +24,7 @@ import { poserErreursSurChamps } from '@/lib/erreurs';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { registerSchema, type RegisterInput } from '@shared/schema';
+import { t } from '@/i18n';
 
 type Role = RegisterInput['user_type'];
 
@@ -35,26 +36,26 @@ type Role = RegisterInput['user_type'];
 const ROLES: { valeur: Role; titre: string; detail: string; icone: typeof House }[] = [
   {
     valeur: 'client',
-    titre: 'Je cherche un logement',
-    detail: 'Trouver une maison et demander une visite.',
+    get titre() { return t('inscription.roleClient'); },
+    get detail() { return t('inscription.roleClientDetail'); },
     icone: Search,
   },
   {
     valeur: 'commissionnaire',
-    titre: 'Je suis commissionnaire',
-    detail: 'Des bailleurs me confient leurs maisons ; je trouve les locataires.',
+    get titre() { return t('inscription.roleCommissionnaire'); },
+    get detail() { return t('inscription.roleCommissionnaireDetail'); },
     icone: Briefcase,
   },
   {
     valeur: 'proprietaire',
-    titre: 'Je suis propriétaire',
-    detail: 'Je publie moi-même la maison que je mets en location.',
+    get titre() { return t('inscription.roleProprietaire'); },
+    get detail() { return t('inscription.roleProprietaireDetail'); },
     icone: House,
   },
   {
     valeur: 'agence',
-    titre: 'Je représente une agence',
-    detail: 'Nous publions plusieurs biens, sous le nom de l’agence.',
+    get titre() { return t('inscription.roleAgence'); },
+    get detail() { return t('inscription.roleAgenceDetail'); },
     icone: Building2,
   },
 ];
@@ -84,7 +85,7 @@ const resoudre: Resolver<RegisterInput> = async (valeurs, contexte, options) => 
   if (valeurs.user_type === 'agence' && !valeurs.nom_agence?.trim() && !erreurs.nom_agence) {
     return {
       values: {},
-      errors: { ...erreurs, nom_agence: { type: 'required', message: 'Indiquez le nom de l’agence' } },
+      errors: { ...erreurs, nom_agence: { type: 'required', message: t('inscription.indiquezNomAgence') } },
     };
   }
   return resultat;
@@ -129,7 +130,7 @@ export default function Register() {
   const onSubmit = async (data: RegisterInput) => {
     try {
       await register(data);
-      toast({ title: 'Compte créé', description: 'Bienvenue sur VillaGo.' });
+      toast({ title: t('inscription.compteCree'), description: t('inscription.bienvenueVillago') });
       // Venu d'une page (une demande de visite, par exemple) : on y retourne.
       // Sinon, le commissionnaire vient pour travailler : droit à son
       // portefeuille ; l'agence, à ses biens, pour publier.
@@ -139,7 +140,7 @@ export default function Register() {
     } catch (erreur) {
       const reste = repartirErreurs(erreur, (champ, message) => form.setError(champ, { message }));
       if (reste) {
-        toast({ title: 'Inscription impossible', description: reste, variant: 'destructive' });
+        toast({ title: t('inscription.inscriptionImpossible'), description: reste, variant: 'destructive' });
       }
     }
   };
@@ -150,8 +151,8 @@ export default function Register() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <img src="/logo.png" alt="" className="mx-auto mb-4 h-12 w-12 rounded-xl object-cover" />
-            <CardTitle className="text-2xl">Créer un compte</CardTitle>
-            <CardDescription>Quelques informations, et vous pourrez commencer.</CardDescription>
+            <CardTitle className="text-2xl">{t('inscription.creerCompte')}</CardTitle>
+            <CardDescription>{t('inscription.quelquesInformationsVousPourrez')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -161,7 +162,7 @@ export default function Register() {
                   name="user_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Vous êtes…</FormLabel>
+                      <FormLabel>{t('inscription.vousEtes')}</FormLabel>
                       <div role="radiogroup" className="grid gap-2">
                         {ROLES.map(({ valeur, titre, detail, icone: Icone }) => {
                           const choisi = field.value === valeur;
@@ -200,13 +201,12 @@ export default function Register() {
                     name="nom_agence"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nom de l’agence</FormLabel>
+                        <FormLabel>{t('inscription.nomAgence')}</FormLabel>
                         <FormControl>
                           <Input autoComplete="organization" {...field} data-testid="input-nom-agence" />
                         </FormControl>
                         <FormDescription>
-                          C’est lui qui apparaît sur vos annonces. Le badge « Agence vérifiée » s’ajoute quand l’équipe
-                          VillaGo a vu votre RCCM et la pièce d’identité du gérant.
+                          {t('inscription.cEstLuiQui')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -220,7 +220,7 @@ export default function Register() {
                     name="first_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prénom</FormLabel>
+                        <FormLabel>{t('inscription.prenom')}</FormLabel>
                         <FormControl>
                           <Input autoComplete="given-name" {...field} data-testid="input-firstname" />
                         </FormControl>
@@ -233,7 +233,7 @@ export default function Register() {
                     name="last_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nom</FormLabel>
+                        <FormLabel>{t('inscription.nom')}</FormLabel>
                         <FormControl>
                           <Input autoComplete="family-name" {...field} data-testid="input-lastname" />
                         </FormControl>
@@ -248,21 +248,21 @@ export default function Register() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Téléphone</FormLabel>
+                      <FormLabel>{t('inscription.telephone')}</FormLabel>
                       <FormControl>
                         <ChampTelephone {...field} data-testid="input-phone" />
                       </FormControl>
                       <FormDescription>
                         {/* Le format en aide, pas dans le champ : un faux numéro
                             dans le champ se lisait comme déjà rempli. */}
-                        {'Par exemple 81 234 56 78. '}
+                        {t('inscription.exemple8123456')}
                         {role === 'commissionnaire'
-                          ? 'C’est par ce numéro que bailleurs et clients vous joindront.'
+                          ? t('inscription.cEstCeNumero')
                           : role === 'client'
-                            ? 'Communiqué au commissionnaire seulement quand il accepte votre demande de visite.'
+                            ? t('inscription.communiqueCommissionnaireSeulementQuand')
                             : role === 'agence'
-                              ? 'Le numéro de l’agence, pour que l’équipe VillaGo vous joigne au sujet de vos annonces.'
-                              : 'Pour que l’équipe VillaGo puisse vous joindre au sujet de vos annonces.'}
+                              ? t('inscription.numeroAgenceQueEquipe')
+                              : t('inscription.queEquipeVillagoPuisse')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -274,7 +274,7 @@ export default function Register() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-mail</FormLabel>
+                      <FormLabel>{t('connexion.email')}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
@@ -285,7 +285,7 @@ export default function Register() {
                           data-testid="input-email"
                         />
                       </FormControl>
-                      <FormDescription>C’est avec lui que vous vous connecterez.</FormDescription>
+                      <FormDescription>{t('inscription.cEstAvecLui')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -296,7 +296,7 @@ export default function Register() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mot de passe</FormLabel>
+                      <FormLabel>{t('inscription.motPasse')}</FormLabel>
                       <div className="relative">
                         <FormControl>
                           <Input
@@ -314,13 +314,13 @@ export default function Register() {
                           type="button"
                           className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
                           onClick={() => setMotDePasseVisible((v) => !v)}
-                          aria-label={motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          aria-label={motDePasseVisible ? t('inscription.masquerMotPasse') : t('inscription.afficherMotPasse')}
                           data-testid="bouton-voir-mot-de-passe"
                         >
                           {motDePasseVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      <FormDescription>8 caractères au moins, pas uniquement des chiffres.</FormDescription>
+                      <FormDescription>{t('inscription.8CaracteresMoinsPas')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -331,7 +331,7 @@ export default function Register() {
                   name="password2"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirmez le mot de passe</FormLabel>
+                      <FormLabel>{t('inscription.confirmezMotPasse')}</FormLabel>
                       <FormControl>
                         <Input
                           type={motDePasseVisible ? 'text' : 'password'}
@@ -357,9 +357,9 @@ export default function Register() {
                         <FormLabel className="cursor-pointer text-sm font-normal leading-relaxed">
                           {/* Nouvel onglet : un lien interne quittait la page et
                               effaçait tout ce qui avait été saisi. */}
-                          J’accepte les{' '}
+                          {t('inscription.jAccepteLes')}{' '}
                           <a href="/legal/terms" target="_blank" rel="noopener" className="text-primary hover:underline">
-                            conditions d’utilisation
+                            {t('inscription.conditionsUtilisation')}
                           </a>
                         </FormLabel>
                         <FormMessage />
@@ -380,11 +380,11 @@ export default function Register() {
                         {/* Une case à part, comme l'exige l'article 196 du Code du
                             numérique : on consent aux données séparément. */}
                         <FormLabel className="cursor-pointer text-sm font-normal leading-relaxed">
-                          J’accepte que VillaGo traite mes données comme le décrit la{' '}
+                          {t('inscription.jAccepteDonnees')}{' '}
                           <a href="/legal/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">
-                            politique de confidentialité
+                            {t('inscription.politiqueConfidentialite')}
                           </a>
-                          . Je peux retirer cet accord à tout moment.
+                          {t('inscription.jePeuxRetirerCet')}
                         </FormLabel>
                         <FormMessage />
                       </div>
@@ -399,11 +399,11 @@ export default function Register() {
                   data-testid="button-submit-register"
                 >
                   {form.formState.isSubmitting ? (
-                    'Création du compte…'
+                    t('inscription.creationCompte')
                   ) : (
                     <>
                       <UserPlus className="mr-2 h-4 w-4" />
-                      Créer mon compte
+                      {t('inscription.creerMonCompte')}
                     </>
                   )}
                 </Button>
@@ -411,10 +411,10 @@ export default function Register() {
             </Form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Déjà un compte ? </span>
+              <span className="text-muted-foreground">{t('inscription.dejaUnCompte')}</span>
               <Link href={pageDeSuite(searchParams) ? versConnexion(pageDeSuite(searchParams)!) : "/login"}>
                 <span className="cursor-pointer font-medium text-primary" data-testid="link-login">
-                  Se connecter
+                  {t('inscription.seConnecter')}
                 </span>
               </Link>
             </div>

@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import { formaterHeure } from '@/lib/dates';
+import { localeActive, t } from '@/i18n';
 
 /*
  * Choisir un créneau de visite : un jour, puis une heure — le même
@@ -13,8 +15,10 @@ import { cn } from '@/lib/utils';
 /** Les heures de visite proposées, de 8 h à 17 h. Même liste que le mobile. */
 export const HEURES_VISITE = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
-const JOURS_COURTS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
-const MOIS_COURTS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+// « sam. 21 nov. » / « Sat 21 Nov » : les noms courts viennent d'Intl, dans la
+// langue de l'écran.
+const jourCourt = (date: Date) => date.toLocaleDateString(localeActive(), { weekday: 'short' });
+const moisCourt = (date: Date) => date.toLocaleDateString(localeActive(), { month: 'short' });
 
 function versIso(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -51,12 +55,12 @@ export function prochainsJours(nombre = 14): string[] {
 /** « 16:00 » → « 16 h » ; « 10:30 » → « 10 h 30 ». */
 export function heureLisible(heure: string): string {
   const [h, m] = heure.split(':');
-  return m && m !== '00' ? `${Number(h)} h ${m}` : `${Number(h)} h`;
+  return formaterHeure(`${h}:${m ?? '00'}`);
 }
 
 /** « mardi 24 novembre », pour relire le créneau choisi. */
 export function jourLisible(iso: string): string {
-  return depuisIso(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  return depuisIso(iso).toLocaleDateString(localeActive(), { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 const TUILE =
@@ -70,7 +74,7 @@ export function ChoixCreneau({
   onJour,
   onHeure,
   marque,
-  libelleMarque = 'demandé par le client',
+  libelleMarque = t('creneau.demandeParClient'),
 }: {
   jour: string | null;
   /** « 16:00 » ou « 16:00:00 », tel que l'API le renvoie. */
@@ -91,8 +95,8 @@ export function ChoixCreneau({
   const heures = Array.from(new Set([...HEURES_VISITE, ...[heure, heureMarque].filter((h): h is string => !!h)])).sort();
   const passees = jour ? heures.filter((h) => creneauPasse(jour, h)) : [];
   const groupes = [
-    { titre: 'Matin', heures: heures.filter((h) => Number(h.slice(0, 2)) < 13) },
-    { titre: 'Après-midi', heures: heures.filter((h) => Number(h.slice(0, 2)) >= 13) },
+    { titre: t('creneau.matin'), heures: heures.filter((h) => Number(h.slice(0, 2)) < 13) },
+    { titre: t('creneau.apresMidi'), heures: heures.filter((h) => Number(h.slice(0, 2)) >= 13) },
   ].filter((g) => g.heures.length > 0);
 
   return (
@@ -100,9 +104,9 @@ export function ChoixCreneau({
     // toute la fenêtre au lieu de défiler.
     <div className="min-w-0 space-y-4">
       <fieldset className="min-w-0">
-        <legend className="mb-2 text-sm font-semibold">Quel jour ?</legend>
+        <legend className="mb-2 text-sm font-semibold">{t('creneau.quelJour')}</legend>
         {/* Une bande qui défile au doigt ou à la molette, comme sur le mobile. */}
-        <div role="radiogroup" aria-label="Jour de la visite" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
+        <div role="radiogroup" aria-label={t('creneau.jourVisite')} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
           {jours.map((iso) => {
             const date = depuisIso(iso);
             return (
@@ -121,9 +125,9 @@ export function ChoixCreneau({
                 data-testid={`jour-${iso}`}
               >
                 {iso === marque?.jour && <Point />}
-                <span className="text-xs">{JOURS_COURTS[date.getDay()]}</span>
+                <span className="text-xs">{jourCourt(date)}</span>
                 <span className="text-xl font-extrabold tabular-nums leading-tight">{date.getDate()}</span>
-                <span className="text-xs">{MOIS_COURTS[date.getMonth()]}</span>
+                <span className="text-xs">{moisCourt(date)}</span>
               </button>
             );
           })}
@@ -131,8 +135,8 @@ export function ChoixCreneau({
       </fieldset>
 
       <fieldset>
-        <legend className="mb-2 text-sm font-semibold">À quelle heure ?</legend>
-        <div role="radiogroup" aria-label="Heure de la visite" className="space-y-2">
+        <legend className="mb-2 text-sm font-semibold">{t('creneau.quelleHeure')}</legend>
+        <div role="radiogroup" aria-label={t('creneau.heureVisite')} className="space-y-2">
           {groupes.map((groupe) => (
             <div key={groupe.titre}>
               <p className="mb-1 text-xs font-semibold text-muted-foreground">{groupe.titre}</p>
@@ -146,7 +150,7 @@ export function ChoixCreneau({
                       role="radio"
                       aria-checked={h === heure}
                       disabled={passee || !jour}
-                      aria-label={`${heureLisible(h)}${passee ? ', déjà passée' : ''}${h === heureMarque ? `, ${libelleMarque}` : ''}`}
+                      aria-label={`${heureLisible(h)}${passee ? t('creneau.dejaPassee') : ''}${h === heureMarque ? `, ${libelleMarque}` : ''}`}
                       onClick={() => onHeure(h)}
                       className={cn(
                         TUILE,
@@ -162,7 +166,7 @@ export function ChoixCreneau({
               </div>
             </div>
           ))}
-          {!jour && <p className="text-sm text-muted-foreground">Choisissez d’abord un jour.</p>}
+          {!jour && <p className="text-sm text-muted-foreground">{t('creneau.choisirJourDabord')}</p>}
           {marque?.jour && (
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <span className="relative h-2 w-2"><Point /></span> {libelleMarque[0]?.toUpperCase() + libelleMarque.slice(1)}

@@ -17,6 +17,7 @@ import { queryClient } from '@/lib/queryClient';
 import { formaterMontant } from '@/lib/prix';
 import type { DemandeVisite } from '@shared/schema';
 import { CLE_BIENS, CLE_COMMISSIONS, aujourdhui, messageErreur } from './commun';
+import { t } from '@/i18n';
 
 /**
  * Le bail est signé : le commissionnaire le déclare depuis la demande de
@@ -53,24 +54,24 @@ export function DialogueBail({ demande, onFermer }: { demande: DemandeVisite; on
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CLE_COMMISSIONS });
       queryClient.invalidateQueries({ queryKey: CLE_BIENS });
-      toast({ title: 'Bail enregistré', description: 'Le bien est marqué loué. Notez les paiements dans « Gains ».' });
+      toast({ title: t('bail.bailEnregistre'), description: t('bail.bienEstMarqueLoue') });
       onFermer();
     },
-    onError: (e) => toast({ title: 'Bail non enregistré', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('bail.bailNonEnregistre'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Bail signé</DialogTitle>
+          <DialogTitle>{t('bail.bailSigne')}</DialogTitle>
           <DialogDescription>{bien?.titre}</DialogDescription>
         </DialogHeader>
 
         <div className="rounded-md bg-muted p-3 text-sm space-y-1">
           <p>
             Commission : <span className="font-semibold">{formaterMontant(commissionTotale, bien?.devise)}</span>
-            {bien?.commission_payee_par === 'moitie' ? ', moitié locataire, moitié bailleur' : ', payée par le locataire'}
+            {bien?.commission_payee_par === 'moitie' ? t('bail.moitieLocataireMoitieBailleur') : t('bail.payeeLocataire')}
           </p>
           {parConfrere && (
             <p>
@@ -82,12 +83,12 @@ export function DialogueBail({ demande, onFermer }: { demande: DemandeVisite; on
 
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label htmlFor="bail-locataire">Locataire</Label>
+            <Label htmlFor="bail-locataire">{t('bail.locataire')}</Label>
             <Input id="bail-locataire" value={locataire} onChange={(e) => setLocataire(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="bail-telephone">Téléphone</Label>
+              <Label htmlFor="bail-telephone">{t('bail.telephone')}</Label>
               <Input
                 id="bail-telephone"
                 type="tel"
@@ -97,23 +98,23 @@ export function DialogueBail({ demande, onFermer }: { demande: DemandeVisite; on
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="bail-date">Date du bail</Label>
+              <Label htmlFor="bail-date">{t('bail.dateBail')}</Label>
               <Input id="bail-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            La loi demande un bail écrit, enregistré sous 30 jours, et un état des lieux signé des deux parties.
+            {t('bail.loiDemandeBailEcrit')}
           </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('bail.annuler')}</Button>
           <Button
             disabled={!locataire.trim() || !date || declarer.isPending}
             onClick={() => declarer.mutate()}
             data-testid="button-declarer-bail"
           >
-            Enregistrer le bail
+            {t('bail.enregistrerBail')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { FILTRE_COURANT_SANS_COUPURE, FILTRE_EAU_TOUS_LES_JOURS } from '@/lib/terrain';
 import type { BienList, PaginatedResponse } from '@shared/schema';
+import { t } from '@/i18n';
 
 // Doit rester égal au PAGE_SIZE de Django (20) : le serveur pagine par numéro
 // de page et ignore toute taille demandée par le client.
@@ -131,16 +132,16 @@ export default function Search() {
     <Layout>
       <div className="px-4 py-4 md:py-6 max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-4">Rechercher un bien</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('recherche.rechercherBien')}</h1>
           <SearchBar filters={filters} onFiltersChange={handleFiltersChange} />
         </div>
 
         <div className="flex items-center justify-between gap-2 mb-4">
           <p className="text-sm text-muted-foreground">
             {data?.count !== undefined ? (
-              <span data-testid="text-results-count">{data.count} bien{data.count !== 1 ? 's' : ''} trouvé{data.count !== 1 ? 's' : ''}</span>
+              <span data-testid="text-results-count">{t('recherche.resultats', { n: data.count })}</span>
             ) : (
-              <span>Recherche en cours…</span>
+              <span>{t('recherche.enCours')}</span>
             )}
           </p>
 
@@ -150,7 +151,7 @@ export default function Search() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Afficher en grille"
+              aria-label={t('recherche.grille')}
               aria-pressed={viewMode === 'grid'}
               className={cn(viewMode === 'grid' && 'bg-muted')}
               onClick={() => setViewMode('grid')}
@@ -161,7 +162,7 @@ export default function Search() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Afficher en liste"
+              aria-label={t('recherche.liste')}
               aria-pressed={viewMode === 'list'}
               className={cn(viewMode === 'list' && 'bg-muted')}
               onClick={() => setViewMode('list')}
@@ -173,7 +174,7 @@ export default function Search() {
         </div>
 
         {error && !data ? (
-          <ErreurRequete erreur={error} titre="La recherche n’a pas abouti" onReessayer={() => void refetch()} />
+          <ErreurRequete erreur={error} titre={t('recherche.echec')} onReessayer={() => void refetch()} />
         ) : (
         <PropertyGrid
           properties={data?.results || []}

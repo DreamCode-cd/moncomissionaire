@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { t } from '@/i18n';
 
 export type NotificationPermissionState = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -72,16 +73,16 @@ export function usePushNotifications() {
   const showVisitNotification = useCallback((status: 'accepted' | 'rejected' | 'assigned', details: { propertyTitle?: string; agentName?: string }) => {
     const messages: Record<string, { title: string; body: string }> = {
       accepted: {
-        title: 'Demande de visite acceptee',
-        body: `Votre demande de visite pour "${details.propertyTitle || 'le bien'}" a ete acceptee.`
+        title: t('push.acceptee'),
+        body: t('push.accepteeTexte', { titre: details.propertyTitle || t('push.leBien') })
       },
       rejected: {
-        title: 'Demande de visite refusee',
-        body: `Votre demande de visite pour "${details.propertyTitle || 'le bien'}" a ete refusee.`
+        title: t('push.refusee'),
+        body: t('push.refuseeTexte', { titre: details.propertyTitle || t('push.leBien') })
       },
       assigned: {
-        title: 'Agent assigne a votre visite',
-        body: `${details.agentName || 'Un agent'} a ete assigne a votre visite pour "${details.propertyTitle || 'le bien'}".`
+        title: t('push.agent'),
+        body: t('push.agentTexte', { nom: details.agentName || t('push.unAgent'), titre: details.propertyTitle || t('push.leBien') })
       }
     };
 
@@ -98,7 +99,7 @@ export function usePushNotifications() {
 
   const showMessageNotification = useCallback((senderName: string, preview: string, chatroomId: number) => {
     showNotification({
-      title: `Nouveau message de ${senderName}`,
+      title: t('push.nouveauMessage', { nom: senderName }),
       body: preview.length > 50 ? preview.substring(0, 50) + '...' : preview,
       url: `/messages/${chatroomId}`,
       tag: `message-${chatroomId}-${Date.now()}`,

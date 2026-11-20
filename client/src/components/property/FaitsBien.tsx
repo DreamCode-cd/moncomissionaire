@@ -10,6 +10,7 @@ import {
   libelleCourant,
   libelleEau,
 } from '@/lib/faits';
+import { t } from '@/i18n';
 
 interface Fait {
   icone: LucideIcon;
@@ -30,8 +31,8 @@ function faitsDe(bien: BienResume): Fait[] {
   if (garant) {
     faits.push({
       icone: BadgeCheck,
-      texte: 'Vérifié',
-      lu: garant === 'agence' ? 'Agence vérifiée' : 'Commissionnaire vérifié',
+      texte: t('faits.verifie'),
+      lu: garant === 'agence' ? t('faits.agenceVerifiee') : t('faits.commissionnaireVerifie'),
       couleur: TEXTE_ETAT.bon,
       fort: true,
     });

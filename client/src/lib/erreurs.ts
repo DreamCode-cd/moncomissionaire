@@ -14,8 +14,10 @@
  *   `champs` dit quoi corriger dans le formulaire.
  */
 
+import { t } from '@/i18n';
+
 export class ErreurReseau extends Error {
-  constructor(message = 'Pas de connexion au serveur. Vérifiez votre réseau, puis réessayez.') {
+  constructor(message = t('erreur.reseau')) {
     super(message);
     this.name = 'ErreurReseau';
   }
@@ -45,50 +47,50 @@ export class ErreurApi extends Error {
 /** Libellés des champs dont le message du serveur serait ambigu seul
  *  (« Ce champ est obligatoire. » ne dit pas lequel). */
 const LIBELLES: Record<string, string> = {
-  titre: 'Titre',
-  description: 'Description',
-  prix_mensuel: 'Loyer',
-  adresse: 'Adresse',
-  ville: 'Ville',
-  quartier: 'Quartier',
-  commune: 'Commune',
-  bailleur: 'Bailleur',
-  garantie_mois: 'Garantie',
-  frais_visite: 'Frais de visite',
-  part_confrere_pourcent: 'Part du confrère',
-  montant: 'Montant',
-  date: 'Date',
-  date_bail: 'Date du bail',
-  date_reglement: 'Date',
-  date_souhaitee: 'Date souhaitée',
-  heure_souhaitee: 'Heure souhaitée',
-  locataire_nom: 'Locataire',
-  prospect_nom: 'Nom du client',
-  email: 'Adresse e-mail',
-  username: 'Nom d’utilisateur',
-  password: 'Mot de passe',
-  phone: 'Téléphone',
-  nom: 'Nom',
-  motif: 'Motif',
-  note: 'Note',
-  image: 'Photo',
-  photos: 'Photos',
-  pieces: 'Pièce',
+  get titre() { return t('champ.titre'); },
+  get description() { return t('champ.description'); },
+  get prix_mensuel() { return t('champ.prix_mensuel'); },
+  get adresse() { return t('champ.adresse'); },
+  get ville() { return t('champ.ville'); },
+  get quartier() { return t('champ.quartier'); },
+  get commune() { return t('champ.commune'); },
+  get bailleur() { return t('champ.bailleur'); },
+  get garantie_mois() { return t('champ.garantie_mois'); },
+  get frais_visite() { return t('champ.frais_visite'); },
+  get part_confrere_pourcent() { return t('champ.part_confrere_pourcent'); },
+  get montant() { return t('champ.montant'); },
+  get date() { return t('champ.date'); },
+  get date_bail() { return t('champ.date_bail'); },
+  get date_reglement() { return t('champ.date_reglement'); },
+  get date_souhaitee() { return t('champ.date_souhaitee'); },
+  get heure_souhaitee() { return t('champ.heure_souhaitee'); },
+  get locataire_nom() { return t('champ.locataire_nom'); },
+  get prospect_nom() { return t('champ.prospect_nom'); },
+  get email() { return t('champ.email'); },
+  get username() { return t('champ.username'); },
+  get password() { return t('champ.password'); },
+  get phone() { return t('champ.phone'); },
+  get nom() { return t('champ.nom'); },
+  get motif() { return t('champ.motif'); },
+  get note() { return t('champ.note'); },
+  get image() { return t('champ.image'); },
+  get photos() { return t('champ.photos'); },
+  get pieces() { return t('champ.pieces'); },
 };
 
 /** Messages génériques de Django REST Framework, qui ne nomment pas le champ. */
-const GENERIQUE = /^(ce champ|assurez-vous|un nombre|une valeur|la date|l’heure|l'heure|un entier|sélectionnez|type incorrect|clé primaire|valeur invalide|this field)/i;
+const GENERIQUE = /^(ce champ|assurez-vous|un nombre|une valeur|la date|l’heure|l'heure|un entier|sélectionnez|type incorrect|clé primaire|valeur invalide|this field|ensure|a valid|enter a valid|select a valid|incorrect type|invalid pk|date has wrong|time has wrong|not a valid)/i;
 
 const PAR_STATUT: Record<number, string> = {
-  400: 'Certaines informations ne sont pas valides.',
-  401: 'Votre session a expiré. Reconnectez-vous.',
-  403: 'Vous n’avez pas le droit de faire cette action.',
-  404: 'Introuvable. L’élément a peut-être été supprimé ou déplacé.',
-  405: 'Cette action n’est pas possible ici.',
-  409: 'Cette action entre en conflit avec une autre. Rechargez la page.',
-  413: 'Le fichier envoyé est trop lourd : 15 Mo au plus.',
-  415: 'Ce format de fichier n’est pas accepté.',
-  429: 'Trop de tentatives. Patientez une minute avant de réessayer.',
+  get 400() { return t('erreur.http400'); },
+  get 401() { return t('erreur.http401'); },
+  get 403() { return t('erreur.http403'); },
+  get 404() { return t('erreur.http404'); },
+  get 405() { return t('erreur.http405'); },
+  get 409() { return t('erreur.http409'); },
+  get 413() { return t('erreur.http413'); },
+  get 415() { return t('erreur.http415'); },
+  get 429() { return t('erreur.http429'); },
 };
 
 function premierTexte(valeur: unknown): string | null {
@@ -115,8 +117,8 @@ export function erreurDepuisReponse(statut: number, corps: unknown): ErreurApi {
     return new ErreurApi(
       statut,
       statut === 500
-        ? 'Le serveur a rencontré un problème. Réessayez dans un instant ; si cela continue, prévenez l’équipe VillaGo.'
-        : 'Le serveur ne répond pas pour le moment. Réessayez dans un instant.',
+        ? t('erreur.serveur500')
+        : t('erreur.serveurIndisponible'),
     );
   }
 
@@ -152,14 +154,14 @@ export function erreurDepuisReponse(statut: number, corps: unknown): ErreurApi {
     message = premierTexte(corps);
   }
 
-  return new ErreurApi(statut, message || PAR_STATUT[statut] || 'Une erreur est survenue.', champs, general);
+  return new ErreurApi(statut, message || PAR_STATUT[statut] || t('erreur.inconnue'), champs, general);
 }
 
 /** Le message à montrer, quelle que soit l'erreur. */
 export function messageErreur(erreur: unknown): string {
   if (erreur instanceof ErreurApi || erreur instanceof ErreurReseau) return erreur.message;
   if (erreur instanceof Error && erreur.message) return erreur.message;
-  return 'Une erreur est survenue.';
+  return t('erreur.inconnue');
 }
 
 /** Les messages par champ d'une erreur, vides si elle n'en porte pas. */

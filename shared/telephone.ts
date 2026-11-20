@@ -76,12 +76,14 @@ export function assembler(indicatif: string, national: string): string {
 }
 
 /** Le message d'erreur à afficher, ou `null` si le numéro est valable. */
+/** Renvoie une clé de traduction (« cle|variable=valeur… »), à passer par
+ *  traduireSiCle() avant affichage. */
 export function erreurTelephone(numero: string): string | null {
   const brut = chiffresSeuls(numero);
   if (!brut) return null;
-  if (brut === '+') return 'Numéro incomplet : vérifiez l’indicatif du pays.';
+  if (brut === '+') return 'validation.telIncomplet';
   if (!/^\+?\d+$/.test(brut)) {
-    return 'Le numéro ne doit contenir que des chiffres.';
+    return 'validation.telChiffres';
   }
   const international = brut.startsWith('+') ? brut.slice(1) : null;
   if (international !== null && !PAYS.some((p) => international.startsWith(p.indicatif))) {
@@ -89,16 +91,16 @@ export function erreurTelephone(numero: string): string | null {
     // au plus), comme côté serveur.
     return international.length >= 8 && international.length <= 15
       ? null
-      : 'Numéro incomplet ou trop long : vérifiez l’indicatif du pays.';
+      : 'validation.telLongueurInconnue';
   }
   const { indicatif, national } = decouper(numero);
   const pays = PAYS.find((p) => p.indicatif === indicatif);
   if (!pays) return null;
   if (national.length !== pays.longueur) {
-    return `Il faut ${pays.longueur} chiffres après +${indicatif} (vous en avez saisi ${national.length}).`;
+    return `validation.telLongueur|n=${pays.longueur}|indicatif=${indicatif}|saisis=${national.length}`;
   }
   if (indicatif === INDICATIF_RDC && !MOBILE_RDC.test(national)) {
-    return 'Un numéro congolais commence par 8 ou 9 après +243 (par exemple 81 234 56 78).';
+    return 'validation.telRdc';
   }
   return null;
 }

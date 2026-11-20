@@ -14,6 +14,8 @@ import { formaterMontant, estPositif } from '@/lib/prix';
 import { lieuAnnonce } from '@/lib/annonce';
 import { queryClient } from '@/lib/queryClient';
 import type { CompteResume, PaginatedResponse, SignalementEquipe } from '@shared/schema';
+import { t } from '@/i18n';
+import { lireStatutQuelconque } from '@/lib/statuts';
 
 export const CLE_SIGNALEMENTS = '/api/v1/visites/equipe/signalements/';
 const SUITE_MINIMUM = 10;
@@ -40,27 +42,27 @@ export function OngletSignalements() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2" role="tablist" aria-label="Signalements">
+      <div className="flex gap-2" role="tablist" aria-label={t('signalements.signalements')}>
         <Button size="sm" variant={vue === 'false' ? 'default' : 'outline'} onClick={() => changerVue('false')} data-testid="filtre-signalements-attente">
-          En attente
+          {t('signalements.attente')}
         </Button>
         <Button size="sm" variant={vue === 'true' ? 'default' : 'outline'} onClick={() => changerVue('true')} data-testid="filtre-signalements-traites">
-          Traités
+          {t('signalements.traites')}
         </Button>
       </div>
 
       {requete.isLoading ? (
-        <EtatChargement texte="Chargement des signalements…" />
+        <EtatChargement texte={t('signalements.chargementSignalements')} />
       ) : requete.error && !requete.data ? (
-        <ErreurRequete erreur={requete.error} titre="Les signalements n’ont pas pu être chargés" onReessayer={() => void requete.refetch()} />
+        <ErreurRequete erreur={requete.error} titre={t('signalements.signalementsNOntPas')} onReessayer={() => void requete.refetch()} />
       ) : !requete.data?.results.length ? (
         <EtatVide
           icone={Flag}
-          titre={vue === 'false' ? 'Aucun signalement en attente' : 'Aucun signalement traité'}
+          titre={vue === 'false' ? t('signalements.aucunSignalementAttente') : t('signalements.aucunSignalementTraite')}
           description={
             vue === 'false'
-              ? 'Quand un client signale un problème sur une visite (frais exigés en trop, commissionnaire injoignable…), il arrive ici.'
-              : 'Les signalements clos restent ici, avec la réponse donnée au client.'
+              ? t('signalements.quandClientSignaleProbleme')
+              : t('signalements.signalementsClosRestentIci')
           }
         />
       ) : (
@@ -90,9 +92,9 @@ function CarteSignalement({ signalement: s }: { signalement: SignalementEquipe }
     mutationFn: () => api.post(`${CLE_SIGNALEMENTS}${s.id}/traiter/`, { suite: suite.trim() }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [CLE_SIGNALEMENTS] });
-      toast({ title: 'Signalement clos', description: 'Le client est prévenu et lit votre réponse sous sa demande.' });
+      toast({ title: t('signalements.signalementClos'), description: t('signalements.clientEstPrevenuLit') });
     },
-    onError: (e) => toast({ title: 'Signalement non clos', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('signalements.signalementNonClos'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   return (
@@ -101,7 +103,7 @@ function CarteSignalement({ signalement: s }: { signalement: SignalementEquipe }
         <div>
           <p className="font-medium leading-tight">{bien?.titre}</p>
           <p className="text-xs text-muted-foreground">
-            {lieuAnnonce([bien?.quartier, bien?.ville_nom])} · signalé le {formaterDateEtHeure(s.signale_le)}
+            {t('signalements.signaleB', { a: lieuAnnonce([bien?.quartier, bien?.ville_nom]), b: formaterDateEtHeure(s.signale_le) })}
           </p>
         </div>
 
@@ -114,38 +116,38 @@ function CarteSignalement({ signalement: s }: { signalement: SignalementEquipe }
           {s.gestionnaire ? (
             <Personne role="Commissionnaire du bien" compte={s.gestionnaire} />
           ) : (
-            <p className="text-muted-foreground">Bien suivi par l’équipe VillaGo (publié par son propriétaire).</p>
+            <p className="text-muted-foreground">{t('signalements.bienSuiviEquipeVillago')}</p>
           )}
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Demande : {s.statut_display}
+          {t('signalements.demande', { statut: lireStatutQuelconque(s.statut, s.statut_display).libelle })}
           {s.frais_visite && estPositif(s.frais_visite)
-            ? ` · frais de visite annoncés ${formaterMontant(s.frais_visite, s.frais_visite_devise)}, réglés ${formaterMontant(s.frais_visite_regles, s.frais_visite_devise)}`
-            : ' · pas de frais de visite annoncés'}
+            ? t('signalements.frais', { annonces: formaterMontant(s.frais_visite, s.frais_visite_devise), regles: formaterMontant(s.frais_visite_regles, s.frais_visite_devise) })
+            : t('signalements.pasFraisVisiteAnnonces')}
         </p>
 
         {traite ? (
           <div className="rounded-md bg-muted p-3 text-sm space-y-1" data-testid={`suite-signalement-${s.id}`}>
             <p className="text-xs text-muted-foreground">
-              Traité le {formaterDateEtHeure(s.signalement_traite_le)}
+              {t('signalements.traite', { a: formaterDateEtHeure(s.signalement_traite_le) })}
               {s.signalement_traite_par_detail ? ` par ${s.signalement_traite_par_detail.full_name}` : ''}
             </p>
             <p className="whitespace-pre-line">{s.signalement_suite}</p>
           </div>
         ) : (
           <div className="space-y-2">
-            <Label htmlFor={`suite-${s.id}`}>Ce que l’équipe a fait</Label>
+            <Label htmlFor={`suite-${s.id}`}>{t('signalements.ceQueEquipeFait')}</Label>
             <Textarea
               id={`suite-${s.id}`}
               value={suite}
               onChange={(e) => setSuite(e.target.value)}
-              placeholder="Ex : appel au commissionnaire, les 10 $ en trop ont été rendus au client."
+              placeholder={t('signalements.exAppelCommissionnaire10')}
               maxLength={2000}
               data-testid={`input-suite-${s.id}`}
             />
             <p className="text-xs text-muted-foreground">
-              Le client lira cette réponse sous sa demande. Un signalement clos ne se rouvre pas.
+              {t('signalements.clientLiraCetteReponse')}
             </p>
             <Button
               size="sm"
@@ -153,7 +155,7 @@ function CarteSignalement({ signalement: s }: { signalement: SignalementEquipe }
               onClick={() => clore.mutate()}
               data-testid={`button-clore-${s.id}`}
             >
-              Clore le signalement
+              {t('signalements.cloreSignalement')}
             </Button>
           </div>
         )}
@@ -192,11 +194,11 @@ export function Pagination({
   return (
     <div className="flex items-center justify-between">
       <Button size="sm" variant="outline" disabled={!precedente} onClick={() => onChange(page - 1)}>
-        Précédents
+        {t('signalements.precedents')}
       </Button>
-      <span className="text-sm text-muted-foreground">Page {page}</span>
+      <span className="text-sm text-muted-foreground">{t('commun.page', { page })}</span>
       <Button size="sm" variant="outline" disabled={!suivante} onClick={() => onChange(page + 1)}>
-        Suivants
+        {t('signalements.suivants')}
       </Button>
     </div>
   );

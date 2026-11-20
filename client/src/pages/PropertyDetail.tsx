@@ -43,7 +43,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LazyImage } from '@/components/ui/lazy-image';
 import { formaterLoyer, formaterPrix } from '@/lib/prix';
-import { auteurAnnonce, formaterSurface, initiale, libelleVerification, lieuAnnonce } from '@/lib/annonce';
+import { auteurAnnonce, formaterSurface, initiale, libelleTypeBien, libelleVerification, lieuAnnonce } from '@/lib/annonce';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
 import { CoutsLocation } from '@/components/property/CoutsLocation';
 import { PaiementEntree } from '@/components/property/PaiementEntree';
@@ -53,15 +53,17 @@ import { ChoixCreneau, heureLisible, jourLisible } from '@/components/confiance/
 import { libelleChambres } from '@/lib/faits';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
 import { garderBrouillonVisite, oublierBrouillonVisite, reprendreBrouillonVisite, versConnexion } from '@/lib/suite';
+import { langueActive, t } from '@/i18n';
+import { lireStatut } from '@/lib/statuts';
 
 // Plus de photo d'illustration à la place d'une vraie : voir VignetteSansPhoto.
 
 const amenities = [
-  { key: 'parking', icon: Car, label: 'Parking' },
-  { key: 'jardin', icon: Trees, label: 'Jardin' },
-  { key: 'meuble', icon: Sofa, label: 'Meublé' },
-  { key: 'climatisation', icon: Wind, label: 'Climatisation' },
-  { key: 'gardien', icon: Shield, label: 'Gardien' },
+  { key: 'parking', icon: Car, get label() { return t('equipement.parking'); } },
+  { key: 'jardin', icon: Trees, get label() { return t('equipement.jardin'); } },
+  { key: 'meuble', icon: Sofa, get label() { return t('equipement.meuble'); } },
+  { key: 'climatisation', icon: Wind, get label() { return t('equipement.climatisation'); } },
+  { key: 'gardien', icon: Shield, get label() { return t('equipement.gardien'); } },
 ];
 
 export default function PropertyDetail() {
@@ -209,17 +211,17 @@ export default function PropertyDetail() {
       });
       void queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/favoris/'] });
       toast({
-        title: isNowFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris',
+        title: isNowFavorite ? t('fiche.ajouteFavoris') : t('fiche.retireFavoris'),
         description: isNowFavorite 
-          ? 'Retrouvez-le dans « Mes favoris », depuis votre profil.'
-          : 'Ce bien a été retiré de vos favoris',
+          ? t('fiche.ajouteFavorisTexte')
+          : t('fiche.retireFavorisTexte'),
       });
     },
     onError: (error, _, context) => {
       queryClient.setQueryData(['/api/v1/biens/favoris/check/', propertyId], context?.previousFavorite);
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('commun.erreur'),
+        description: error instanceof Error ? error.message : t('erreur.inconnue'),
         variant: 'destructive',
       });
     },
@@ -230,15 +232,15 @@ export default function PropertyDetail() {
     
     const mainPhoto = property.photos?.find(p => p.is_principale) || property.photos?.[0] || property.photo_principale;
     const imageUrl = mainPhoto?.image || '';
-    const propertyType = property.type_bien_display || property.type_bien || 'Propriété';
-    const location = lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]) || 'Non spécifié';
+    const propertyType = libelleTypeBien(property.type_bien);
+    const location = lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]) || t('fiche.nonSpecifie');
     // La devise de l'annonce, pas le dollar d'office : une annonce en francs
     // se partageait comme « 450 000 USD/mois ».
     const prixFormate = formaterLoyer(property.prix_mensuel, property.devise);
     const price = prixFormate === '—' ? '' : prixFormate;
-    const descParts = [`${propertyType} à louer à ${location}`];
+    const descParts = [t('fiche.aLouerA', { type: propertyType, lieu: location })];
     if (price) descParts.push(price);
-    if (property.nombre_chambres) descParts.push(`${property.nombre_chambres} chambre(s)`);
+    if (property.nombre_chambres) descParts.push(libelleChambres(property.nombre_chambres) ?? '');
     const surfaceMeta = formaterSurface(property.superficie);
     if (surfaceMeta) descParts.push(surfaceMeta);
     const description = descParts.join(' - ') + '.';
@@ -268,7 +270,7 @@ export default function PropertyDetail() {
     }
     setMetaTag('og:url', window.location.href);
     setMetaTag('og:type', 'website');
-    setMetaTag('og:locale', 'fr_FR');
+    setMetaTag('og:locale', langueActive() === 'en' ? 'en_GB' : 'fr_FR');
     setMetaTag('og:site_name', 'VillaGo');
     
     return () => {
@@ -298,8 +300,8 @@ export default function PropertyDetail() {
 
     if (!visitDate || !visitTime) {
       toast({
-        title: 'Erreur',
-        description: 'Veuillez renseigner la date et l\'heure souhaitées',
+        title: t('commun.erreur'),
+        description: t('fiche.dateHeureManquantes'),
         variant: 'destructive',
       });
       return;
@@ -314,8 +316,8 @@ export default function PropertyDetail() {
         message: visitMessage,
       });
       toast({
-        title: 'Demande envoyée',
-        description: 'Votre demande de visite a été envoyée avec succès.',
+        title: t('fiche.demandeEnvoyee'),
+        description: t('fiche.demandeEnvoyeeTexte'),
       });
       oublierBrouillonVisite(propertyId!);
       setVisitDialogOpen(false);
@@ -324,8 +326,8 @@ export default function PropertyDetail() {
       setVisitMessage('');
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('commun.erreur'),
+        description: error instanceof Error ? error.message : t('erreur.inconnue'),
         variant: 'destructive',
       });
     } finally {
@@ -344,12 +346,12 @@ export default function PropertyDetail() {
   const handleShare = async () => {
     if (!property) return;
     
-    const propertyType = property.type_bien_display || property.type_bien || 'Propriété';
-    const location = lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]) || 'Non spécifié';
+    const propertyType = libelleTypeBien(property.type_bien);
+    const location = lieuAnnonce([property.quartier, property.commune, getVilleName(property.ville, property.ville_nom, property.ville_detail)]) || t('fiche.nonSpecifie');
     const loyerPartage = formaterLoyer(property.prix_mensuel, property.devise);
     const priceText = loyerPartage === '—' ? '' : ` - ${loyerPartage}`;
     
-    const shareText = `${propertyType} à louer à ${location}${priceText}. Découvrez cette propriété sur VillaGo !`;
+    const shareText = t('fiche.textePartage', { type: propertyType, lieu: location, prix: priceText });
     
     const shareData: ShareData = {
       title: `${property.titre} - VillaGo`,
@@ -361,15 +363,15 @@ export default function PropertyDetail() {
       if (navigator.share) {
         await navigator.share(shareData);
         toast({
-          title: 'Propriété partagée',
-          description: 'Merci d\'avoir partagé cette propriété !',
+          title: t('fiche.partagee'),
+          description: t('fiche.merciPartage'),
         });
       } else {
         const fullText = `${shareText}\n\n${window.location.href}`;
         await navigator.clipboard.writeText(fullText);
         toast({
-          title: 'Lien copié',
-          description: 'Le texte et le lien ont été copiés dans le presse-papiers. Vous pouvez maintenant le partager !',
+          title: t('fiche.lienCopie'),
+          description: t('fiche.lienCopieTexte'),
         });
       }
     } catch (error) {
@@ -377,8 +379,8 @@ export default function PropertyDetail() {
         const fullText = `${shareText}\n\n${window.location.href}`;
         await navigator.clipboard.writeText(fullText);
         toast({
-          title: 'Lien copié',
-          description: 'Le texte et le lien ont été copiés dans le presse-papiers. Vous pouvez maintenant le partager !',
+          title: t('fiche.lienCopie'),
+          description: t('fiche.lienCopieTexte'),
         });
       }
     }
@@ -390,7 +392,7 @@ export default function PropertyDetail() {
     mutationFn: async (data: { note: number; commentaire: string }) =>
       api.patch(`/api/v1/biens/avis-biens/${userReviewId}/`, data),
     onSuccess: () => {
-      toast({ title: 'Avis modifié', description: 'Votre correction est enregistrée.' });
+      toast({ title: t('fiche.avisModifie'), description: t('fiche.avisModifieTexte') });
       queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/', propertyId, 'avis'] });
       setIsEditingReview(false);
       setReviewNote(0);
@@ -398,8 +400,8 @@ export default function PropertyDetail() {
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('commun.erreur'),
+        description: error instanceof Error ? error.message : t('erreur.inconnue'),
         variant: 'destructive',
       });
     },
@@ -413,8 +415,8 @@ export default function PropertyDetail() {
 
     if (reviewNote < 1 || reviewNote > 5) {
       toast({
-        title: 'Erreur',
-        description: 'Veuillez donner une note entre 1 et 5',
+        title: t('commun.erreur'),
+        description: t('fiche.noteEntre1Et5'),
         variant: 'destructive',
       });
       return;
@@ -460,7 +462,7 @@ export default function PropertyDetail() {
   if (!property && erreurBien && !(erreurBien instanceof ErreurApi && erreurBien.statut === 404)) {
     return (
       <Layout>
-        <ErreurRequete erreur={erreurBien} titre="Cette annonce n’a pas pu être chargée" onReessayer={() => void rechargerBien()} className="min-h-[50vh]" />
+        <ErreurRequete erreur={erreurBien} titre={t('fiche.cetteAnnonceNPas')} onReessayer={() => void rechargerBien()} className="min-h-[50vh]" />
       </Layout>
     );
   }
@@ -470,9 +472,9 @@ export default function PropertyDetail() {
       <Layout>
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <p className="text-muted-foreground">
-            Cette annonce n’est plus en ligne. Le bien a peut-être été loué, ou l’annonce n’a pas été reconfirmée.
+            {t('fiche.plusEnLigne')}
           </p>
-          <Button onClick={() => setLocation('/search')}>Retour à la recherche</Button>
+          <Button onClick={() => setLocation('/search')}>{t('fiche.retourRecherche')}</Button>
         </div>
       </Layout>
     );
@@ -486,7 +488,7 @@ export default function PropertyDetail() {
   const mesures = [
     libelleChambres(property.nombre_chambres),
     property.nombre_salles_bain
-      ? `${property.nombre_salles_bain} salle${property.nombre_salles_bain > 1 ? 's' : ''} de bain`
+      ? t('fiche.sallesDeBain', { n: property.nombre_salles_bain })
       : null,
     surface,
   ].filter((m): m is string => !!m);
@@ -566,7 +568,7 @@ export default function PropertyDetail() {
               className="bg-background/90 backdrop-blur-sm"
               data-testid="badge-property-type"
             >
-              {property.type_bien_display}
+              {libelleTypeBien(property.type_bien)}
             </Badge>
             {property.statut_location === 'disponible' && (
               <BadgeStatut
@@ -587,7 +589,7 @@ export default function PropertyDetail() {
                 className="bg-amber-500 text-white"
                 data-testid="badge-status-visiting"
               >
-                {property.statut_location_display}
+                {lireStatut('location', property.statut_location).libelle}
               </Badge>
             )}
             {property.statut_location === 'indisponible' && (
@@ -595,7 +597,7 @@ export default function PropertyDetail() {
                 variant="secondary"
                 data-testid="badge-status-unavailable"
               >
-                {property.statut_location_display}
+                {lireStatut('location', property.statut_location).libelle}
               </Badge>
             )}
           </div>
@@ -610,7 +612,7 @@ export default function PropertyDetail() {
                 {/* « Vérifié » laissait croire à un contrôle du bien ou du
                     bailleur. Il s'agit seulement de la relecture de
                     l'annonce par la modération. */}
-                Annonce validée
+                {t('fiche.annonceValidee')}
               </Badge>
             )}
             {property.statut_validation === 'en_attente' && (
@@ -618,7 +620,7 @@ export default function PropertyDetail() {
                 className="bg-amber-500/90 text-white backdrop-blur-sm"
                 data-testid="badge-validation-pending"
               >
-                En attente
+                {t('statut.demande.en_attente')}
               </Badge>
             )}
           </div>
@@ -630,7 +632,7 @@ export default function PropertyDetail() {
                 className="bg-background/90 backdrop-blur-sm"
               >
                 <Images className="w-3 h-3 mr-1" />
-                {property.photos.length} photos
+                {t('fiche.photos', { a: property.photos.length })}
               </Badge>
             )}
           </div>
@@ -669,7 +671,7 @@ export default function PropertyDetail() {
 
             <p className="mt-3 text-2xl font-extrabold text-primary tabular-nums" data-testid="text-property-price">
               {formaterPrix(property.prix_mensuel, property.devise)}
-              <span className="text-lg font-semibold"> par mois</span>
+              <span className="text-lg font-semibold">{t('fiche.parMois')}</span>
             </p>
             {/* Chambres, salles de bain, surface : une ligne de faits, comme
                 sur le mobile, plutôt que trois cartes d'icônes de même taille. */}
@@ -683,7 +685,7 @@ export default function PropertyDetail() {
           <Separator />
 
           <div>
-            <h2 className="text-lg font-semibold mb-3">Ce que vous paierez</h2>
+            <h2 className="text-lg font-semibold mb-3">{t('fiche.ceQueVousPaierez')}</h2>
             <PaiementEntree bien={property} />
           </div>
 
@@ -692,7 +694,7 @@ export default function PropertyDetail() {
           <Separator />
 
           <div>
-            <h2 className="text-lg font-semibold mb-3">Description</h2>
+            <h2 className="text-lg font-semibold mb-3">{t('fiche.description')}</h2>
             <div className="relative">
               <p 
                 className={`text-muted-foreground leading-relaxed break-words whitespace-pre-wrap ${
@@ -712,12 +714,12 @@ export default function PropertyDetail() {
                 >
                   {isDescriptionExpanded ? (
                     <>
-                      Voir moins
+                      {t('fiche.voirMoins')}
                       <ChevronUp className="w-4 h-4" />
                     </>
                   ) : (
                     <>
-                      Voir plus
+                      {t('fiche.voirPlus')}
                       <ChevronDown className="w-4 h-4" />
                     </>
                   )}
@@ -730,7 +732,7 @@ export default function PropertyDetail() {
             <>
               <Separator />
               <div>
-                <h2 className="text-lg font-semibold mb-3">Équipements</h2>
+                <h2 className="text-lg font-semibold mb-3">{t('filtre.equipements')}</h2>
                 <div className="grid grid-cols-2 gap-3">
                   {availableAmenities.map(({ key, icon: Icon, label }) => (
                     <div 
@@ -750,7 +752,7 @@ export default function PropertyDetail() {
           <Separator />
 
           <div>
-            <h2 className="text-lg font-semibold mb-3">Localisation</h2>
+            <h2 className="text-lg font-semibold mb-3">{t('fiche.localisation')}</h2>
             <div className="flex items-center gap-2 mb-3 text-muted-foreground">
               <MapPin className="w-4 h-4" />
               <span>
@@ -758,7 +760,7 @@ export default function PropertyDetail() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              L’adresse exacte vous est donnée au moment de la visite, une fois votre demande acceptée.
+              {t('fiche.adresseExacte')}
             </p>
           </div>
 
@@ -792,9 +794,9 @@ export default function PropertyDetail() {
                       {/* Plus de « Propriétaire vérifié » : aucune vérification
                           d'identité n'existe encore, il ne faut pas l'affirmer. */}
                       <p className="text-sm text-muted-foreground">
-                        {libelle === 'Commissionnaire'
-                          ? 'C’est la personne qui reçoit votre demande et vous fait visiter.'
-                          : 'Votre demande de visite est suivie par l’équipe VillaGo.'}
+                        {property.commissionnaire_detail
+                          ? t('fiche.roleCommissionnaire')
+                          : t('fiche.roleEquipe')}
                       </p>
                     </div>
                   </div>
@@ -815,7 +817,7 @@ export default function PropertyDetail() {
                   <Card className="mb-4">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium">Votre avis</h3>
+                        <h3 className="font-medium">{t('fiche.votreAvis')}</h3>
                         <Button 
                           variant="ghost" 
                           size="sm"
@@ -823,7 +825,7 @@ export default function PropertyDetail() {
                           data-testid="button-edit-my-review"
                         >
                           <SquarePen className="w-4 h-4 mr-1" />
-                          Modifier
+                          {t('commun.modifier')}
                         </Button>
                       </div>
                       <div className="flex items-center gap-1 mb-2">
@@ -845,11 +847,11 @@ export default function PropertyDetail() {
                   <Card className="mb-4">
                     <CardContent className="p-4">
                       <h3 className="font-medium mb-3">
-                        Modifier votre avis
+                        {t('fiche.modifierVotreAvis')}
                       </h3>
                       <div className="space-y-4">
                         <div>
-                          <Label className="mb-2 block">Votre note</Label>
+                          <Label className="mb-2 block">{t('fiche.votreNote')}</Label>
                           <div className="flex items-center gap-1">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <button
@@ -871,10 +873,10 @@ export default function PropertyDetail() {
                           </div>
                         </div>
                         <div>
-                          <Label htmlFor="review-comment">Votre commentaire</Label>
+                          <Label htmlFor="review-comment">{t('fiche.votreCommentaire')}</Label>
                           <Textarea
                             id="review-comment"
-                            placeholder="Partagez votre expérience avec ce bien (optionnel)..."
+                            placeholder={t('fiche.commentairePlaceholder')}
                             value={reviewComment}
                             onChange={(e) => setReviewComment(e.target.value)}
                             className="mt-2"
@@ -888,7 +890,7 @@ export default function PropertyDetail() {
                               onClick={cancelEditReview}
                               data-testid="button-cancel-review"
                             >
-                              Annuler
+                              {t('commun.annuler')}
                             </Button>
                           )}
                           <Button 
@@ -897,7 +899,7 @@ export default function PropertyDetail() {
                             data-testid="button-submit-review"
                           >
                             <Send className="w-4 h-4 mr-2" />
-                            {reviewMutation.isPending ? 'Envoi…' : 'Modifier mon avis'}
+                            {reviewMutation.isPending ? t('commun.envoi') : t('fiche.modifierMonAvis')}
                           </Button>
                         </div>
                       </div>
@@ -909,9 +911,9 @@ export default function PropertyDetail() {
 
             {!existingUserReview && (
               <p className="text-sm text-muted-foreground mb-4" data-testid="text-origine-avis">
-                Seules les personnes qui ont visité ce bien avec VillaGo peuvent le noter.
+                {t('fiche.seulsVisiteurs')}
                 {isAuthenticated && user?.role === 'client'
-                  ? ' Après votre visite, vous le noterez depuis « Mes visites ».'
+                  ? t('fiche.noterDepuisMesVisites')
                   : ''}
               </p>
             )}
@@ -967,8 +969,8 @@ export default function PropertyDetail() {
                 {reviews.results.filter(review => !review.est_de_moi).length === 0 && !existingUserReview && (
                   <EtatVide
                     icone={Star}
-                    titre="Aucun avis pour l’instant"
-                    description="Personne n’a encore noté ce bien après l’avoir visité."
+                    titre={t('fiche.aucunAvis')}
+                    description={t('fiche.aucunAvisTexte')}
                     className="py-6"
                   />
                 )}
@@ -976,8 +978,8 @@ export default function PropertyDetail() {
             ) : (
               <EtatVide
                 icone={Star}
-                titre="Aucun avis pour l’instant"
-                description="Personne n’a encore noté ce bien après l’avoir visité."
+                titre={t('fiche.aucunAvis')}
+                description={t('fiche.aucunAvisTexte')}
                 className="py-6"
               />
             )}
@@ -987,7 +989,7 @@ export default function PropertyDetail() {
             <>
               <Separator />
               <div>
-                <h2 className="text-lg font-semibold mb-4">Biens similaires</h2>
+                <h2 className="text-lg font-semibold mb-4">{t('fiche.similaires')}</h2>
                 <div className="grid grid-cols-2 gap-4">
                   {suggestions.results.slice(0, 4).map((bien) => {
                     const image = vignetteDe(bien.photo_principale);
@@ -1004,7 +1006,7 @@ export default function PropertyDetail() {
                               variant="secondary"
                               className="absolute top-2 left-2 bg-background/90 text-foreground backdrop-blur-sm text-xs"
                             >
-                              {bien.type_bien_display}
+                              {libelleTypeBien(bien.type_bien)}
                             </Badge>
                           </div>
                           <CardContent className="p-3">
@@ -1032,7 +1034,7 @@ export default function PropertyDetail() {
             <span className="text-2xl font-extrabold text-primary tabular-nums">
               {formaterPrix(property.prix_mensuel, property.devise)}
             </span>
-            <span className="text-muted-foreground"> par mois</span>
+            <span className="text-muted-foreground">{t('fiche.parMois')}</span>
           </div>
           
           {property.statut_location !== 'loue' ? (
@@ -1047,21 +1049,20 @@ export default function PropertyDetail() {
               <DialogTrigger asChild>
                 <Button size="lg" data-testid="button-request-visit">
                   <Calendar className="mr-2 h-5 w-5" />
-                  Visiter
+                  {t('fiche.visiter')}
                 </Button>
               </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Demander une visite</DialogTitle>
+                <DialogTitle>{t('fiche.demanderVisite')}</DialogTitle>
                 <DialogDescription>
-                  Le commissionnaire vous répond dans « Mes visites ». L’adresse exacte vous est donnée quand la
-                  visite est fixée.
+                  {t('fiche.demanderVisiteTexte')}
                 </DialogDescription>
               </DialogHeader>
               <div className="rounded-md bg-muted p-3">
                 <CoutsLocation bien={property} compact />
                 <p className="text-sm text-muted-foreground mt-2">
-                  Si on vous demande plus que ces montants, signalez-le depuis « Mes visites ».
+                  {t('fiche.siOnDemandePlus')}
                 </p>
               </div>
               <div className="min-w-0 space-y-4 py-4">
@@ -1072,10 +1073,10 @@ export default function PropertyDetail() {
                   onHeure={(h) => setVisitTime(h ?? '')}
                 />
                 <div>
-                  <Label htmlFor="visit-message">Un message (facultatif)</Label>
+                  <Label htmlFor="visit-message">{t('fiche.unMessage')}</Label>
                   <Textarea
                     id="visit-message"
-                    placeholder="Par exemple : je viens avec mon épouse, ou je préfère être appelé avant."
+                    placeholder={t('fiche.messagePlaceholder')}
                     value={visitMessage}
                     onChange={(e) => setVisitMessage(e.target.value)}
                     data-testid="input-visit-message"
@@ -1084,9 +1085,9 @@ export default function PropertyDetail() {
                 {/* Ce qui va partir, relu juste au-dessus du bouton. */}
                 <p className="text-sm" aria-live="polite" data-testid="resume-creneau">
                   {visitDate && visitTime ? (
-                    <>Visite souhaitée <strong>{jourLisible(visitDate)} à {heureLisible(visitTime)}</strong></>
+                    <>{t('fiche.visiteSouhaitee')} <strong>{t('date.dateEtHeure', { date: jourLisible(visitDate), heure: heureLisible(visitTime) })}</strong></>
                   ) : (
-                    <span className="text-muted-foreground">Choisissez un jour et une heure.</span>
+                    <span className="text-muted-foreground">{t('fiche.choisissezJourHeure')}</span>
                   )}
                 </p>
                 <Button
@@ -1095,14 +1096,14 @@ export default function PropertyDetail() {
                   disabled={isSubmitting || (isAuthenticated && (!visitDate || !visitTime))}
                   data-testid="button-submit-visit"
                 >
-                  {isSubmitting ? 'Envoi…' : 'Envoyer la demande'}
+                  {isSubmitting ? t('commun.envoi') : t('fiche.envoyerDemande')}
                 </Button>
               </div>
             </DialogContent>
             </Dialog>
           ) : (
             <Button size="lg" variant="secondary" disabled>
-              Bien loué
+              {t('fiche.bienLoue')}
             </Button>
           )}
         </div>
@@ -1125,7 +1126,7 @@ export default function PropertyDetail() {
                 </Button>
               </div>
               <DialogDescription className="sr-only">
-                Galerie photos du bien - Swipez pour naviguer
+                {t('fiche.galerie')}
               </DialogDescription>
             </DialogHeader>
             
@@ -1158,7 +1159,7 @@ export default function PropertyDetail() {
                           >
                             <img
                               src={getDjangoImageUrl(photo.image) || mainImage || ''}
-                              alt={`Photo ${index + 1}`}
+                              alt={t('fiche.photoN', { n: index + 1 })}
                               className="max-w-[90vw] max-h-[calc(90vh-140px)] object-contain select-none mx-auto"
                               draggable={false}
                               data-testid={`img-gallery-${index}`}
@@ -1185,7 +1186,7 @@ export default function PropertyDetail() {
                         >
                           <img
                             src={mainImage || ''}
-                            alt="Photo principale"
+                            alt={t('fiche.photoPrincipale')}
                             className="max-w-[90vw] max-h-[calc(90vh-140px)] object-contain select-none mx-auto"
                             draggable={false}
                             data-testid="img-gallery-main"
@@ -1240,7 +1241,7 @@ export default function PropertyDetail() {
                     >
                       <img
                         src={getDjangoImageUrl(photo.image) || ''}
-                        alt={`Miniature ${index + 1}`}
+                        alt={t('fiche.miniatureN', { n: index + 1 })}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -1271,9 +1272,9 @@ export default function PropertyDetail() {
         <Dialog open={allReviewsDialogOpen} onOpenChange={setAllReviewsDialogOpen}>
           <DialogContent className="max-w-lg max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle>Tous les avis ({reviews?.results?.filter(review => !review.est_de_moi).length || 0})</DialogTitle>
+              <DialogTitle>{t('fiche.tousLesAvis', { n: reviews?.results?.filter(review => !review.est_de_moi).length || 0 })}</DialogTitle>
               <DialogDescription>
-                Découvrez les avis des autres utilisateurs sur ce bien
+                {t('fiche.tousLesAvisTexte')}
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="max-h-[60vh] pr-4">

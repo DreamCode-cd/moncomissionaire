@@ -26,6 +26,7 @@ import { formaterLoyer, formaterMontant } from '@/lib/prix';
 import { getDjangoImageUrl, getVilleName, vignetteDe } from '@/lib/utils';
 import type { BienPartage, DemandeVisite, PaginatedResponse } from '@shared/schema';
 import { CLE_PARTAGES, CLE_PRESENTATIONS, aujourdhui, messageErreur } from './commun';
+import { t } from '@/i18n';
 
 /**
  * Travailler avec ses confrères sans leur livrer son carnet.
@@ -51,7 +52,7 @@ export function OngletPartages() {
     <div className="space-y-4">
       {mesPresentations.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-sm font-semibold">Mes clients présentés</h2>
+          <h2 className="text-sm font-semibold">{t('partages.mesClientsPresentes')}</h2>
           {mesPresentations.map((p) => (
             <Card key={p.id}>
               <CardContent className="p-3 space-y-1">
@@ -60,10 +61,10 @@ export function OngletPartages() {
                   <BadgeStatut famille="demande" valeur={p.statut} libelle={p.statut_display} compact />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {p.prospect_nom} · le {formaterDateCourte(p.date_souhaitee)} · votre part : {p.part_confrere_pourcent} %
+                  {t('partages.bVotrePartC', { a: p.prospect_nom, b: formaterDateCourte(p.date_souhaitee), c: p.part_confrere_pourcent })}
                 </p>
                 {p.statut === 'rejetee' && p.motif_rejet && (
-                  <p className="text-xs text-muted-foreground">Motif : {p.motif_rejet}</p>
+                  <p className="text-xs text-muted-foreground">{t('partages.motif')} {p.motif_rejet}</p>
                 )}
               </CardContent>
             </Card>
@@ -72,27 +73,27 @@ export function OngletPartages() {
       )}
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold">Maisons ouvertes par vos confrères</h2>
+        <h2 className="text-sm font-semibold">{t('partages.maisonsOuvertesVosConfreres')}</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
-            placeholder="Quartier, commune, ville…"
+            placeholder={t('partages.quartierCommuneVille')}
             className="pl-9"
             data-testid="input-recherche-partages"
           />
         </div>
 
         {partages.isLoading ? (
-          <EtatChargement texte="Chargement des maisons partagées…" />
+          <EtatChargement texte={t('partages.chargementMaisonsPartagees')} />
         ) : partages.error && !partages.data ? (
           <ErreurRequete erreur={partages.error} onReessayer={() => void partages.refetch()} />
         ) : !partages.data?.results?.length ? (
           <EtatVide
             icone={Handshake}
-            titre="Aucune maison partagée pour le moment"
-            description="Quand un confrère ouvre une maison au partage, elle apparaît ici avec la part qu’il vous cède."
+            titre={t('partages.aucuneMaisonPartageeMoment')}
+            description={t('partages.quandConfrereOuvreMaison')}
           />
         ) : (
           partages.data.results.map((bien) => (
@@ -107,7 +108,7 @@ export function OngletPartages() {
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-md bg-muted shrink-0 flex items-center justify-center text-muted-foreground">
-                    <Building2 className="w-6 h-6" aria-label="Pas encore de photo" />
+                    <Building2 className="w-6 h-6" aria-label={t('partages.pasEncorePhoto')} />
                   </div>
                 )}
                 <div className="min-w-0 flex-1 space-y-1">
@@ -118,10 +119,10 @@ export function OngletPartages() {
                   </p>
                   <p className="text-sm font-semibold text-primary">{formaterLoyer(bien.prix_mensuel, bien.devise)}</p>
                   <p className="text-xs">
-                    Votre part si vous amenez le locataire :{' '}
+                    {t('partages.votrePart')}{' '}
                     <span className="font-semibold">{bien.part_confrere_pourcent} %</span>
                     {bien.commission_locataire != null && (
-                      <> · environ {formaterMontant(
+                      <> {t('partages.environ')} {formaterMontant(
                         ((parseFloat(bien.commission_locataire) + parseFloat(bien.commission_bailleur ?? '0')) *
                           bien.part_confrere_pourcent) / 100,
                         bien.devise,
@@ -129,11 +130,11 @@ export function OngletPartages() {
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Chez {bien.commissionnaire_detail?.full_name}
-                    {bien.commissionnaire_detail?.identite_verifiee ? ' · identité vérifiée' : ''}
+                    {t('partages.chez', { nom: bien.commissionnaire_detail?.full_name })}
+                    {bien.commissionnaire_detail?.identite_verifiee ? t('partages.identiteVerifiee') : ''}
                   </p>
                   <Button size="sm" className="mt-1" onClick={() => setAPresenter(bien)} data-testid={`button-presenter-${bien.id}`}>
-                    Présenter un client
+                    {t('partages.presenterClient')}
                   </Button>
                 </div>
               </CardContent>
@@ -168,30 +169,30 @@ function DialoguePresentation({ bien, onFermer }: { bien: BienPartage; onFermer:
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CLE_PRESENTATIONS });
       toast({
-        title: 'Client présenté',
-        description: `${bien.commissionnaire_detail?.full_name ?? 'Votre confrère'} est prévenu. Votre part de ${bien.part_confrere_pourcent} % est retenue.`,
+        title: t('partages.clientPresente'),
+        description: t('partages.prevenu', { nom: bien.commissionnaire_detail?.full_name ?? t('partages.votreConfrere'), part: bien.part_confrere_pourcent }),
       });
       onFermer();
     },
-    onError: (e) => toast({ title: 'Présentation refusée', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('partages.presentationRefusee'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Présenter un client</DialogTitle>
+          <DialogTitle>{t('partages.presenterClient')}</DialogTitle>
           <DialogDescription>
-            {bien.titre} · votre part : {bien.part_confrere_pourcent} %, figée dès maintenant.
+            {t('partages.votrePartBFigee', { a: bien.titre, b: bien.part_confrere_pourcent })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label htmlFor="prospect-nom">Nom du client</Label>
+            <Label htmlFor="prospect-nom">{t('partages.nomClient')}</Label>
             <Input id="prospect-nom" value={nom} onChange={(e) => setNom(e.target.value)} />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="prospect-telephone">Son téléphone (facultatif)</Label>
+            <Label htmlFor="prospect-telephone">{t('partages.sonTelephoneFacultatif')}</Label>
             <Input
               id="prospect-telephone"
               type="tel"
@@ -204,17 +205,17 @@ function DialoguePresentation({ bien, onFermer }: { bien: BienPartage; onFermer:
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Un mot pour votre confrère (facultatif)"
+            placeholder={t('partages.motVotreConfrereFacultatif')}
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Annuler</Button>
+          <Button variant="outline" onClick={onFermer}>{t('partages.annuler')}</Button>
           <Button
             disabled={!nom.trim() || !date || !heure || presenter.isPending}
             onClick={() => presenter.mutate()}
             data-testid="button-confirmer-presentation"
           >
-            Présenter
+            {t('partages.presenter')}
           </Button>
         </DialogFooter>
       </DialogContent>

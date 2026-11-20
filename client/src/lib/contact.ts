@@ -6,6 +6,8 @@
  * le dicter. L'e-mail viendra quand l'adresse du projet existera : on
  * n'affiche pas une adresse qui ne répond pas.
  */
+
+import { t } from '@/i18n';
 export const CONTACT_VILLAGO = {
   telephone: '+243828215264',
   whatsapp: '+243828215264',
@@ -19,4 +21,6 @@ export function numeroLisible(numero: string): string {
 }
 
 /** wa.me ouvre WhatsApp s'il est installé, sa page web sinon. */
-export const LIEN_WHATSAPP = `https://wa.me/${CONTACT_VILLAGO.whatsapp.replace('+', '')}?text=${encodeURIComponent('Bonjour VillaGo, ')}`;
+/** Le message commence par une salutation dans la langue de l'écran. */
+export const lienWhatsapp = () =>
+  `https://wa.me/${CONTACT_VILLAGO.whatsapp.replace('+', '')}?text=${encodeURIComponent(t('contact.bonjour'))}`;

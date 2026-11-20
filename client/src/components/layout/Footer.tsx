@@ -1,13 +1,14 @@
 import { Link } from 'wouter';
 import { HelpCircle, MessageCircle, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CONTACT_VILLAGO, LIEN_WHATSAPP, numeroLisible } from '@/lib/contact';
+import { CONTACT_VILLAGO, lienWhatsapp, numeroLisible } from '@/lib/contact';
+import { t } from '@/i18n';
 
 const PAGES_LEGALES = [
-  { href: '/legal/terms', libelle: 'Conditions d’utilisation' },
-  { href: '/legal/privacy', libelle: 'Confidentialité' },
-  { href: '/legal/cookies', libelle: 'Cookies' },
-  { href: '/legal/legal', libelle: 'Mentions légales' },
+  { href: '/legal/terms', get libelle() { return t('pied.conditions'); } },
+  { href: '/legal/privacy', get libelle() { return t('pied.confidentialite'); } },
+  { href: '/legal/cookies', get libelle() { return t('pied.cookies'); } },
+  { href: '/legal/legal', get libelle() { return t('pied.mentions'); } },
 ];
 
 /**
@@ -35,7 +36,7 @@ export function Footer({
     >
       <div className="container mx-auto px-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Aide et contact</p>
+          <p className="text-sm font-medium text-foreground">{t('aide.titre')}</p>
           <div className="flex flex-wrap gap-x-5 text-sm">
             <Link
               href="/comment-ca-marche"
@@ -43,10 +44,10 @@ export function Footer({
               data-testid="aide-comment-ca-marche"
             >
               <HelpCircle className="h-4 w-4" aria-hidden />
-              Comment ça marche
+              {t('aide.commentCaMarche')}
             </Link>
             <a
-              href={LIEN_WHATSAPP}
+              href={lienWhatsapp()}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 md:min-h-0 items-center gap-1.5 text-primary hover:underline underline-offset-2"
@@ -65,7 +66,7 @@ export function Footer({
             </a>
           </div>
         </div>
-        <nav aria-label="Informations légales" className="flex flex-wrap gap-x-5 text-sm">
+        <nav aria-label={t('pied.infosLegales')} className="flex flex-wrap gap-x-5 text-sm">
           {PAGES_LEGALES.map(({ href, libelle }) => (
             <Link
               key={href}
@@ -78,7 +79,7 @@ export function Footer({
         </nav>
       </div>
       <p className="container mx-auto px-4 mt-4 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} VillaGo. Tous droits réservés.
+        {t('pied.droits', { annee: new Date().getFullYear() })}
       </p>
     </footer>
   );

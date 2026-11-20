@@ -11,6 +11,8 @@ import {
   libelleEau,
   type EtatFait,
 } from '@/lib/faits';
+import { t } from '@/i18n';
+import { libelleChoixCourant, libelleChoixEau } from '@/lib/terrain';
 
 type BienReleve = Pick<
   BienList,
@@ -28,14 +30,21 @@ type BienReleve = Pick<
  */
 export function ReleveMaison({ bien }: { bien: BienReleve }) {
   const cases = [
-    { cle: 'eau', titre: 'Eau', icone: Droplet, etat: etatEau(bien.eau), valeur: libelleEau(bien.eau), detail: bien.eau_display },
+    {
+      cle: 'eau',
+      titre: t('releve.eau'),
+      icone: Droplet,
+      etat: etatEau(bien.eau),
+      valeur: libelleEau(bien.eau),
+      detail: bien.eau ? libelleChoixEau(bien.eau) : undefined,
+    },
     {
       cle: 'courant',
-      titre: 'Courant',
+      titre: t('releve.courant'),
       icone: Zap,
       etat: etatCourant(bien.electricite),
       valeur: libelleCourant(bien.electricite),
-      detail: bien.electricite_display,
+      detail: bien.electricite ? libelleChoixCourant(bien.electricite) : undefined,
     },
   ].filter((c): c is typeof c & { etat: EtatFait; valeur: string } => !!c.etat && !!c.valeur);
   const lignes = lignesDeConfiance(bien);
@@ -89,16 +98,16 @@ function lignesDeConfiance(bien: BienReleve): { icone: LucideIcon; texte: string
   const lignes: { icone: LucideIcon; texte: string; etat: EtatFait }[] = [];
   switch (bien.statut_location) {
     case 'disponible':
-      lignes.push({ icone: CalendarCheck, texte: 'Libre, les visites sont ouvertes', etat: 'bon' });
+      lignes.push({ icone: CalendarCheck, texte: t('releve.libre'), etat: 'bon' });
       break;
     case 'en_visite':
-      lignes.push({ icone: Users, texte: 'Libre, d’autres visites sont déjà prévues', etat: 'partiel' });
+      lignes.push({ icone: Users, texte: t('releve.libreAutresVisites'), etat: 'partiel' });
       break;
     case 'loue':
-      lignes.push({ icone: CalendarX, texte: 'Déjà loué', etat: 'absent' });
+      lignes.push({ icone: CalendarX, texte: t('releve.dejaLoue'), etat: 'absent' });
       break;
     case 'indisponible':
-      lignes.push({ icone: CalendarX, texte: 'Plus proposé à la location', etat: 'absent' });
+      lignes.push({ icone: CalendarX, texte: t('releve.plusPropose'), etat: 'absent' });
       break;
   }
   // Seule garantie affichée : l'équipe a vu la pièce d'identité. Sans elle,
@@ -108,7 +117,7 @@ function lignesDeConfiance(bien: BienReleve): { icone: LucideIcon; texte: string
   if (garant) {
     lignes.push({
       icone: BadgeCheck,
-      texte: garant === 'agence' ? 'Agence vérifiée par VillaGo' : 'Commissionnaire vérifié par VillaGo',
+      texte: garant === 'agence' ? t('releve.agenceVerifiee') : t('releve.commissionnaireVerifie'),
       etat: 'bon',
     });
   }

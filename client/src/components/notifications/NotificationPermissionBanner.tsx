@@ -3,6 +3,7 @@ import { Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useAuth } from '@/contexts/AuthContext';
+import { t } from '@/i18n';
 
 export function NotificationPermissionBanner() {
   const { permission, isSupported, requestPermission } = usePushNotifications();
@@ -51,10 +52,10 @@ export function NotificationPermissionBanner() {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              Activez les notifications
+              {t('banniere.activezNotifications')}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              Recevez des alertes pour vos visites et messages
+              {t('banniere.recevezAlertesVosVisites')}
             </p>
           </div>
         </div>
@@ -65,7 +66,7 @@ export function NotificationPermissionBanner() {
             disabled={isRequesting}
             data-testid="button-enable-notifications"
           >
-            {isRequesting ? 'Activation...' : 'Activer'}
+            {isRequesting ? t('banniere.activation') : t('banniere.activer')}
           </Button>
           <Button
             size="icon"

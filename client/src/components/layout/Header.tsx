@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Bell, Moon, Sun, Monitor, LogIn, LogOut, Check, MessageCircle, House, ChevronRight, Search, Building2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SelecteurLangue } from '@/components/LangueCompte';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,9 +31,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { api, MESSAGE_DECONNEXION_HORS_LIGNE } from '@/lib/api';
+import { api, messageDeconnexionHorsLigne } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
 import type { PaginatedResponse, Notification, ChatRoom } from '@shared/schema';
+import { t } from '@/i18n';
 
 
 
@@ -46,8 +48,8 @@ export function Header() {
   const getDesktopNavItems = () => {
     if (!isAuthenticated) {
       return [
-        { href: '/', icon: House, label: 'Accueil' },
-        { href: '/search', icon: Search, label: 'Recherche' },
+        { href: '/', icon: House, label: t('nav.accueil') },
+        { href: '/search', icon: Search, label: t('nav.recherche') },
       ];
     }
     
@@ -55,38 +57,38 @@ export function Header() {
       case 'proprietaire':
       case 'agence':
         return [
-          { href: '/', icon: House, label: 'Accueil' },
-          { href: '/search', icon: Search, label: 'Recherche' },
-          { href: '/my-properties', icon: Building2, label: 'Mes biens' },
+          { href: '/', icon: House, label: t('nav.accueil') },
+          { href: '/search', icon: Search, label: t('nav.recherche') },
+          { href: '/my-properties', icon: Building2, label: t('nav.mesBiens') },
         ];
       case 'commissionnaire':
         return [
-          { href: '/', icon: House, label: 'Accueil' },
-          { href: '/search', icon: Search, label: 'Recherche' },
-          { href: '/mon-portefeuille', icon: Building2, label: 'Mon portefeuille' },
+          { href: '/', icon: House, label: t('nav.accueil') },
+          { href: '/search', icon: Search, label: t('nav.recherche') },
+          { href: '/mon-portefeuille', icon: Building2, label: t('nav.monPortefeuille') },
         ];
       case 'admin':
         return [
-          { href: '/administration', icon: House, label: 'Administration' },
-          { href: '/moderation', icon: Building2, label: 'Modération' },
-          { href: '/search', icon: Search, label: 'Recherche' },
+          { href: '/administration', icon: House, label: t('nav.administration') },
+          { href: '/moderation', icon: Building2, label: t('nav.moderation') },
+          { href: '/search', icon: Search, label: t('nav.recherche') },
         ];
       case 'moderateur':
         return [
-          { href: '/', icon: House, label: 'Accueil' },
-          { href: '/search', icon: Search, label: 'Recherche' },
-          { href: '/moderation', icon: Building2, label: 'Modération' },
+          { href: '/', icon: House, label: t('nav.accueil') },
+          { href: '/search', icon: Search, label: t('nav.recherche') },
+          { href: '/moderation', icon: Building2, label: t('nav.moderation') },
         ];
       case 'agent':
         return [
-          { href: '/agent-dashboard', icon: House, label: 'Mes visites' },
-          { href: '/search', icon: Search, label: 'Recherche' },
+          { href: '/agent-dashboard', icon: House, label: t('nav.mesVisites') },
+          { href: '/search', icon: Search, label: t('nav.recherche') },
         ];
       default:
         return [
-          { href: '/', icon: House, label: 'Accueil' },
-          { href: '/search', icon: Search, label: 'Recherche' },
-          { href: '/my-visits', icon: Building2, label: 'Mes visites' },
+          { href: '/', icon: House, label: t('nav.accueil') },
+          { href: '/search', icon: Search, label: t('nav.recherche') },
+          { href: '/my-visits', icon: Building2, label: t('nav.mesVisites') },
         ];
     }
   };
@@ -125,8 +127,8 @@ export function Header() {
     setLocation('/');
     toast(
       revoquee
-        ? { title: 'Vous êtes déconnecté' }
-        : { title: 'Déconnecté sans réseau', description: MESSAGE_DECONNEXION_HORS_LIGNE },
+        ? { title: t('entete.deconnecte') }
+        : { title: t('entete.deconnecteSansReseau'), description: messageDeconnexionHorsLigne() },
     );
   };
 
@@ -167,12 +169,14 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2">
+            <SelecteurLangue />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   data-testid="button-theme-toggle"
+                  aria-label={t('theme.choisir')}
                 >
                   {resolvedTheme === 'dark' ? (
                     <Sun className="h-5 w-5" />
@@ -187,7 +191,7 @@ export function Header() {
                   data-testid="menu-theme-system"
                 >
                   <Monitor className="mr-2 h-4 w-4" />
-                  Système
+                  {t('theme.systeme')}
                   {themeMode === 'system' && <Check className="ml-auto h-4 w-4" />}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -195,7 +199,7 @@ export function Header() {
                   data-testid="menu-theme-light"
                 >
                   <Sun className="mr-2 h-4 w-4" />
-                  Claire
+                  {t('theme.clair')}
                   {themeMode === 'light' && <Check className="ml-auto h-4 w-4" />}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -203,7 +207,7 @@ export function Header() {
                   data-testid="menu-theme-dark"
                 >
                   <Moon className="mr-2 h-4 w-4" />
-                  Sombre
+                  {t('theme.sombre')}
                   {themeMode === 'dark' && <Check className="ml-auto h-4 w-4" />}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -236,10 +240,10 @@ export function Header() {
                   <PopoverContent align="center" className="w-[calc(100vw-2rem)] sm:w-80 p-0" sideOffset={8}>
                     <div className="p-3 border-b">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">Notifications</h4>
+                        <h4 className="font-semibold">{t('nav.notifications')}</h4>
                         {unreadCount > 0 && (
                           <Badge variant="secondary" className="text-xs">
-                            {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
+                            {t('entete.nonLues', { n: unreadCount })}
                           </Badge>
                         )}
                       </div>
@@ -248,7 +252,7 @@ export function Header() {
                       {displayedNotifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                           <Bell className="w-8 h-8 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">Aucune notification</p>
+                          <p className="text-sm text-muted-foreground">{t('entete.aucuneNotification')}</p>
                         </div>
                       ) : (
                         <div className="divide-y">
@@ -298,7 +302,7 @@ export function Header() {
                           className="w-full justify-center text-sm"
                           onClick={() => setAllNotificationsOpen(true)}
                         >
-                          Voir toutes les notifications
+                          {t('entete.voirToutesNotifications')}
                           <ChevronRight className="w-4 h-4 ml-1" />
                         </Button>
                       </div>
@@ -307,7 +311,7 @@ export function Header() {
                       <div className="p-2 border-t">
                         <Link href="/notifications">
                           <Button variant="ghost" className="w-full justify-center text-sm">
-                            Voir toutes les notifications
+                            {t('entete.voirToutesNotifications')}
                             <ChevronRight className="w-4 h-4 ml-1" />
                           </Button>
                         </Link>
@@ -337,53 +341,53 @@ export function Header() {
                     <DropdownMenuSeparator />
                     <Link href="/profile">
                       <DropdownMenuItem data-testid="menu-profile">
-                        Mon profil
+                        {t('nav.monProfil')}
                       </DropdownMenuItem>
                     </Link>
                     <Link href="/favoris">
                       <DropdownMenuItem data-testid="menu-favoris">
-                        Mes favoris
+                        {t('nav.mesFavoris')}
                       </DropdownMenuItem>
                     </Link>
                     {(user?.role === 'proprietaire' || user?.role === 'agence') && (
                       <Link href="/my-properties">
                         <DropdownMenuItem data-testid="menu-my-properties">
-                          Mes biens
+                          {t('nav.mesBiens')}
                         </DropdownMenuItem>
                       </Link>
                     )}
                     {user?.role === 'commissionnaire' && (
                       <Link href="/mon-portefeuille">
                         <DropdownMenuItem data-testid="menu-dashboard">
-                          Mon portefeuille
+                          {t('nav.monPortefeuille')}
                         </DropdownMenuItem>
                       </Link>
                     )}
                     {user?.role === 'admin' && (
                       <Link href="/administration">
                         <DropdownMenuItem data-testid="menu-administration">
-                          Administration
+                          {t('nav.administration')}
                         </DropdownMenuItem>
                       </Link>
                     )}
                     {(user?.role === 'moderateur' || user?.role === 'admin') && (
                       <Link href="/moderation">
                         <DropdownMenuItem data-testid="menu-dashboard">
-                          Modération
+                          {t('nav.moderation')}
                         </DropdownMenuItem>
                       </Link>
                     )}
                     {user?.role === 'agent' && (
                       <Link href="/agent-dashboard">
                         <DropdownMenuItem data-testid="menu-dashboard">
-                          Dashboard Agent
+                          {t('nav.tableauAgent')}
                         </DropdownMenuItem>
                       </Link>
                     )}
                     {user?.role === 'client' && (
                       <Link href="/my-visits">
                         <DropdownMenuItem data-testid="menu-my-visits">
-                          Mes visites
+                          {t('nav.mesVisites')}
                         </DropdownMenuItem>
                       </Link>
                     )}
@@ -391,14 +395,14 @@ export function Header() {
                       <Link href="/">
                         <DropdownMenuItem data-testid="menu-home">
                           <House className="mr-2 h-4 w-4" />
-                          Parcourir les biens
+                          {t('nav.parcourirBiens')}
                         </DropdownMenuItem>
                       </Link>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout">
                       <LogOut className="mr-2 h-4 w-4" />
-                      Déconnexion
+                      {t('nav.deconnexion')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -407,7 +411,7 @@ export function Header() {
               <Link href="/login">
                 <Button size="sm" data-testid="button-login">
                   <LogIn className="mr-2 h-4 w-4" />
-                  Connexion
+                  {t('nav.connexion')}
                 </Button>
               </Link>
             )}
@@ -420,10 +424,10 @@ export function Header() {
           <DialogHeader className="p-4 pb-3 border-b flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              Toutes les notifications
+              {t('entete.toutesNotifications')}
               {unreadCount > 0 && (
                 <Badge variant="secondary" className="ml-2">
-                  {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
+                  {t('entete.nonLues', { n: unreadCount })}
                 </Badge>
               )}
             </DialogTitle>
@@ -453,7 +457,7 @@ export function Header() {
                           </h4>
                           {!notification.is_read && (
                             <Badge variant="default" className="text-xs flex-shrink-0">
-                              Nouveau
+                              {t('entete.nouveau')}
                             </Badge>
                           )}
                         </div>
@@ -473,7 +477,7 @@ export function Header() {
           <div className="p-4 border-t flex-shrink-0">
             <Link href="/notifications">
               <Button className="w-full" onClick={() => setAllNotificationsOpen(false)}>
-                Aller à la page notifications
+                {t('entete.allerNotifications')}
               </Button>
             </Link>
           </div>

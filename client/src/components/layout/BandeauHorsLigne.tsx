@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 import { queryClient } from '@/lib/queryClient';
+import { t } from '@/i18n';
 
 /**
  * Un bandeau quand le téléphone perd le réseau, ce qui arrive plusieurs fois
@@ -33,7 +34,7 @@ export function BandeauHorsLigne() {
       data-testid="bandeau-hors-ligne"
     >
       <WifiOff className="h-4 w-4 shrink-0" aria-hidden />
-      Pas de connexion. Ce qui est affiché peut dater ; rien ne sera envoyé avant le retour du réseau.
+      {t('horsLigne.bandeau')}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'wouter';
 import { api } from '@/lib/api';
+import { langueActive, t } from '@/i18n';
 
 const sanitizeHtml = (html: string) => {
   return DOMPurify.sanitize(html, {
@@ -42,17 +43,20 @@ interface LegalPageData {
   introduction?: string;
   sections?: LegalSection[];
   version?: string;
+  /** Langue du texte servi (le serveur retombe sur le français si la
+   *  traduction n'existe pas). */
+  langue?: 'fr' | 'en';
   content?: string;
   is_active?: boolean;
   created_at?: string;
   updated_at: string;
 }
 
-const pageTypeLabels: Record<string, string> = {
-  terms: "Conditions générales d'utilisation",
-  privacy: "Politique de confidentialité",
-  cookies: "Politique des cookies",
-  legal: "Mentions légales",
+const pageTypeLabels: Record<string, () => string> = {
+  terms: () => t('legal.terms'),
+  privacy: () => t('legal.privacy'),
+  cookies: () => t('legal.cookies'),
+  legal: () => t('legal.legal'),
 };
 
 export default function LegalPage() {
@@ -60,7 +64,9 @@ export default function LegalPage() {
   const pageType = params?.pageType || 'terms';
 
   const { data: page, isLoading, error } = useQuery<LegalPageData>({
-    queryKey: ['/api/v1/pages/', pageType],
+    // La langue dans la clé : la page française et l'anglaise ne se
+    // confondent pas dans le cache.
+    queryKey: ['/api/v1/pages/', pageType, langueActive()],
     queryFn: async () => {
       return api.get(`/api/v1/pages/${pageType}/`);
     },
@@ -93,13 +99,13 @@ export default function LegalPage() {
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+              {t('commun.retour')}
             </Button>
           </Link>
           <Card>
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">
-                {pageTypeLabels[pageType] || 'Page'} non disponible pour le moment.
+                {t('legal.nonDisponible', { page: pageTypeLabels[pageType]?.() || 'Page' })}
               </p>
             </CardContent>
           </Card>
@@ -118,7 +124,7 @@ export default function LegalPage() {
         <Link href="/">
           <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
+            {t('commun.retour')}
           </Button>
         </Link>
         
@@ -127,14 +133,22 @@ export default function LegalPage() {
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           {page.updated_at && (
             <span>
-              Dernière mise à jour : {formaterDateLongue(page.updated_at)}
+              {t('legal.miseAJour', { date: formaterDateLongue(page.updated_at) })}
             </span>
           )}
           {page.version && (
-            <span>Version {page.version}</span>
+            <span>{t('legal.version', { version: page.version })}</span>
           )}
         </div>
         
+        {/* Décision de David (20/11/2026) : les pages légales sont traduites,
+            mais seule la version française fait foi. */}
+        {langueActive() === 'en' && (
+          <p className="mb-4 rounded-md border border-border bg-muted/50 p-3 text-sm" data-testid="avis-traduction">
+            {page.langue === 'en' ? t('legal.traductionDeCourtoisie') : t('legal.pasEncoreTraduite')}
+          </p>
+        )}
+
         <Card>
           <CardContent className="p-6">
             {page.introduction && (

@@ -41,6 +41,7 @@ import {
   ChampsCommission,
   ChampsEauElectricite,
 } from '@/components/property/ChampsTerrain';
+import { t } from '@/i18n';
 
 interface Ville {
   id: number;
@@ -56,12 +57,12 @@ interface VillesResponse {
 }
 
 const propertyTypes = [
-  { value: 'maison', label: 'Maison' },
-  { value: 'appartement', label: 'Appartement' },
-  { value: 'studio', label: 'Studio' },
-  { value: 'villa', label: 'Villa' },
-  { value: 'duplex', label: 'Duplex' },
-  { value: 'terrain', label: 'Terrain' },
+  { value: 'maison', get label() { return t('typeBien.maison'); } },
+  { value: 'appartement', get label() { return t('typeBien.appartement'); } },
+  { value: 'studio', get label() { return t('typeBien.studio'); } },
+  { value: 'villa', get label() { return t('typeBien.villa'); } },
+  { value: 'duplex', get label() { return t('typeBien.duplex'); } },
+  { value: 'terrain', get label() { return t('typeBien.terrain'); } },
 ];
 
 interface PhotoPreview {
@@ -142,8 +143,8 @@ export default function AddProperty() {
       } catch (error) {
         console.error('Erreur lors de la conversion HEIC:', error);
         toast({
-          title: 'Erreur de conversion',
-          description: 'Impossible de convertir l\'image HEIC. Veuillez utiliser un autre format.',
+          title: t('annonceForm.erreurConversion'),
+          description: t('annonceForm.impossibleConvertirImageHeic'),
           variant: 'destructive',
         });
         throw error;
@@ -200,7 +201,7 @@ export default function AddProperty() {
 
   const onSubmit = async (data: BienCreateInput) => {
     if (estCommissionnaire && !data.bailleur) {
-      form.setError('bailleur', { message: 'Indiquez le bailleur qui vous a confié ce bien.' });
+      form.setError('bailleur', { message: t('annonceForm.indiquezBailleurQuiVous') });
       return;
     }
     setIsSubmitting(true);
@@ -224,8 +225,8 @@ export default function AddProperty() {
       photos.forEach(photo => URL.revokeObjectURL(photo.preview));
 
       toast({
-        title: 'Bien ajouté',
-        description: 'Votre bien a été soumis pour validation.',
+        title: t('annonceForm.bienAjoute'),
+        description: t('annonceForm.votreBienEteSoumis'),
       });
       setLocation(pageRetour);
     } catch (error) {
@@ -237,8 +238,8 @@ export default function AddProperty() {
         (champ, message) => form.setError(champ, { message }),
       );
       toast({
-        title: 'Annonce non enregistrée',
-        description: reste ?? 'Corrigez les champs signalés en rouge.',
+        title: t('annonceForm.annonceNonEnregistree'),
+        description: reste ?? t('annonceForm.corrigezChampsSignalesRouge'),
         variant: 'destructive',
       });
     } finally {
@@ -258,7 +259,7 @@ export default function AddProperty() {
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Ajouter un bien</h1>
+          <h1 className="text-2xl font-bold">{t('annonceForm.ajouterBien')}</h1>
         </div>
 
         <Form {...form}>
@@ -266,7 +267,7 @@ export default function AddProperty() {
             {estCommissionnaire && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Bailleur</CardTitle>
+                  <CardTitle className="text-lg">{t('annonceForm.bailleur')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ChampBailleur control={form.control} />
@@ -275,12 +276,12 @@ export default function AddProperty() {
             )}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Photos du bien</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.photosBien')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Ajoutez jusqu’à {PHOTOS_MAX} photos. Cliquez sur l’étoile pour définir la photo principale.
-                  Les vidéos (deux d’une minute au plus) s’ajoutent juste après la création, depuis « Modifier ».
+                  {t('annonceForm.ajoutezJusquPhotosCliquez', { a: PHOTOS_MAX })}
+                  {' '}{t('reste.videosApres')}
                 </p>
                 
                 <div className="grid grid-cols-3 gap-3">
@@ -317,7 +318,7 @@ export default function AddProperty() {
                       </div>
                       {principalIndex === index && (
                         <div className="absolute top-1 left-1 bg-note text-background text-xs px-2 py-0.5 rounded">
-                          Principale
+                          {t('annonceForm.principale')}
                         </div>
                       )}
                     </div>
@@ -331,7 +332,7 @@ export default function AddProperty() {
                       data-testid="button-add-photo"
                     >
                       <ImagePlus className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">Ajouter</span>
+                      <span className="text-xs text-muted-foreground">{t('annonceForm.ajouter')}</span>
                     </button>
                   )}
                 </div>
@@ -348,7 +349,7 @@ export default function AddProperty() {
 
                 {photos.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Aucune photo pour l'instant. Les annonces avec photos reçoivent nettement plus de demandes de visite.
+                    {t('annonceForm.aucunePhotoInstantAnnonces')}
                   </p>
                 )}
               </CardContent>
@@ -356,7 +357,7 @@ export default function AddProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Informations de base</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.informationsBase')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -364,10 +365,10 @@ export default function AddProperty() {
                   name="titre"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Titre de l'annonce</FormLabel>
+                      <FormLabel>{t('annonceForm.titreAnnonce')}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Ex: Bel appartement 3 pièces avec vue" 
+                          placeholder={t('annonceForm.exBelAppartement3')} 
                           {...field}
                           data-testid="input-titre"
                         />
@@ -382,10 +383,10 @@ export default function AddProperty() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('annonceForm.description')}</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Décrivez votre bien en détail..."
+                          placeholder={t('annonceForm.decrivezVotreBienDetail')}
                           className="min-h-[120px]"
                           maxLength={5000}
                           {...field}
@@ -402,7 +403,7 @@ export default function AddProperty() {
                   name="type_bien"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type de bien</FormLabel>
+                      <FormLabel>{t('annonceForm.typeBien')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-type">
@@ -426,7 +427,7 @@ export default function AddProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Prix et caractéristiques</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.prixCaracteristiques')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -434,7 +435,7 @@ export default function AddProperty() {
                   name="devise"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Devise du loyer et de la garantie</FormLabel>
+                      <FormLabel>{t('annonceForm.deviseLoyerGarantie')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-devise">
@@ -460,11 +461,11 @@ export default function AddProperty() {
                     name="prix_mensuel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prix mensuel</FormLabel>
+                        <FormLabel>{t('annonceForm.prixMensuel')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
-                            placeholder="Ex: 500"
+                            placeholder={t('annonceForm.ex500')}
                             {...field}
                             data-testid="input-prix"
                           />
@@ -482,11 +483,11 @@ export default function AddProperty() {
                   name="superficie"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Superficie (m², facultatif)</FormLabel>
+                      <FormLabel>{t('annonceForm.superficieM2Facultatif')}</FormLabel>
                       <FormControl>
                         <Input 
                           type="number"
-                          placeholder="Ex: 80"
+                          placeholder={t('annonceForm.ex80')}
                           {...field}
                           data-testid="input-superficie"
                         />
@@ -502,7 +503,7 @@ export default function AddProperty() {
                     name="nombre_pieces"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Pièces</FormLabel>
+                        <FormLabel>{t('annonceForm.pieces')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -522,7 +523,7 @@ export default function AddProperty() {
                     name="nombre_chambres"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Chambres</FormLabel>
+                        <FormLabel>{t('annonceForm.chambres')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -542,7 +543,7 @@ export default function AddProperty() {
                     name="nombre_salles_bain"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Salles de bain</FormLabel>
+                        <FormLabel>{t('annonceForm.sallesBain')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -562,7 +563,7 @@ export default function AddProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Localisation</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.localisation')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -570,11 +571,11 @@ export default function AddProperty() {
                   name="ville"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ville</FormLabel>
+                      <FormLabel>{t('annonceForm.ville')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-ville">
-                            <SelectValue placeholder="Sélectionner une ville" />
+                            <SelectValue placeholder={t('annonceForm.selectionnerVille')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -595,16 +596,16 @@ export default function AddProperty() {
                   name="adresse"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Adresse</FormLabel>
+                      <FormLabel>{t('annonceForm.adresse')}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Avenue, numéro et point de repère"
+                          placeholder={t('annonceForm.avenueNumeroPointRepere')}
                           {...field}
                           data-testid="input-adresse"
                         />
                       </FormControl>
                       <FormDescription>
-                        Jamais affichée sur l’annonce publique : seuls le quartier et la commune le sont. L’adresse est donnée au moment de la visite.
+                        {t('annonceForm.jamaisAfficheeAnnoncePublique')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -617,10 +618,10 @@ export default function AddProperty() {
                     name="quartier"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quartier</FormLabel>
+                        <FormLabel>{t('annonceForm.quartier')}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Ex : Bel-Air"
+                            placeholder={t('annonceForm.exBelAir')}
                             {...field}
                             data-testid="input-quartier"
                           />
@@ -639,7 +640,7 @@ export default function AddProperty() {
             {estCommissionnaire && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Commission et visite</CardTitle>
+                  <CardTitle className="text-lg">{t('annonceForm.commissionVisite')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ChampsCommission
@@ -653,7 +654,7 @@ export default function AddProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Équipements</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.equipements')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ChampsEauElectricite control={form.control} />
@@ -663,7 +664,7 @@ export default function AddProperty() {
                   name="parking"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Parking</FormLabel>
+                      <FormLabel>{t('annonceForm.parking')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -680,7 +681,7 @@ export default function AddProperty() {
                   name="jardin"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Jardin</FormLabel>
+                      <FormLabel>{t('annonceForm.jardin')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -697,7 +698,7 @@ export default function AddProperty() {
                   name="meuble"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Meublé</FormLabel>
+                      <FormLabel>{t('annonceForm.meuble')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -714,7 +715,7 @@ export default function AddProperty() {
                   name="climatisation"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Climatisation</FormLabel>
+                      <FormLabel>{t('annonceForm.climatisation')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -731,7 +732,7 @@ export default function AddProperty() {
                   name="gardien"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Gardien</FormLabel>
+                      <FormLabel>{t('annonceForm.gardien')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -752,7 +753,7 @@ export default function AddProperty() {
               disabled={isSubmitting}
               data-testid="button-submit"
             >
-              {isSubmitting ? 'Publication...' : 'Publier le bien'}
+              {isSubmitting ? t('annonceForm.publication') : t('annonceForm.publierBien')}
             </Button>
           </form>
         </Form>

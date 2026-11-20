@@ -2,6 +2,7 @@ import type { VideoBien } from '@shared/schema';
 import { Separator } from '@/components/ui/separator';
 import { dureeLisible, poidsLisible } from '@/lib/annonce';
 import { getDjangoImageUrl } from '@/lib/utils';
+import { t } from '@/i18n';
 
 /**
  * Les vidéos d'une annonce (décision de David du 20/11/2026).
@@ -18,7 +19,7 @@ export function VideosBien({ videos }: { videos?: VideoBien[] }) {
     <>
       <Separator />
       <div data-testid="videos-bien">
-        <h2 className="text-lg font-semibold mb-3">{pretes.length > 1 ? 'Vidéos' : 'Vidéo'}</h2>
+        <h2 className="text-lg font-semibold mb-3">{pretes.length > 1 ? t('videos.videos') : t('videos.video')}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {pretes.map((video) => {
             const details = [dureeLisible(video.duree), poidsLisible(video.taille)].filter(Boolean).join(' · ');

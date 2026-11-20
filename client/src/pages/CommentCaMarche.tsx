@@ -1,8 +1,9 @@
 import { MessageCircle } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { AVERTISSEMENT, ETAPES, INTRODUCTION, type Bloc } from '@/lib/comment-ca-marche';
-import { LIEN_WHATSAPP } from '@/lib/contact';
+import { avertissement, etapes, introduction, type Bloc } from '@/lib/comment-ca-marche';
+import { lienWhatsapp } from '@/lib/contact';
+import { t } from '@/i18n';
 
 /**
  * Comment ça marche : qui paie quoi, à qui, et quand.
@@ -15,16 +16,16 @@ export default function CommentCaMarche() {
     <Layout>
       <article className="mx-auto max-w-2xl px-4 py-6 md:py-10 space-y-8">
         <header className="space-y-3">
-          <h1 className="text-2xl md:text-3xl font-extrabold">Comment ça marche</h1>
-          <p className="text-base">{INTRODUCTION}</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold">{t('aide.commentCaMarche')}</h1>
+          <p className="text-base">{introduction()}</p>
         </header>
 
         <p className="rounded-lg bg-primary/10 p-4 font-semibold" data-testid="avertissement-paiement">
-          {AVERTISSEMENT}
+          {avertissement()}
         </p>
 
         <ol className="space-y-8">
-          {ETAPES.map((etape, rang) => (
+          {etapes().map((etape, rang) => (
             <li key={etape.titre} className="space-y-2">
               <h2 className="flex items-center gap-3 text-xl font-semibold">
                 <span
@@ -43,11 +44,11 @@ export default function CommentCaMarche() {
         </ol>
 
         <footer className="space-y-3 border-t pt-6">
-          <p className="text-muted-foreground">Une question qui n’est pas ici ? Écrivez-nous.</p>
+          <p className="text-muted-foreground">{t('reste.uneQuestion')}</p>
           <Button asChild className="min-h-11">
-            <a href={LIEN_WHATSAPP} target="_blank" rel="noopener noreferrer" data-testid="comment-whatsapp">
+            <a href={lienWhatsapp()} target="_blank" rel="noopener noreferrer" data-testid="comment-whatsapp">
               <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
-              Écrire sur WhatsApp
+              {t('aide.ecrireWhatsapp')}
             </a>
           </Button>
         </footer>

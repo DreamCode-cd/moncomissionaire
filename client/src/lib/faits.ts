@@ -1,4 +1,5 @@
 import type { BienList } from '@shared/schema';
+import { t } from '@/i18n';
 
 /*
  * Les faits qui décident une visite, en mots de locataire — mêmes règles que
@@ -8,17 +9,17 @@ import type { BienList } from '@shared/schema';
  */
 
 const EAU: Record<string, string> = {
-  permanente: 'Eau tous les jours',
-  intermittente: 'Eau par intermittence',
-  forage: 'Forage ou puits',
-  aucune: 'Pas d’eau',
+  get permanente() { return t('fait.eau.permanente'); },
+  get intermittente() { return t('fait.eau.intermittente'); },
+  get forage() { return t('fait.eau.forage'); },
+  get aucune() { return t('fait.eau.aucune'); },
 };
 
 const COURANT: Record<string, string> = {
-  stable: 'Courant stable',
-  delestage: 'Délestages',
-  autonome: 'Solaire ou groupe',
-  aucune: 'Pas de courant',
+  get stable() { return t('fait.courant.stable'); },
+  get delestage() { return t('fait.courant.delestage'); },
+  get autonome() { return t('fait.courant.autonome'); },
+  get aucune() { return t('fait.courant.aucune'); },
 };
 
 /**
@@ -74,7 +75,7 @@ export function etatCourant(courant?: string | null): EtatFait | null {
 /** « 1 chambre », « 3 chambres » ; rien pour un terrain. */
 export function libelleChambres(nombre?: number | null): string | null {
   if (!nombre) return null;
-  return nombre === 1 ? '1 chambre' : `${nombre} chambres`;
+  return t('faits.chambres', { n: nombre });
 }
 
 /**

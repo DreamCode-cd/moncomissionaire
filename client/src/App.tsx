@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { SynchroLangueCompte } from "@/components/LangueCompte";
+import { LangueProvider, RemonterSurLangue } from "@/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import Home from "@/pages/home";
@@ -216,19 +218,30 @@ function DashboardRouter() {
   }
 }
 
+// Les textes rédigés par le serveur (erreurs, pages légales) suivent la
+// langue de l'écran : on les redemande quand elle change.
+const rechargerApresChangementDeLangue = () => {
+  queryClient.invalidateQueries();
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <NotificationProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <LangueProvider surChangement={rechargerApresChangementDeLangue}>
+        <ThemeProvider>
+          <AuthProvider>
+            <SynchroLangueCompte />
+            <NotificationProvider>
+              <TooltipProvider>
+                <RemonterSurLangue>
+                  <Toaster />
+                  <Router />
+                </RemonterSurLangue>
+              </TooltipProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </LangueProvider>
     </QueryClientProvider>
   );
 }

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { getVilleName } from '@/lib/utils';
 import type { BienList, PaginatedResponse } from '@shared/schema';
+import { t } from '@/i18n';
 
 
 export default function House() {
@@ -69,10 +70,10 @@ export default function House() {
             le titre ne partait pas du même bord que la liste juste dessous. */}
         <div className="mx-auto max-w-7xl">
           <h1 className="text-2xl font-bold leading-tight tracking-tight text-foreground md:text-4xl">
-            Trouvez une maison à louer à Lubumbashi
+            {t('accueil.titre')}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground md:text-base">
-            Loyer, garantie, eau et courant : tout est dit avant la visite.
+            {t('accueil.sousTitre')}
           </p>
 
           <form
@@ -88,8 +89,8 @@ export default function House() {
               <Input
                 type="search"
                 enterKeyHint="search"
-                placeholder="Quartier, commune…"
-                aria-label="Rechercher un quartier, une commune ou un type de bien"
+                placeholder={t('recherche.placeholder')}
+                aria-label={t('recherche.aria')}
                 className="h-12 pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -97,7 +98,7 @@ export default function House() {
               />
             </div>
             <Button type="submit" size="lg" className="h-12" data-testid="button-hero-search">
-              Rechercher
+              {t('recherche.bouton')}
             </Button>
           </form>
 
@@ -106,8 +107,8 @@ export default function House() {
           {!isLoading && allProperties ? (
             <p className="mt-2 text-sm text-muted-foreground" data-testid="text-nombre-annonces">
               {allProperties.count === 0
-                ? 'Les premières annonces arrivent.'
-                : `${allProperties.count} annonce${allProperties.count > 1 ? 's' : ''} disponible${allProperties.count > 1 ? 's' : ''} aujourd’hui.`}
+                ? t('accueil.premieresAnnonces')
+                : t('accueil.nombreAnnonces', { n: allProperties.count })}
             </p>
           ) : null}
         </div>
@@ -116,17 +117,17 @@ export default function House() {
       <section className="py-6 md:py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-4 md:mb-6">
-            <h2 className="text-xl md:text-2xl font-bold">Dernières annonces</h2>
+            <h2 className="text-xl md:text-2xl font-bold">{t('accueil.dernieres')}</h2>
             <Link href="/search">
               <Button variant="ghost" className="gap-1" data-testid="link-view-all">
-                Voir tout
+                {t('accueil.voirTout')}
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
 
           {error && !allProperties ? (
-            <ErreurRequete erreur={error} titre="Les annonces n’ont pas pu être chargées" onReessayer={() => void refetch()} />
+            <ErreurRequete erreur={error} titre={t('accueil.erreurChargement')} onReessayer={() => void refetch()} />
           ) : (
             <PropertyGrid properties={annonces} isLoading={isLoading} />
           )}
@@ -138,7 +139,7 @@ export default function House() {
       {popularCities.length > 1 && (
         <section className="py-6 md:py-12 px-4 bg-muted/30">
           <div className="max-w-7xl mx-auto">
-            <h2 className="mb-4 text-xl md:mb-6 md:text-2xl font-bold">Par ville</h2>
+            <h2 className="mb-4 text-xl md:mb-6 md:text-2xl font-bold">{t('accueil.parVille')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {popularCities.map((city) => (
                 <Link key={city.name} href={`/search?ville=${city.id}`}>
@@ -151,7 +152,7 @@ export default function House() {
                       <span className="font-semibold">{city.name}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {city.count} bien{city.count > 1 ? 's' : ''} disponible{city.count > 1 ? 's' : ''}
+                      {t('accueil.biensDisponibles', { n: city.count })}
                     </p>
                   </div>
                 </Link>
@@ -167,15 +168,15 @@ export default function House() {
         <ul className="mx-auto grid max-w-7xl gap-3 text-sm sm:grid-cols-3">
           <li className="flex items-start gap-2">
             <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span>Loyer et garantie affichés, trois mois au plus comme le veut la loi.</span>
+            <span>{t('accueil.atoutLoyer')}</span>
           </li>
           <li className="flex items-start gap-2">
             <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span>L’eau et le courant dits clairement : REGIDESO, forage, délestages.</span>
+            <span>{t('accueil.atoutEau')}</span>
           </li>
           <li className="flex items-start gap-2">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span>Un badge signale les commissionnaires dont l’équipe VillaGo a vérifié l’identité.</span>
+            <span>{t('accueil.atoutBadge')}</span>
           </li>
         </ul>
       </section>
@@ -186,24 +187,24 @@ export default function House() {
               s'adressait qu'aux propriétaires. */}
           <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-border bg-card p-6">
-              <h2 className="text-xl font-bold">Vous êtes commissionnaire ?</h2>
+              <h2 className="text-xl font-bold">{t('accueil.commissionnaireTitre')}</h2>
               <p className="mt-2 text-muted-foreground">
-                Gérez vos maisons, vos bailleurs et vos visites depuis votre téléphone. Votre carnet reste à vous : aucun confrère ne le voit.
+                {t('accueil.commissionnaireTexte')}
               </p>
               <Link href="/register?role=commissionnaire">
                 <Button className="mt-5" data-testid="button-devenir-commissionnaire">
-                  Créer mon compte commissionnaire
+                  {t('accueil.commissionnaireBouton')}
                 </Button>
               </Link>
             </div>
             <div className="rounded-lg border border-border bg-card p-6">
-              <h2 className="text-xl font-bold">Vous êtes propriétaire ?</h2>
+              <h2 className="text-xl font-bold">{t('accueil.proprietaireTitre')}</h2>
               <p className="mt-2 text-muted-foreground">
-                Publiez votre bien vous-même. Les demandes de visite sont suivies par l’équipe VillaGo.
+                {t('accueil.proprietaireTexte')}
               </p>
               <Link href="/register?role=proprietaire">
                 <Button variant="outline" className="mt-5" data-testid="button-become-owner">
-                  Publier mon bien
+                  {t('accueil.proprietaireBouton')}
                 </Button>
               </Link>
             </div>

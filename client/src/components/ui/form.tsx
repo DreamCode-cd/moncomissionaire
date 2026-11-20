@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { traduireSiCle } from "@/i18n"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
 import {
@@ -147,7 +148,8 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : children
+  // Les messages des schémas sont des clés de traduction (shared/schema.ts).
+  const body = error ? traduireSiCle(String(error?.message ?? "")) : children
 
   if (!body) {
     return null

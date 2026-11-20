@@ -70,20 +70,22 @@ import {
   ChampsEauElectricite,
 } from '@/components/property/ChampsTerrain';
 
+import { t } from '@/i18n';
+
 const propertyTypes = [
-  { value: 'maison', label: 'Maison' },
-  { value: 'appartement', label: 'Appartement' },
-  { value: 'studio', label: 'Studio' },
-  { value: 'villa', label: 'Villa' },
-  { value: 'duplex', label: 'Duplex' },
-  { value: 'terrain', label: 'Terrain' },
+  { value: 'maison', get label() { return t('typeBien.maison'); } },
+  { value: 'appartement', get label() { return t('typeBien.appartement'); } },
+  { value: 'studio', get label() { return t('typeBien.studio'); } },
+  { value: 'villa', get label() { return t('typeBien.villa'); } },
+  { value: 'duplex', get label() { return t('typeBien.duplex'); } },
+  { value: 'terrain', get label() { return t('typeBien.terrain'); } },
 ];
 
 const locationStatuses = [
-  { value: 'disponible', label: 'Disponible' },
-  { value: 'en_visite', label: 'En visite' },
-  { value: 'loue', label: 'Loué' },
-  { value: 'indisponible', label: 'Indisponible' },
+  { value: 'disponible', get label() { return t('statut.location.disponible'); } },
+  { value: 'en_visite', get label() { return t('editForm.enVisite'); } },
+  { value: 'loue', get label() { return t('statut.location.loue'); } },
+  { value: 'indisponible', get label() { return t('statut.location.indisponible'); } },
 ];
 
 interface PhotoPreview {
@@ -273,15 +275,15 @@ export default function EditProperty() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [routeApi] });
       toast({
-        title: 'Bien supprimé',
-        description: 'Votre bien a été supprimé avec succès.',
+        title: t('annonceForm.bienSupprime'),
+        description: t('annonceForm.votreBienEteSupprime'),
       });
       setLocation(pageRetour);
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('annonceForm.erreur'),
+        description: error instanceof Error ? error.message : t('annonceForm.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -356,10 +358,10 @@ export default function EditProperty() {
         property?.statut_validation === 'valide' &&
         (adresseChangee || photosToDelete.length > 0 || newPhotos.length > 0);
       toast({
-        title: 'Bien modifié',
+        title: t('annonceForm.bienModifie'),
         description: aRevoir
-          ? 'L’adresse ou les photos ont changé : l’annonce repasse en validation et revient en ligne après l’accord de l’équipe.'
-          : 'Vos modifications ont été enregistrées.',
+          ? t('annonceForm.adresseOuPhotosOnt')
+          : t('annonceForm.vosModificationsOntEte'),
       });
       setLocation(pageRetour);
     } catch (error) {
@@ -371,8 +373,8 @@ export default function EditProperty() {
         (champ, message) => form.setError(champ, { message }),
       );
       toast({
-        title: 'Annonce non enregistrée',
-        description: reste ?? 'Corrigez les champs signalés en rouge.',
+        title: t('annonceForm.annonceNonEnregistree'),
+        description: reste ?? t('annonceForm.corrigezChampsSignalesRouge'),
         variant: 'destructive',
       });
     } finally {
@@ -400,7 +402,7 @@ export default function EditProperty() {
   if (!property && erreurBien && !(erreurBien instanceof ErreurApi && erreurBien.statut === 404)) {
     return (
       <Layout>
-        <ErreurRequete erreur={erreurBien} titre="L’annonce n’a pas pu être chargée" onReessayer={() => void rechargerBien()} className="min-h-[50vh]" />
+        <ErreurRequete erreur={erreurBien} titre={t('annonceForm.annonceNPasPu')} onReessayer={() => void rechargerBien()} className="min-h-[50vh]" />
       </Layout>
     );
   }
@@ -409,9 +411,9 @@ export default function EditProperty() {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto px-4 py-6 text-center">
-          <h1 className="text-xl font-bold mb-4">Bien non trouvé</h1>
+          <h1 className="text-xl font-bold mb-4">{t('annonceForm.bienNonTrouve')}</h1>
           <Button onClick={() => setLocation(pageRetour)}>
-            Retour à mes biens
+            {t('annonceForm.retourMesBiens')}
           </Button>
         </div>
       </Layout>
@@ -431,7 +433,7 @@ export default function EditProperty() {
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Modifier le bien</h1>
+            <h1 className="text-2xl font-bold">{t('annonceForm.modifierBien')}</h1>
           </div>
           
           {/* Le bien d'un propriétaire inscrit lui appartient : le serveur refuse
@@ -442,18 +444,18 @@ export default function EditProperty() {
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" data-testid="button-delete-property">
                 <Trash2 className="w-4 h-4 mr-2" />
-                Supprimer
+                {t('annonceForm.supprimer')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Supprimer ce bien ?</AlertDialogTitle>
+                <AlertDialogTitle>{t('annonceForm.supprimerCeBien')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Cette action est irréversible. Le bien et toutes ses photos seront supprimés définitivement.
+                  {t('annonceForm.cetteActionEstIrreversible')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogCancel>{t('annonceForm.annuler')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteMutation.mutate()}
                   className="bg-destructive text-destructive-foreground"
@@ -463,10 +465,10 @@ export default function EditProperty() {
                   {deleteMutation.isPending ? (
                     <>
                       <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
-                      Suppression...
+                      {t('annonceForm.suppression')}
                     </>
                   ) : (
-                    'Supprimer'
+                    t('annonceForm.supprimer')
                   )}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -476,7 +478,7 @@ export default function EditProperty() {
         </div>
         {estConfie && (
           <p className="-mt-4 mb-6 text-sm text-muted-foreground" data-testid="text-bien-confie">
-            Bien confié par son propriétaire : vous pouvez le modifier, lui seul peut le supprimer.
+            {t('annonceForm.bienConfieSonProprietaire')}
           </p>
         )}
 
@@ -485,7 +487,7 @@ export default function EditProperty() {
             {estCommissionnaire && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Bailleur</CardTitle>
+                  <CardTitle className="text-lg">{t('annonceForm.bailleur')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ChampBailleur control={form.control} />
@@ -494,11 +496,11 @@ export default function EditProperty() {
             )}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Photos du bien</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.photosBien')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Gérez les photos de votre bien. Cliquez sur l'étoile pour définir la photo principale.
+                  {t('annonceForm.gerezPhotosVotreBien')}
                 </p>
                 
                 <div className="grid grid-cols-3 gap-3">
@@ -535,7 +537,7 @@ export default function EditProperty() {
                       </div>
                       {principalIndex === index && (
                         <div className="absolute top-1 left-1 bg-note text-background text-xs px-2 py-0.5 rounded">
-                          Principale
+                          {t('annonceForm.principale')}
                         </div>
                       )}
                     </div>
@@ -549,7 +551,7 @@ export default function EditProperty() {
                       data-testid="button-add-photo"
                     >
                       <ImagePlus className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">Ajouter</span>
+                      <span className="text-xs text-muted-foreground">{t('annonceForm.ajouter')}</span>
                     </button>
                   )}
                 </div>
@@ -575,18 +577,17 @@ export default function EditProperty() {
 
             {property.statut_validation === 'valide' && (
               <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground" data-testid="avis-revalidation">
-                Changer l’adresse ou les photos renvoie l’annonce en validation : elle quitte les annonces jusqu’à
-                l’accord de l’équipe. Le prix, la description et la disponibilité se changent librement.
+                {t('annonceForm.changerAdresseOuPhotos')}
               </p>
             )}
             {property.statut_validation === 'valide' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Statut de location</CardTitle>
+                  <CardTitle className="text-lg">{t('annonceForm.statutLocation')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">État du bien</label>
+                    <label className="text-sm font-medium">{t('annonceForm.etatBien')}</label>
                     <Select value={locationStatus} onValueChange={setLocationStatus}>
                       <SelectTrigger data-testid="select-location-status">
                         <SelectValue />
@@ -600,7 +601,7 @@ export default function EditProperty() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      Choisissez le statut actuel de votre bien
+                      {t('annonceForm.choisissezStatutActuelVotre')}
                     </p>
                   </div>
                 </CardContent>
@@ -609,7 +610,7 @@ export default function EditProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Informations de base</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.informationsBase')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -617,10 +618,10 @@ export default function EditProperty() {
                   name="titre"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Titre de l'annonce</FormLabel>
+                      <FormLabel>{t('annonceForm.titreAnnonce')}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Ex: Bel appartement 3 pièces avec vue" 
+                          placeholder={t('annonceForm.exBelAppartement3')} 
                           {...field}
                           data-testid="input-titre"
                         />
@@ -635,10 +636,10 @@ export default function EditProperty() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('annonceForm.description')}</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Décrivez votre bien en détail..."
+                          placeholder={t('annonceForm.decrivezVotreBienDetail')}
                           className="min-h-[120px]"
                           maxLength={5000}
                           {...field}
@@ -655,7 +656,7 @@ export default function EditProperty() {
                   name="type_bien"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type de bien</FormLabel>
+                      <FormLabel>{t('annonceForm.typeBien')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-type">
@@ -679,7 +680,7 @@ export default function EditProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Prix et caractéristiques</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.prixCaracteristiques')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -687,7 +688,7 @@ export default function EditProperty() {
                   name="devise"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Devise du loyer et de la garantie</FormLabel>
+                      <FormLabel>{t('annonceForm.deviseLoyerGarantie')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-devise">
@@ -713,11 +714,11 @@ export default function EditProperty() {
                     name="prix_mensuel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prix mensuel</FormLabel>
+                        <FormLabel>{t('annonceForm.prixMensuel')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
-                            placeholder="Ex: 500"
+                            placeholder={t('annonceForm.ex500')}
                             {...field}
                             data-testid="input-prix"
                           />
@@ -735,11 +736,11 @@ export default function EditProperty() {
                   name="superficie"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Superficie (m², facultatif)</FormLabel>
+                      <FormLabel>{t('annonceForm.superficieM2Facultatif')}</FormLabel>
                       <FormControl>
                         <Input 
                           type="number"
-                          placeholder="Ex: 80"
+                          placeholder={t('annonceForm.ex80')}
                           {...field}
                           data-testid="input-superficie"
                         />
@@ -755,7 +756,7 @@ export default function EditProperty() {
                     name="nombre_pieces"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Pièces</FormLabel>
+                        <FormLabel>{t('annonceForm.pieces')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -775,7 +776,7 @@ export default function EditProperty() {
                     name="nombre_chambres"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Chambres</FormLabel>
+                        <FormLabel>{t('annonceForm.chambres')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -795,7 +796,7 @@ export default function EditProperty() {
                     name="nombre_salles_bain"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Salles de bain</FormLabel>
+                        <FormLabel>{t('annonceForm.sallesBain')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
@@ -815,7 +816,7 @@ export default function EditProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Localisation</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.localisation')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -823,10 +824,10 @@ export default function EditProperty() {
                   name="adresse"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Adresse</FormLabel>
+                      <FormLabel>{t('annonceForm.adresse')}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Avenue, numéro et point de repère"
+                          placeholder={t('annonceForm.avenueNumeroPointRepere')}
                           {...field}
                           data-testid="input-adresse"
                         />
@@ -842,10 +843,10 @@ export default function EditProperty() {
                     name="quartier"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quartier</FormLabel>
+                        <FormLabel>{t('annonceForm.quartier')}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Ex : Bel-Air"
+                            placeholder={t('annonceForm.exBelAir')}
                             {...field}
                             data-testid="input-quartier"
                           />
@@ -863,11 +864,11 @@ export default function EditProperty() {
                   name="ville"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ville</FormLabel>
+                      <FormLabel>{t('annonceForm.ville')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-ville">
-                            <SelectValue placeholder="Sélectionner une ville" />
+                            <SelectValue placeholder={t('annonceForm.selectionnerVille')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -888,7 +889,7 @@ export default function EditProperty() {
             {estCommissionnaire && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Commission et visite</CardTitle>
+                  <CardTitle className="text-lg">{t('annonceForm.commissionVisite')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ChampsCommission
@@ -902,7 +903,7 @@ export default function EditProperty() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Équipements</CardTitle>
+                <CardTitle className="text-lg">{t('annonceForm.equipements')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ChampsEauElectricite control={form.control} />
@@ -913,7 +914,7 @@ export default function EditProperty() {
                   name="parking"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Parking</FormLabel>
+                      <FormLabel>{t('annonceForm.parking')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -930,7 +931,7 @@ export default function EditProperty() {
                   name="jardin"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Jardin</FormLabel>
+                      <FormLabel>{t('annonceForm.jardin')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -947,7 +948,7 @@ export default function EditProperty() {
                   name="meuble"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Meublé</FormLabel>
+                      <FormLabel>{t('annonceForm.meuble')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -964,7 +965,7 @@ export default function EditProperty() {
                   name="climatisation"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Climatisation</FormLabel>
+                      <FormLabel>{t('annonceForm.climatisation')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -981,7 +982,7 @@ export default function EditProperty() {
                   name="gardien"
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between">
-                      <FormLabel>Gardien</FormLabel>
+                      <FormLabel>{t('annonceForm.gardien')}</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
@@ -1005,10 +1006,10 @@ export default function EditProperty() {
               {isSubmitting ? (
                 <>
                   <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
-                  Enregistrement...
+                  {t('annonceForm.enregistrement')}
                 </>
               ) : (
-                'Enregistrer les modifications'
+                t('annonceForm.enregistrerModifications')
               )}
             </Button>
           </form>

@@ -49,7 +49,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { formaterLoyer } from '@/lib/prix';
-import { auteurAnnonce, initiale } from '@/lib/annonce';
+import { auteurAnnonce, initiale, libelleTypeBien } from '@/lib/annonce';
 import { api } from '@/lib/api';
 import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/utils';
 import { lieuVisite } from '@/lib/visite';
@@ -59,6 +59,8 @@ import { OngletCommissions } from '@/components/equipe/OngletCommissions';
 import type { 
   BienList, BienDetail, DemandeVisite, Visite, RapportVisite, UserList, UserProfile, PaginatedResponse, SignalementEquipe
 } from '@shared/schema';
+import { t } from '@/i18n';
+import { lireStatut } from '@/lib/statuts';
 
 type AgentDetail = UserList & Partial<UserProfile>;
 
@@ -175,14 +177,14 @@ export default function ModerateurDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/v1/biens/moderation/'] });
       toast({
-        title: 'Bien validé',
-        description: 'Le bien est validé et visible dans les annonces.',
+        title: t('moderation.bienValide'),
+        description: t('moderation.bienEstValideVisible'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -199,14 +201,14 @@ export default function ModerateurDashboard() {
       setRejectPropertyDialogOpen(false);
       setPropertyRejectReason('');
       toast({
-        title: 'Bien refusé',
-        description: 'Le bien est refusé.',
+        title: t('moderation.bienRefuse'),
+        description: t('moderation.bienEstRefuse'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -223,16 +225,16 @@ export default function ModerateurDashboard() {
       setProcessDemandeDialogOpen(false);
       setDemandeRejectReason('');
       toast({
-        title: variables.statut === 'acceptee' ? 'Demande acceptée' : 'Demande refusée',
+        title: variables.statut === 'acceptee' ? t('moderation.demandeAcceptee') : t('moderation.demandeRefusee'),
         description: variables.statut === 'acceptee' 
-          ? 'La demande de visite est acceptée. Vous pouvez maintenant planifier la visite.'
-          : 'La demande de visite est refusée.',
+          ? t('moderation.demandeVisiteEstAcceptee')
+          : t('moderation.demandeVisiteEstRefusee'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -249,14 +251,14 @@ export default function ModerateurDashboard() {
       setVisiteHeure('');
       setSelectedAgentId('');
       toast({
-        title: 'Visite planifiée',
-        description: 'La visite est planifiée.',
+        title: t('moderation.visitePlanifiee'),
+        description: t('moderation.visiteEstPlanifiee'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -270,14 +272,14 @@ export default function ModerateurDashboard() {
       setReassignDialogOpen(false);
       setNewAgentId('');
       toast({
-        title: 'Agent réaffecté',
-        description: "L'agent est affecté à cette visite.",
+        title: t('moderation.agentReaffecte'),
+        description: t('moderation.agentEstAffecteCette'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -291,14 +293,14 @@ export default function ModerateurDashboard() {
       setDeleteAgentDialogOpen(false);
       setAgentToDelete(null);
       toast({
-        title: 'Agent supprimé',
-        description: "Le compte de l'agent est supprimé.",
+        title: t('moderation.agentSupprime'),
+        description: t('moderation.compteAgentEstSupprime'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -318,14 +320,14 @@ export default function ModerateurDashboard() {
       setNewAgentPassword('');
       setNewAgentPassword2('');
       toast({
-        title: 'Agent créé',
-        description: "Le compte de l'agent est créé.",
+        title: t('moderation.agentCree'),
+        description: t('moderation.compteAgentEstCree'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -339,14 +341,14 @@ export default function ModerateurDashboard() {
       setEditAgentDialogOpen(false);
       setAgentToEdit(null);
       toast({
-        title: 'Agent modifié',
-        description: "Les informations de l'agent sont enregistrées.",
+        title: t('moderation.agentModifie'),
+        description: t('moderation.informationsAgentSontEnregistrees'),
       });
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        title: t('moderation.erreur'),
+        description: error instanceof Error ? error.message : t('moderation.erreurEstSurvenue'),
         variant: 'destructive',
       });
     },
@@ -362,8 +364,8 @@ export default function ModerateurDashboard() {
     if (selectedDemande) {
       if (demandeAction === 'rejetee' && !demandeRejectReason.trim()) {
         toast({
-          title: 'Motif requis',
-          description: 'Veuillez indiquer le motif du rejet.',
+          title: t('moderation.motifRequis'),
+          description: t('moderation.veuillezIndiquerMotifRejet'),
           variant: 'destructive',
         });
         return;
@@ -400,8 +402,8 @@ export default function ModerateurDashboard() {
     if (newAgentFirstName.trim() && newAgentLastName.trim() && newAgentEmail.trim() && newAgentUsername.trim() && newAgentPassword.trim() && newAgentPassword2.trim()) {
       if (newAgentPassword !== newAgentPassword2) {
         toast({
-          title: 'Erreur',
-          description: 'Les mots de passe ne correspondent pas',
+          title: t('moderation.erreur'),
+          description: t('moderation.motsPasseNeCorrespondent'),
           variant: 'destructive',
         });
         return;
@@ -488,11 +490,11 @@ export default function ModerateurDashboard() {
               <h1 className="text-2xl font-bold" data-testid="text-dashboard-title">
                 {user?.first_name} {user?.last_name}
               </h1>
-              <p className="text-muted-foreground">Équipe VillaGo</p>
+              <p className="text-muted-foreground">{t('moderation.equipeVillago')}</p>
             </div>
           </div>
           <p className="text-muted-foreground">
-            Validez les annonces, traitez les demandes de visite et gérez les agents
+            {t('moderation.validezAnnoncesTraitezDemandes')}
           </p>
         </div>
 
@@ -505,7 +507,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-total-properties-count">{totalPropertiesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Total biens</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.totalBiens')}</p>
                 </div>
               </div>
             </CardContent>
@@ -518,7 +520,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-available-properties-count">{availablePropertiesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Disponibles</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.disponibles')}</p>
                 </div>
               </div>
             </CardContent>
@@ -531,7 +533,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-rented-properties-count">{rentedPropertiesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Loués</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.loues')}</p>
                 </div>
               </div>
             </CardContent>
@@ -544,7 +546,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-properties-count">{pendingCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">À valider</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.valider')}</p>
                 </div>
               </div>
             </CardContent>
@@ -560,7 +562,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-pending-demandes-count">{pendingDemandesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">À traiter</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.traiter')}</p>
                 </div>
               </div>
             </CardContent>
@@ -573,7 +575,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-accepted-demandes-count">{acceptedDemandesWithoutVisite}</p>
-                  <p className="text-xs text-muted-foreground truncate">À planifier</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.planifier')}</p>
                 </div>
               </div>
             </CardContent>
@@ -586,7 +588,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-active-visits-count">{activeVisitesCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Visites à venir</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.visitesVenir')}</p>
                 </div>
               </div>
             </CardContent>
@@ -599,7 +601,7 @@ export default function ModerateurDashboard() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xl font-bold" data-testid="text-reports-count">{rapportsCount}</p>
-                  <p className="text-xs text-muted-foreground truncate">Rapports</p>
+                  <p className="text-xs text-muted-foreground truncate">{t('moderation.rapports')}</p>
                 </div>
               </div>
             </CardContent>
@@ -609,25 +611,25 @@ export default function ModerateurDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="properties" data-testid="tab-properties">
-              Biens ({pendingCount})
+              {t('moderation.ongletBiens', { n: pendingCount })}
             </TabsTrigger>
             <TabsTrigger value="demandes" data-testid="tab-demandes">
-              Demandes ({pendingDemandesCount + acceptedDemandesWithoutVisite})
+              {t('portefeuille.ongletDemandes', { n: pendingDemandesCount + acceptedDemandesWithoutVisite })}
             </TabsTrigger>
             <TabsTrigger value="visites" data-testid="tab-visites">
-              Visites ({visites?.count || 0})
+              {t('portefeuille.ongletVisites', { n: visites?.count || 0 })}
             </TabsTrigger>
             <TabsTrigger value="rapports" data-testid="tab-rapports">
-              Rapports ({rapportsCount})
+              {t('moderation.ongletRapports', { n: rapportsCount })}
             </TabsTrigger>
             <TabsTrigger value="agents" data-testid="tab-agents">
-              Agents ({agents?.count || 0})
+              {t('moderation.ongletAgents', { n: agents?.count || 0 })}
             </TabsTrigger>
             <TabsTrigger value="signalements" data-testid="tab-signalements">
-              Signalements ({signalementsEnAttente?.count ?? 0})
+              {t('moderation.ongletSignalements', { n: signalementsEnAttente?.count ?? 0 })}
             </TabsTrigger>
             <TabsTrigger value="commissions" data-testid="tab-commissions">
-              Commissions
+              {t('moderation.commissions')}
             </TabsTrigger>
           </TabsList>
 
@@ -641,7 +643,7 @@ export default function ModerateurDashboard() {
 
           <TabsContent value="properties">
             {erreurPendingProperties && !pendingProperties ? (
-              <ErreurRequete erreur={erreurPendingProperties} titre="Les annonces à valider n’ont pas pu être chargées" onReessayer={() => void rechargerPendingProperties()} />
+              <ErreurRequete erreur={erreurPendingProperties} titre={t('moderation.annoncesValiderNOnt')} onReessayer={() => void rechargerPendingProperties()} />
             ) : propertiesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
@@ -663,8 +665,8 @@ export default function ModerateurDashboard() {
               <EtatVide
                 icone={CircleCheck}
                 ton="favorable"
-                titre="Aucun bien en attente"
-                description="Tous les biens soumis ont été traités."
+                titre={t('moderation.aucunBienAttente')}
+                description={t('moderation.tousBiensSoumisOnt')}
               />
             ) : (
               <div className="space-y-4">
@@ -700,7 +702,7 @@ export default function ModerateurDashboard() {
                             <h3 className="font-semibold line-clamp-1">
                               {property.titre}
                             </h3>
-                            <Badge variant="secondary">{property.type_bien_display}</Badge>
+                            <Badge variant="secondary">{libelleTypeBien(property.type_bien)}</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
@@ -738,7 +740,7 @@ export default function ModerateurDashboard() {
                             data-testid={`button-view-property-${property.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
-                            Détails
+                            {t('moderation.details')}
                           </Button>
                           <Button 
                             size="sm"
@@ -747,7 +749,7 @@ export default function ModerateurDashboard() {
                             data-testid={`button-validate-${property.id}`}
                           >
                             <CircleCheck className="w-4 h-4 mr-1" />
-                            Valider
+                            {t('moderation.valider2')}
                           </Button>
                           <Button 
                             variant="destructive" 
@@ -759,7 +761,7 @@ export default function ModerateurDashboard() {
                             data-testid={`button-reject-${property.id}`}
                           >
                             <CircleX className="w-4 h-4 mr-1" />
-                            Rejeter
+                            {t('moderation.rejeter')}
                           </Button>
                         </div>
                       </div>
@@ -772,7 +774,7 @@ export default function ModerateurDashboard() {
 
           <TabsContent value="demandes">
             {erreurDemandes && !demandes ? (
-              <ErreurRequete erreur={erreurDemandes} titre="Les demandes n’ont pas pu être chargées" onReessayer={() => void rechargerDemandes()} />
+              <ErreurRequete erreur={erreurDemandes} titre={t('moderation.demandesNOntPas')} onReessayer={() => void rechargerDemandes()} />
             ) : demandesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
@@ -796,8 +798,8 @@ export default function ModerateurDashboard() {
                 return (
                   <EtatVide
                     icone={Calendar}
-                    titre="Aucune demande à traiter"
-                    description="Les demandes de visite envoyées par les clients apparaîtront ici."
+                    titre={t('moderation.aucuneDemandeTraiter')}
+                    description={t('moderation.demandesVisiteEnvoyeesClients')}
                   />
                 );
               }
@@ -833,7 +835,7 @@ export default function ModerateurDashboard() {
                             </div>
                             <div className="bg-muted/50 rounded-lg p-3 mb-3">
                               <p className="text-sm font-medium mb-1">
-                                Bien : {demande.bien_detail?.titre}
+                                {t('moderation.bien', { a: demande.bien_detail?.titre })}
                               </p>
                               <p className="text-sm text-muted-foreground flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
@@ -857,7 +859,7 @@ export default function ModerateurDashboard() {
                             )}
                             {demande.motif_rejet && (
                               <p className="text-sm text-destructive mt-2">
-                                Motif de rejet : {demande.motif_rejet}
+                                {t('moderation.motifRejet2', { a: demande.motif_rejet })}
                               </p>
                             )}
                           </div>
@@ -879,7 +881,7 @@ export default function ModerateurDashboard() {
                                   data-testid={`button-accept-demande-${demande.id}`}
                                 >
                                   <CircleCheck className="w-4 h-4 mr-1" />
-                                  Accepter ce créneau
+                                  {t('moderation.accepterCeCreneau')}
                                 </Button>
                                 <Button 
                                   variant="destructive"
@@ -892,7 +894,7 @@ export default function ModerateurDashboard() {
                                   data-testid={`button-reject-demande-${demande.id}`}
                                 >
                                   <CircleX className="w-4 h-4 mr-1" />
-                                  Rejeter
+                                  {t('moderation.rejeter')}
                                 </Button>
                               </>
                             )}
@@ -910,7 +912,7 @@ export default function ModerateurDashboard() {
                                 data-testid={`button-schedule-visite-${demande.id}`}
                               >
                                 <UserPlus className="w-4 h-4 mr-1" />
-                                Planifier visite
+                                {t('moderation.planifierVisite')}
                               </Button>
                             )}
                           </div>
@@ -924,7 +926,7 @@ export default function ModerateurDashboard() {
                         variant="outline" 
                         onClick={() => setDemandesVisible(prev => prev + 10)}
                       >
-                        Voir plus ({filteredDemandes.length - demandesVisible} restantes)
+                        {t('moderation.voirPlusRestantes', { a: filteredDemandes.length - demandesVisible })}
                       </Button>
                     </div>
                   )}
@@ -935,7 +937,7 @@ export default function ModerateurDashboard() {
 
           <TabsContent value="visites">
             {erreurVisites && !visites ? (
-              <ErreurRequete erreur={erreurVisites} titre="Les visites n’ont pas pu être chargées" onReessayer={() => void rechargerVisites()} />
+              <ErreurRequete erreur={erreurVisites} titre={t('moderation.visitesNOntPas')} onReessayer={() => void rechargerVisites()} />
             ) : visitesLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
@@ -945,8 +947,8 @@ export default function ModerateurDashboard() {
             ) : visites?.results?.length === 0 ? (
               <EtatVide
                 icone={Users}
-                titre="Aucune visite"
-                description="Les visites que vous planifierez apparaîtront ici."
+                titre={t('moderation.aucuneVisite')}
+                description={t('moderation.visitesQueVousPlanifierez')}
               />
             ) : (
               <div className="space-y-4">
@@ -971,7 +973,7 @@ export default function ModerateurDashboard() {
                           </p>
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <p className="text-muted-foreground mb-1">Client</p>
+                              <p className="text-muted-foreground mb-1">{t('moderation.client')}</p>
                               <div className="flex items-center gap-2">
                                 <Avatar className="w-6 h-6">
                                   <AvatarImage src={getDjangoImageUrl(visite.demande_detail?.client?.avatar) || undefined} />
@@ -979,13 +981,13 @@ export default function ModerateurDashboard() {
                                 </Avatar>
                                 <div className="min-w-0">
                                   <p className="font-medium line-clamp-1">
-                                    {nomAffiche(visite.demande_detail?.client, 'Client inconnu')}
+                                    {nomAffiche(visite.demande_detail?.client, t('moderation.clientInconnu'))}
                                   </p>
                                 </div>
                               </div>
                             </div>
                             <div>
-                              <p className="text-muted-foreground mb-1">Agent</p>
+                              <p className="text-muted-foreground mb-1">{t('moderation.agent')}</p>
                               {visite.agent_detail ? (
                                 <div className="flex items-center gap-2">
                                   <Avatar className="w-6 h-6">
@@ -994,12 +996,12 @@ export default function ModerateurDashboard() {
                                   </Avatar>
                                   <div className="min-w-0">
                                     <p className="font-medium line-clamp-1">
-                                      {nomAffiche(visite.agent_detail, 'Agent inconnu')}
+                                      {nomAffiche(visite.agent_detail, t('moderation.agentInconnu'))}
                                     </p>
                                   </div>
                                 </div>
                               ) : (
-                                <span className="text-muted-foreground italic">Non assigne</span>
+                                <span className="text-muted-foreground italic">{t('moderation.nonAssigne')}</span>
                               )}
                             </div>
                           </div>
@@ -1015,7 +1017,7 @@ export default function ModerateurDashboard() {
                           </div>
                           {visite.notes_commissionnaire && (
                             <p className="text-sm text-muted-foreground mt-2 italic">
-                              Notes : {visite.notes_commissionnaire}
+                              {t('moderation.notes', { a: visite.notes_commissionnaire })}
                             </p>
                           )}
                         </div>
@@ -1034,13 +1036,13 @@ export default function ModerateurDashboard() {
                               data-testid={`button-reassign-${visite.id}`}
                             >
                               <RefreshCw className="w-4 h-4 mr-1" />
-                              {visite.agent_detail ? 'Changer d’agent' : 'Affecter un agent'}
+                              {visite.agent_detail ? t('moderation.changerAgent') : t('moderation.affecterAgent')}
                             </Button>
                           )}
                           <Link href={`/messages?demande=${(visite as any).demande_visite || (visite as any).demande}`}>
                             <Button variant="outline" size="sm" data-testid={`button-chat-${visite.id}`}>
                               <MessageCircle className="w-4 h-4 mr-1" />
-                              Discussion
+                              {t('moderation.discussion')}
                             </Button>
                           </Link>
                         </div>
@@ -1054,7 +1056,7 @@ export default function ModerateurDashboard() {
 
           <TabsContent value="rapports">
             {erreurRapports && !rapports ? (
-              <ErreurRequete erreur={erreurRapports} titre="Les rapports n’ont pas pu être chargés" onReessayer={() => void rechargerRapports()} />
+              <ErreurRequete erreur={erreurRapports} titre={t('moderation.rapportsNOntPas')} onReessayer={() => void rechargerRapports()} />
             ) : rapportsLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
@@ -1064,8 +1066,8 @@ export default function ModerateurDashboard() {
             ) : rapports?.results?.length === 0 ? (
               <EtatVide
                 icone={FileText}
-                titre="Aucun rapport"
-                description="Les rapports rédigés par les agents après leurs visites apparaîtront ici."
+                titre={t('moderation.aucunRapport')}
+                description={t('moderation.rapportsRedigesAgentsApres')}
               />
             ) : (
               <div className="space-y-4">
@@ -1075,9 +1077,9 @@ export default function ModerateurDashboard() {
                       <div className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-2 mb-2">
-                            <h4 className="font-medium">Rapport de visite #{rapport.visite}</h4>
+                            <h4 className="font-medium">{t('moderation.rapportVisite')}{rapport.visite}</h4>
                             <Badge variant={rapport.client_interesse ? 'default' : 'secondary'}>
-                              {rapport.client_interesse ? 'Client intéressé' : 'Client non intéressé'}
+                              {rapport.client_interesse ? t('moderation.clientInteresse') : t('moderation.clientNonInteresse')}
                             </Badge>
                           </div>
                           {rapport.agent_detail && (
@@ -1090,7 +1092,7 @@ export default function ModerateurDashboard() {
                               </Avatar>
                               <div>
                                 <p className="text-sm font-medium">
-                                  Agent : {rapport.agent_detail.first_name} {rapport.agent_detail.last_name}
+                                  {t('moderation.agentB', { a: rapport.agent_detail.first_name, b: rapport.agent_detail.last_name })}
                                 </p>
                               </div>
                             </div>
@@ -1098,10 +1100,10 @@ export default function ModerateurDashboard() {
                           <div className="flex flex-wrap items-center gap-3 mb-2">
                             <Badge variant="outline" className="flex items-center gap-1">
                               <Star className="w-3 h-3" />
-                              {rapport.etat_general_display}
+                              {lireStatut('appreciation', rapport.etat_general, rapport.etat_general_display).libelle}
                             </Badge>
                             <Badge variant={rapport.conformite_annonce ? 'default' : 'destructive'}>
-                              {rapport.conformite_annonce ? 'Conforme' : 'Non conforme'}
+                              {rapport.conformite_annonce ? t('moderation.conforme') : t('moderation.nonConforme')}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -1119,7 +1121,7 @@ export default function ModerateurDashboard() {
                             data-testid={`button-view-rapport-${rapport.id}`}
                           >
                             <Eye className="w-4 h-4 mr-1" />
-                            Détails
+                            {t('moderation.details')}
                           </Button>
                         </div>
                       </div>
@@ -1132,17 +1134,17 @@ export default function ModerateurDashboard() {
 
           <TabsContent value="agents">
             <div className="flex items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg font-semibold">Mes agents</h2>
+              <h2 className="text-lg font-semibold">{t('moderation.mesAgents')}</h2>
               <Button 
                 onClick={() => setCreateAgentDialogOpen(true)}
                 data-testid="button-add-agent"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter un agent
+                {t('moderation.ajouterAgent')}
               </Button>
             </div>
             {erreurAgents && !agents ? (
-              <ErreurRequete erreur={erreurAgents} titre="La liste des agents n’a pas pu être chargée" onReessayer={() => void rechargerAgents()} />
+              <ErreurRequete erreur={erreurAgents} titre={t('moderation.listeAgentsNPas')} onReessayer={() => void rechargerAgents()} />
             ) : agentsLoading ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
@@ -1162,8 +1164,8 @@ export default function ModerateurDashboard() {
             ) : agents?.results?.length === 0 ? (
               <EtatVide
                 icone={Users}
-                titre="Aucun agent"
-                description="Aucun agent ne vous est encore assigné. Les comptes agent sont créés par l'administrateur."
+                titre={t('moderation.aucunAgent')}
+                description={t('moderation.aucunAgentNeVous')}
               />
             ) : (
               <div className="space-y-4">
@@ -1236,17 +1238,17 @@ export default function ModerateurDashboard() {
         <Dialog open={rejectPropertyDialogOpen} onOpenChange={setRejectPropertyDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Rejeter le bien</DialogTitle>
+              <DialogTitle>{t('moderation.rejeterBien')}</DialogTitle>
               <DialogDescription>
-                Veuillez indiquer le motif du rejet
+                {t('moderation.veuillezIndiquerMotifRejet2')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <Label htmlFor="property-reject-reason">Motif du rejet</Label>
+                <Label htmlFor="property-reject-reason">{t('moderation.motifRejet')}</Label>
                 <Textarea
                   id="property-reject-reason"
-                  placeholder="Expliquez pourquoi ce bien ne peut pas être validé…"
+                  placeholder={t('moderation.expliquezPourquoiCeBien')}
                   value={propertyRejectReason}
                   onChange={(e) => setPropertyRejectReason(e.target.value)}
                   data-testid="input-property-reject-reason"
@@ -1258,7 +1260,7 @@ export default function ModerateurDashboard() {
                   className="flex-1"
                   onClick={() => setRejectPropertyDialogOpen(false)}
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   variant="destructive" 
@@ -1267,7 +1269,7 @@ export default function ModerateurDashboard() {
                   disabled={!propertyRejectReason.trim() || rejectPropertyMutation.isPending}
                   data-testid="button-confirm-reject-property"
                 >
-                  Confirmer le rejet
+                  {t('moderation.confirmerRejet')}
                 </Button>
               </div>
             </div>
@@ -1278,12 +1280,12 @@ export default function ModerateurDashboard() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {demandeAction === 'acceptee' ? 'Accepter la demande' : 'Rejeter la demande'}
+                {demandeAction === 'acceptee' ? t('moderation.accepterDemande') : t('moderation.rejeterDemande')}
               </DialogTitle>
               <DialogDescription>
                 {demandeAction === 'acceptee' 
-                  ? 'Confirmez-vous vouloir accepter cette demande de visite ?' 
-                  : 'Veuillez indiquer le motif du rejet'}
+                  ? t('moderation.confirmezVousVouloirAccepter') 
+                  : t('moderation.veuillezIndiquerMotifRejet2')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -1291,19 +1293,19 @@ export default function ModerateurDashboard() {
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="font-medium">{selectedDemande.bien_detail?.titre}</p>
                   <p className="text-sm text-muted-foreground">
-                    Demande de {nomAffiche(selectedDemande.client)}
+                    {t('moderation.demande', { a: nomAffiche(selectedDemande.client) })}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Pour le {formaterDateCourte(selectedDemande.date_souhaitee)} a {selectedDemande.heure_souhaitee}
+                    {t('moderation.b', { a: formaterDateCourte(selectedDemande.date_souhaitee), b: selectedDemande.heure_souhaitee })}
                   </p>
                 </div>
               )}
               {demandeAction === 'rejetee' && (
                 <div>
-                  <Label htmlFor="demande-reject-reason">Motif du rejet</Label>
+                  <Label htmlFor="demande-reject-reason">{t('moderation.motifRejet')}</Label>
                   <Textarea
                     id="demande-reject-reason"
-                    placeholder="Expliquez pourquoi cette demande est refusée…"
+                    placeholder={t('moderation.expliquezPourquoiCetteDemande')}
                     value={demandeRejectReason}
                     onChange={(e) => setDemandeRejectReason(e.target.value)}
                     data-testid="input-demande-reject-reason"
@@ -1319,7 +1321,7 @@ export default function ModerateurDashboard() {
                     setDemandeRejectReason('');
                   }}
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   variant={demandeAction === 'acceptee' ? 'default' : 'destructive'}
@@ -1328,7 +1330,7 @@ export default function ModerateurDashboard() {
                   disabled={processDemandeMutation.isPending}
                   data-testid="button-confirm-process-demande"
                 >
-                  {demandeAction === 'acceptee' ? 'Accepter' : 'Rejeter'}
+                  {demandeAction === 'acceptee' ? t('moderation.accepter') : t('moderation.rejeter')}
                 </Button>
               </div>
             </div>
@@ -1338,9 +1340,9 @@ export default function ModerateurDashboard() {
         <Dialog open={createVisiteDialogOpen} onOpenChange={setCreateVisiteDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Planifier une visite</DialogTitle>
+              <DialogTitle>{t('moderation.planifierVisite2')}</DialogTitle>
               <DialogDescription>
-                Definissez la date et assignez un agent pour cette visite
+                {t('moderation.definissezDateAssignezAgent')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -1348,7 +1350,7 @@ export default function ModerateurDashboard() {
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="font-medium">{selectedDemandeForVisite.bien_detail?.titre}</p>
                   <p className="text-sm text-muted-foreground">
-                    Client : {nomAffiche(selectedDemandeForVisite.client)}
+                    {t('moderation.client2', { a: nomAffiche(selectedDemandeForVisite.client) })}
                   </p>
                 </div>
               )}
@@ -1360,10 +1362,10 @@ export default function ModerateurDashboard() {
                 marque={selectedDemande ? { jour: selectedDemande.date_souhaitee, heure: selectedDemande.heure_souhaitee } : null}
               />
               <div>
-                <Label htmlFor="agent-select">Agent (optionnel)</Label>
+                <Label htmlFor="agent-select">{t('moderation.agentOptionnel')}</Label>
                 <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
                   <SelectTrigger data-testid="select-agent">
-                    <SelectValue placeholder="Sélectionner un agent" />
+                    <SelectValue placeholder={t('moderation.selectionnerAgent')} />
                   </SelectTrigger>
                   <SelectContent>
                     {agents?.results?.map((agent) => (
@@ -1385,7 +1387,7 @@ export default function ModerateurDashboard() {
                     setSelectedAgentId('');
                   }}
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   className="flex-1"
@@ -1393,7 +1395,7 @@ export default function ModerateurDashboard() {
                   disabled={!visiteDate || !visiteHeure || createVisiteMutation.isPending}
                   data-testid="button-confirm-create-visite"
                 >
-                  Planifier
+                  {t('moderation.planifier2')}
                 </Button>
               </div>
             </div>
@@ -1404,10 +1406,10 @@ export default function ModerateurDashboard() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {selectedVisite?.agent_detail ? 'Changer d’agent' : 'Assigner un agent'}
+                {selectedVisite?.agent_detail ? t('moderation.changerAgent') : t('moderation.assignerAgent')}
               </DialogTitle>
               <DialogDescription>
-                Sélectionnez un agent pour cette visite
+                {t('moderation.selectionnezAgentCetteVisite')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -1419,16 +1421,16 @@ export default function ModerateurDashboard() {
                   </p>
                   {selectedVisite.agent_detail && (
                     <p className="text-sm text-muted-foreground">
-                      Agent actuel : {nomAffiche(selectedVisite.agent_detail)}
+                      {t('moderation.agentActuel', { a: nomAffiche(selectedVisite.agent_detail) })}
                     </p>
                   )}
                 </div>
               )}
               <div>
-                <Label htmlFor="new-agent-select">Nouvel agent</Label>
+                <Label htmlFor="new-agent-select">{t('moderation.nouvelAgent')}</Label>
                 <Select value={newAgentId} onValueChange={setNewAgentId}>
                   <SelectTrigger data-testid="select-new-agent">
-                    <SelectValue placeholder="Sélectionner un agent" />
+                    <SelectValue placeholder={t('moderation.selectionnerAgent')} />
                   </SelectTrigger>
                   <SelectContent>
                     {agents?.results?.map((agent) => (
@@ -1448,7 +1450,7 @@ export default function ModerateurDashboard() {
                     setNewAgentId('');
                   }}
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   className="flex-1"
@@ -1456,7 +1458,7 @@ export default function ModerateurDashboard() {
                   disabled={!newAgentId || reassignAgentMutation.isPending}
                   data-testid="button-confirm-reassign"
                 >
-                  Confirmer
+                  {t('moderation.confirmer')}
                 </Button>
               </div>
             </div>
@@ -1466,19 +1468,19 @@ export default function ModerateurDashboard() {
         <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Détails du rapport</DialogTitle>
+              <DialogTitle>{t('moderation.detailsRapport')}</DialogTitle>
             </DialogHeader>
             {selectedReport && (
               <div className="space-y-6 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Appréciation générale</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.appreciationGenerale')}</h4>
                     <Badge variant="outline">{selectedReport.etat_general_display}</Badge>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Conformite</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.conformite')}</h4>
                     <Badge variant={selectedReport.conformite_annonce ? 'default' : 'destructive'}>
-                      {selectedReport.conformite_annonce ? 'Conforme a l\'annonce' : 'Non conforme'}
+                      {selectedReport.conformite_annonce ? t('moderation.conformeAnnonce') : t('moderation.nonConforme')}
                     </Badge>
                   </div>
                 </div>
@@ -1486,37 +1488,37 @@ export default function ModerateurDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {selectedReport.etat_electricite && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Électricité</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.electricite')}</h4>
                       <p className="text-sm">{selectedReport.etat_electricite}</p>
                     </div>
                   )}
                   {selectedReport.etat_plomberie && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Plomberie</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.plomberie')}</h4>
                       <p className="text-sm">{selectedReport.etat_plomberie}</p>
                     </div>
                   )}
                   {selectedReport.etat_peinture && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Peinture</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.peinture')}</h4>
                       <p className="text-sm">{selectedReport.etat_peinture}</p>
                     </div>
                   )}
                   {selectedReport.etat_sols && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Sols</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.sols')}</h4>
                       <p className="text-sm">{selectedReport.etat_sols}</p>
                     </div>
                   )}
                   {selectedReport.etat_fenetres && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Fenêtres</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.fenetres')}</h4>
                       <p className="text-sm">{selectedReport.etat_fenetres}</p>
                     </div>
                   )}
                   {selectedReport.etat_portes && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">Portes</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.portes')}</h4>
                       <p className="text-sm">{selectedReport.etat_portes}</p>
                     </div>
                   )}
@@ -1524,49 +1526,49 @@ export default function ModerateurDashboard() {
 
                 {selectedReport.accessibilite && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Accessibilite</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.accessibilite')}</h4>
                     <p className="text-sm">{selectedReport.accessibilite}</p>
                   </div>
                 )}
 
                 {selectedReport.environnement && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Environnement</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.environnement')}</h4>
                     <p className="text-sm">{selectedReport.environnement}</p>
                   </div>
                 )}
 
                 {selectedReport.points_positifs && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Points positifs</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.pointsPositifs')}</h4>
                     <p className="text-sm whitespace-pre-wrap">{selectedReport.points_positifs}</p>
                   </div>
                 )}
 
                 {selectedReport.points_negatifs && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Points négatifs</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.pointsNegatifs')}</h4>
                     <p className="text-sm whitespace-pre-wrap">{selectedReport.points_negatifs}</p>
                   </div>
                 )}
 
                 {selectedReport.recommandations && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Recommandations</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.recommandations')}</h4>
                     <p className="text-sm whitespace-pre-wrap">{selectedReport.recommandations}</p>
                   </div>
                 )}
 
                 {selectedReport.commentaires && (
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Commentaires</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">{t('moderation.commentaires')}</h4>
                     <p className="text-sm whitespace-pre-wrap">{selectedReport.commentaires}</p>
                   </div>
                 )}
 
                 <div className="flex items-center gap-2 pt-4 border-t">
                   <Badge variant={selectedReport.client_interesse ? 'default' : 'secondary'}>
-                    {selectedReport.client_interesse ? 'Client intéressé par le bien' : 'Client non intéressé'}
+                    {selectedReport.client_interesse ? t('moderation.clientInteresseBien') : t('moderation.clientNonInteresse')}
                   </Badge>
                 </div>
               </div>
@@ -1577,9 +1579,9 @@ export default function ModerateurDashboard() {
         <Dialog open={deleteAgentDialogOpen} onOpenChange={setDeleteAgentDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Supprimer l'agent</DialogTitle>
+              <DialogTitle>{t('moderation.supprimerAgent')}</DialogTitle>
               <DialogDescription>
-                Etes-vous sur de vouloir supprimer cet agent ?
+                {t('moderation.etesVousVouloirSupprimer')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -1598,7 +1600,7 @@ export default function ModerateurDashboard() {
                 </div>
               )}
               <p className="text-sm text-muted-foreground">
-                Cette action est irréversible. L'agent ne pourra plus accéder à son compte.
+                {t('moderation.cetteActionEstIrreversible')}
               </p>
               <div className="flex gap-2">
                 <Button 
@@ -1610,7 +1612,7 @@ export default function ModerateurDashboard() {
                   }}
                   data-testid="button-cancel-delete-agent"
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   variant="destructive"
@@ -1619,7 +1621,7 @@ export default function ModerateurDashboard() {
                   disabled={deleteAgentMutation.isPending}
                   data-testid="button-confirm-delete-agent"
                 >
-                  Supprimer
+                  {t('moderation.supprimer')}
                 </Button>
               </div>
             </div>
@@ -1629,28 +1631,28 @@ export default function ModerateurDashboard() {
         <Dialog open={createAgentDialogOpen} onOpenChange={setCreateAgentDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Ajouter un agent</DialogTitle>
+              <DialogTitle>{t('moderation.ajouterAgent')}</DialogTitle>
               <DialogDescription>
-                Créez un compte agent pour votre équipe
+                {t('moderation.creezCompteAgentVotre')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="new-agent-first-name">Prénom</Label>
+                  <Label htmlFor="new-agent-first-name">{t('moderation.prenom')}</Label>
                   <Input
                     id="new-agent-first-name"
-                    placeholder="Prénom"
+                    placeholder={t('moderation.prenom')}
                     value={newAgentFirstName}
                     onChange={(e) => setNewAgentFirstName(e.target.value)}
                     data-testid="input-new-agent-first-name"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="new-agent-last-name">Nom</Label>
+                  <Label htmlFor="new-agent-last-name">{t('moderation.nom')}</Label>
                   <Input
                     id="new-agent-last-name"
-                    placeholder="Nom"
+                    placeholder={t('moderation.nom')}
                     value={newAgentLastName}
                     onChange={(e) => setNewAgentLastName(e.target.value)}
                     data-testid="input-new-agent-last-name"
@@ -1658,7 +1660,7 @@ export default function ModerateurDashboard() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="new-agent-username">Nom d'utilisateur</Label>
+                <Label htmlFor="new-agent-username">{t('moderation.nomUtilisateur')}</Label>
                 <Input
                   id="new-agent-username"
                  
@@ -1668,7 +1670,7 @@ export default function ModerateurDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="new-agent-email">Email</Label>
+                <Label htmlFor="new-agent-email">{t('moderation.email')}</Label>
                 <Input
                   id="new-agent-email"
                   type="email"
@@ -1679,7 +1681,7 @@ export default function ModerateurDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="new-agent-phone">Téléphone (facultatif)</Label>
+                <Label htmlFor="new-agent-phone">{t('moderation.telephoneFacultatif')}</Label>
                 <Input
                   id="new-agent-phone"
                   type="tel"
@@ -1690,22 +1692,22 @@ export default function ModerateurDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="new-agent-password">Mot de passe</Label>
+                <Label htmlFor="new-agent-password">{t('moderation.motPasse')}</Label>
                 <Input
                   id="new-agent-password"
                   type="password"
-                  placeholder="Mot de passe"
+                  placeholder={t('moderation.motPasse')}
                   value={newAgentPassword}
                   onChange={(e) => setNewAgentPassword(e.target.value)}
                   data-testid="input-new-agent-password"
                 />
               </div>
               <div>
-                <Label htmlFor="new-agent-password2">Confirmer le mot de passe</Label>
+                <Label htmlFor="new-agent-password2">{t('moderation.confirmerMotPasse')}</Label>
                 <Input
                   id="new-agent-password2"
                   type="password"
-                  placeholder="Confirmer le mot de passe"
+                  placeholder={t('moderation.confirmerMotPasse')}
                   value={newAgentPassword2}
                   onChange={(e) => setNewAgentPassword2(e.target.value)}
                   data-testid="input-new-agent-password2"
@@ -1726,7 +1728,7 @@ export default function ModerateurDashboard() {
                     setNewAgentPassword2('');
                   }}
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   className="flex-1"
@@ -1734,7 +1736,7 @@ export default function ModerateurDashboard() {
                   disabled={!newAgentFirstName.trim() || !newAgentLastName.trim() || !newAgentEmail.trim() || !newAgentUsername.trim() || !newAgentPassword.trim() || !newAgentPassword2.trim() || createAgentMutation.isPending}
                   data-testid="button-confirm-create-agent"
                 >
-                  Creer l'agent
+                  {t('moderation.creerAgent')}
                 </Button>
               </div>
             </div>
@@ -1744,9 +1746,9 @@ export default function ModerateurDashboard() {
         <Dialog open={editAgentDialogOpen} onOpenChange={setEditAgentDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Modifier l'agent</DialogTitle>
+              <DialogTitle>{t('moderation.modifierAgent')}</DialogTitle>
               <DialogDescription>
-                Modifiez les informations de l'agent
+                {t('moderation.modifiezInformationsAgent')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -1766,20 +1768,20 @@ export default function ModerateurDashboard() {
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="edit-agent-first-name">Prénom</Label>
+                  <Label htmlFor="edit-agent-first-name">{t('moderation.prenom')}</Label>
                   <Input
                     id="edit-agent-first-name"
-                    placeholder="Prénom"
+                    placeholder={t('moderation.prenom')}
                     value={editAgentFirstName}
                     onChange={(e) => setEditAgentFirstName(e.target.value)}
                     data-testid="input-edit-agent-first-name"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-agent-last-name">Nom</Label>
+                  <Label htmlFor="edit-agent-last-name">{t('moderation.nom')}</Label>
                   <Input
                     id="edit-agent-last-name"
-                    placeholder="Nom"
+                    placeholder={t('moderation.nom')}
                     value={editAgentLastName}
                     onChange={(e) => setEditAgentLastName(e.target.value)}
                     data-testid="input-edit-agent-last-name"
@@ -1787,7 +1789,7 @@ export default function ModerateurDashboard() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="edit-agent-email">Email</Label>
+                <Label htmlFor="edit-agent-email">{t('moderation.email')}</Label>
                 <Input
                   id="edit-agent-email"
                   type="email"
@@ -1798,7 +1800,7 @@ export default function ModerateurDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-agent-phone">Téléphone</Label>
+                <Label htmlFor="edit-agent-phone">{t('moderation.telephone')}</Label>
                 <Input
                   id="edit-agent-phone"
                   type="tel"
@@ -1817,7 +1819,7 @@ export default function ModerateurDashboard() {
                     setAgentToEdit(null);
                   }}
                 >
-                  Annuler
+                  {t('moderation.annuler')}
                 </Button>
                 <Button 
                   className="flex-1"
@@ -1825,7 +1827,7 @@ export default function ModerateurDashboard() {
                   disabled={!editAgentFirstName?.trim() || !editAgentLastName?.trim() || !editAgentEmail?.trim() || updateAgentMutation.isPending}
                   data-testid="button-confirm-edit-agent"
                 >
-                  Enregistrer
+                  {t('moderation.enregistrer')}
                 </Button>
               </div>
             </div>
@@ -1841,9 +1843,9 @@ export default function ModerateurDashboard() {
         }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Détails du bien</DialogTitle>
+              <DialogTitle>{t('moderation.detailsBien')}</DialogTitle>
               <DialogDescription>
-                Informations complètes sur le bien à valider
+                {t('moderation.informationsCompletesBienValider')}
               </DialogDescription>
             </DialogHeader>
             {propertyDetailLoading ? (
@@ -1864,16 +1866,16 @@ export default function ModerateurDashboard() {
             ) : propertyDetailError && !selectedPropertyFromList ? (
               <div className="py-8 text-center">
                 <CircleAlert className="w-16 h-16 mx-auto mb-4 text-destructive" />
-                <h3 className="text-lg font-semibold mb-2">Impossible de charger les détails</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('moderation.impossibleChargerDetails')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Les informations de ce bien n'ont pas pu être récupérées. Le bien n'existe peut-être plus.
+                  {t('moderation.informationsCeBienN')}
                 </p>
                 <Button 
                   variant="outline" 
                   onClick={() => setPropertyDetailDialogOpen(false)}
                   data-testid="button-close-property-error"
                 >
-                  Fermer
+                  {t('moderation.fermer')}
                 </Button>
               </div>
             ) : (propertyDetailData || selectedPropertyFromList) ? (() => {
@@ -1914,7 +1916,7 @@ export default function ModerateurDashboard() {
 
                 {'photos' in displayProperty && (displayProperty as BienDetail).photos && (displayProperty as BienDetail).photos.length > 0 && (
                   <div>
-                    <h4 className="font-medium mb-2">Galerie photos ({(displayProperty as BienDetail).photos.length})</h4>
+                    <h4 className="font-medium mb-2">{t('moderation.galerie', { n: (displayProperty as BienDetail).photos.length })}</h4>
                     <div className="grid grid-cols-3 gap-2">
                       {(displayProperty as BienDetail).photos.map((photo, index) => (
                         <div key={photo.id || index} className="aspect-square rounded-lg overflow-hidden bg-muted relative">
@@ -1954,45 +1956,45 @@ export default function ModerateurDashboard() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-sm text-muted-foreground">Type de bien</p>
+                    <p className="text-sm text-muted-foreground">{t('moderation.typeBien')}</p>
                     <p className="font-medium">{displayProperty.type_bien_display}</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-sm text-muted-foreground">Chambres</p>
+                    <p className="text-sm text-muted-foreground">{t('moderation.chambres')}</p>
                     <p className="font-medium">{displayProperty.nombre_chambres}</p>
                   </div>
                   {'nombre_salles_bain' in displayProperty && (
                     <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-sm text-muted-foreground">Salles de bain</p>
-                      <p className="font-medium">{(displayProperty as BienDetail).nombre_salles_bain || 'Non specifie'}</p>
+                      <p className="text-sm text-muted-foreground">{t('moderation.sallesBain')}</p>
+                      <p className="font-medium">{(displayProperty as BienDetail).nombre_salles_bain || t('moderation.nonSpecifie')}</p>
                     </div>
                   )}
                   {'superficie' in displayProperty && (
                     <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-sm text-muted-foreground">Surface</p>
-                      <p className="font-medium">{(displayProperty as BienDetail).superficie ? `${(displayProperty as BienDetail).superficie} m2` : 'Non specifie'}</p>
+                      <p className="text-sm text-muted-foreground">{t('moderation.surface')}</p>
+                      <p className="font-medium">{(displayProperty as BienDetail).superficie ? `${(displayProperty as BienDetail).superficie}\u00a0m²` : t('fiche.nonSpecifie')}</p>
                     </div>
                   )}
                 </div>
 
                 {'parking' in displayProperty && (
                 <div>
-                  <h4 className="font-medium mb-2">Équipements</h4>
+                  <h4 className="font-medium mb-2">{t('moderation.equipements')}</h4>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{displayProperty.eau_display}</Badge>
                     <Badge variant="secondary">{displayProperty.electricite_display}</Badge>
-                    {(displayProperty as BienDetail).meuble && <Badge variant="secondary">Meuble</Badge>}
-                    {(displayProperty as BienDetail).parking && <Badge variant="secondary">Parking</Badge>}
-                    {(displayProperty as BienDetail).jardin && <Badge variant="secondary">Jardin</Badge>}
-                    {(displayProperty as BienDetail).climatisation && <Badge variant="secondary">Climatisation</Badge>}
-                    {(displayProperty as BienDetail).gardien && <Badge variant="secondary">Gardien</Badge>}
+                    {(displayProperty as BienDetail).meuble && <Badge variant="secondary">{t('moderation.meuble')}</Badge>}
+                    {(displayProperty as BienDetail).parking && <Badge variant="secondary">{t('moderation.parking')}</Badge>}
+                    {(displayProperty as BienDetail).jardin && <Badge variant="secondary">{t('moderation.jardin')}</Badge>}
+                    {(displayProperty as BienDetail).climatisation && <Badge variant="secondary">{t('moderation.climatisation')}</Badge>}
+                    {(displayProperty as BienDetail).gardien && <Badge variant="secondary">{t('moderation.gardien')}</Badge>}
                   </div>
                 </div>
                 )}
 
                 {'description' in displayProperty && (displayProperty as BienDetail).description && (
                   <div>
-                    <h4 className="font-medium mb-2">Description</h4>
+                    <h4 className="font-medium mb-2">{t('moderation.description')}</h4>
                     <p className="text-muted-foreground">{(displayProperty as BienDetail).description}</p>
                   </div>
                 )}
@@ -2022,7 +2024,7 @@ export default function ModerateurDashboard() {
                     onClick={() => setPropertyDetailDialogOpen(false)}
                     data-testid="button-close-property-detail"
                   >
-                    Fermer
+                    {t('moderation.fermer')}
                   </Button>
                   <Button 
                     className="flex-1"
@@ -2034,7 +2036,7 @@ export default function ModerateurDashboard() {
                     data-testid="button-validate-from-detail"
                   >
                     <CircleCheck className="w-4 h-4 mr-1" />
-                    Valider
+                    {t('moderation.valider2')}
                   </Button>
                   <Button 
                     variant="destructive"
@@ -2047,7 +2049,7 @@ export default function ModerateurDashboard() {
                     data-testid="button-reject-from-detail"
                   >
                     <CircleX className="w-4 h-4 mr-1" />
-                    Rejeter
+                    {t('moderation.rejeter')}
                   </Button>
                 </div>
               </div>
@@ -2059,9 +2061,9 @@ export default function ModerateurDashboard() {
         <Dialog open={agentDetailDialogOpen} onOpenChange={setAgentDetailDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Détails de l'agent</DialogTitle>
+              <DialogTitle>{t('moderation.detailsAgent')}</DialogTitle>
               <DialogDescription>
-                Informations completes sur l'agent
+                {t('moderation.informationsCompletesAgent')}
               </DialogDescription>
             </DialogHeader>
             {selectedAgentForDetail && (
@@ -2081,7 +2083,7 @@ export default function ModerateurDashboard() {
                          ? `${selectedAgentForDetail.first_name} ${selectedAgentForDetail.last_name}`
                          : selectedAgentForDetail.username)}
                     </h3>
-                    <Badge variant="secondary" className="mt-2">Agent</Badge>
+                    <Badge variant="secondary" className="mt-2">{t('moderation.agent')}</Badge>
                   </div>
                 </div>
 
@@ -2089,7 +2091,7 @@ export default function ModerateurDashboard() {
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <Mail className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="text-sm text-muted-foreground">{t('moderation.email')}</p>
                       <p className="font-medium" data-testid="text-agent-detail-email">{selectedAgentForDetail.email}</p>
                     </div>
                   </div>
@@ -2098,7 +2100,7 @@ export default function ModerateurDashboard() {
                     <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                       <Phone className="w-5 h-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Téléphone</p>
+                        <p className="text-sm text-muted-foreground">{t('moderation.telephone')}</p>
                         <p className="font-medium" data-testid="text-agent-detail-phone">{selectedAgentForDetail.phone}</p>
                       </div>
                     </div>
@@ -2107,7 +2109,7 @@ export default function ModerateurDashboard() {
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <Users className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Nom d'utilisateur</p>
+                      <p className="text-sm text-muted-foreground">{t('moderation.nomUtilisateur')}</p>
                       <p className="font-medium">{selectedAgentForDetail.username}</p>
                     </div>
                   </div>
@@ -2116,7 +2118,7 @@ export default function ModerateurDashboard() {
                     <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                       <Calendar className="w-5 h-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Membre depuis</p>
+                        <p className="text-sm text-muted-foreground">{t('moderation.membreDepuis')}</p>
                         <p className="font-medium">{formaterDateCourte(selectedAgentForDetail.date_joined)}</p>
                       </div>
                     </div>
@@ -2130,7 +2132,7 @@ export default function ModerateurDashboard() {
                     onClick={() => setAgentDetailDialogOpen(false)}
                     data-testid="button-close-agent-detail"
                   >
-                    Fermer
+                    {t('moderation.fermer')}
                   </Button>
                   <Button 
                     variant="destructive"
@@ -2143,7 +2145,7 @@ export default function ModerateurDashboard() {
                     data-testid="button-delete-from-detail"
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
-                    Supprimer
+                    {t('moderation.supprimer')}
                   </Button>
                 </div>
               </div>

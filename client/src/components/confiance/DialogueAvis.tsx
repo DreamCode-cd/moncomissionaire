@@ -14,23 +14,24 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { queryClient } from '@/lib/queryClient';
+import { t } from '@/i18n';
 
 /** Ce qu'on note, et ce qu'on demande d'y regarder. */
 const SUJETS = {
   commissionnaire: {
     route: '/api/v1/commissions/avis/',
-    titreParDefaut: 'le commissionnaire',
-    consigne: 'Ponctualité, honnêteté sur l’état de la maison, frais annoncés respectés…',
+    get titreParDefaut() { return t('avis.leCommissionnaire'); },
+    get consigne() { return t('avis.consigneCommissionnaire'); },
   },
   agent: {
     route: '/api/v1/biens/avis-agents/',
-    titreParDefaut: 'l’agent qui vous a fait visiter',
-    consigne: 'Ponctualité, politesse, réponses claires sur la maison et le quartier…',
+    get titreParDefaut() { return t('avis.lAgent'); },
+    get consigne() { return t('avis.consigneAgent'); },
   },
   bien: {
     route: '/api/v1/biens/avis-biens/',
-    titreParDefaut: 'ce bien',
-    consigne: 'La maison correspondait-elle à l’annonce ? État, eau, courant, voisinage…',
+    get titreParDefaut() { return t('avis.ceBien'); },
+    get consigne() { return t('avis.consigneBien'); },
   },
 } as const;
 
@@ -61,13 +62,13 @@ export function DialogueAvis({
     mutationFn: () => api.post(route, { ...cible, note, commentaire }),
     onSuccess: () => {
       clesARafraichir.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
-      toast({ title: 'Merci pour votre avis', description: 'Il aide les autres à choisir.' });
+      toast({ title: t('avis.merciVotreAvis'), description: t('avis.ilAideAutresChoisir') });
       onFermer();
     },
     onError: (e) =>
       toast({
-        title: 'Avis non envoyé',
-        description: e instanceof Error ? e.message : 'Une erreur est survenue',
+        title: t('avis.avisNonEnvoye'),
+        description: e instanceof Error ? e.message : t('avis.erreurEstSurvenue'),
         variant: 'destructive',
       }),
   });
@@ -76,10 +77,10 @@ export function DialogueAvis({
     <Dialog open onOpenChange={(o) => !o && onFermer()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Noter {nom ?? titreParDefaut}</DialogTitle>
-          <DialogDescription>{consigne} Votre prénom seul sera affiché.</DialogDescription>
+          <DialogTitle>{t('avis.noter', { nom: nom ?? titreParDefaut })}</DialogTitle>
+          <DialogDescription>{consigne} {t('avis.prenomSeul')}</DialogDescription>
         </DialogHeader>
-        <div className="flex justify-center gap-1" role="radiogroup" aria-label="Note sur 5">
+        <div className="flex justify-center gap-1" role="radiogroup" aria-label={t('avis.note5')}>
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
@@ -98,13 +99,13 @@ export function DialogueAvis({
         <Textarea
           value={commentaire}
           onChange={(e) => setCommentaire(e.target.value)}
-          placeholder="Ce que les autres devraient savoir (facultatif)"
+          placeholder={t('avis.ceQueAutresDevraient')}
           maxLength={1000}
         />
         <DialogFooter>
-          <Button variant="outline" onClick={onFermer}>Plus tard</Button>
+          <Button variant="outline" onClick={onFermer}>{t('avis.plusTard')}</Button>
           <Button disabled={!note || envoyer.isPending} onClick={() => envoyer.mutate()} data-testid="button-envoyer-avis">
-            Envoyer
+            {t('avis.envoyer')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -7,6 +7,7 @@ import { formaterPrix } from '@/lib/prix';
 import { lieuAnnonce } from '@/lib/annonce';
 import { FaitsBien } from '@/components/property/FaitsBien';
 import { VignetteSansPhoto } from '@/components/property/VignetteSansPhoto';
+import { t } from '@/i18n';
 
 interface PropertyCardProps {
   property: BienList;
@@ -77,7 +78,7 @@ export function PropertyCard({ property, variant = 'default' }: PropertyCardProp
         <p className="text-sm text-muted-foreground">{lieu}</p>
         <p className="text-lg font-extrabold text-primary tabular-nums">
           {formaterPrix(property.prix_mensuel, property.devise)}
-          <span className="text-base font-semibold"> par mois</span>
+          <span className="text-base font-semibold">{t('fiche.parMois')}</span>
         </p>
         <FaitsBien bien={property} />
       </div>

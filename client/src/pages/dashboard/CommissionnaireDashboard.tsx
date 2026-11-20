@@ -72,6 +72,7 @@ import type {
   PaginatedResponse,
   Visite,
 } from '@shared/schema';
+import { t } from '@/i18n';
 
 /**
  * Le tableau de bord du commissionnaire indépendant.
@@ -86,10 +87,10 @@ import type {
 
 
 const STATUTS_LOCATION = [
-  { valeur: 'disponible', libelle: 'Disponible' },
-  { valeur: 'en_visite', libelle: 'En visite' },
-  { valeur: 'loue', libelle: 'Loué' },
-  { valeur: 'indisponible', libelle: 'Indisponible' },
+  { valeur: 'disponible', get libelle() { return t('statut.location.disponible'); } },
+  { valeur: 'en_visite', get libelle() { return t('editForm.enVisite'); } },
+  { valeur: 'loue', get libelle() { return t('statut.location.loue'); } },
+  { valeur: 'indisponible', get libelle() { return t('statut.location.indisponible'); } },
 ];
 
 
@@ -137,10 +138,10 @@ export default function CommissionnaireDashboard() {
         <div className="flex items-center justify-between gap-4 mb-6">
           {/* Le nom et le rôle de la personne connectée n'apprenaient rien :
               ils sont déjà dans le menu du compte. */}
-          <h1 className="text-xl md:text-2xl font-bold">Mon portefeuille</h1>
+          <h1 className="text-xl md:text-2xl font-bold">{t('portefeuille.monPortefeuille')}</h1>
           <Link href="/add-property">
             <Button size="sm" data-testid="button-add-property">
-              <Plus className="w-4 h-4 mr-1" /> Ajouter un bien
+              <Plus className="w-4 h-4 mr-1" /> {t('portefeuille.ajouterBien')}
             </Button>
           </Link>
         </div>
@@ -150,48 +151,48 @@ export default function CommissionnaireDashboard() {
               d'écraser les libellés. */}
           <TabsList className="mb-4 flex h-auto w-full flex-wrap justify-start">
             <TabsTrigger value="biens" data-testid="tab-biens">
-              Biens ({biens.data?.count ?? 0})
+              {t('portefeuille.ongletBiens', { n: biens.data?.count ?? 0 })}
             </TabsTrigger>
             <TabsTrigger value="bailleurs" data-testid="tab-bailleurs">
-              Bailleurs ({bailleurs.data?.count ?? 0})
+              {t('portefeuille.ongletBailleurs', { n: bailleurs.data?.count ?? 0 })}
             </TabsTrigger>
             <TabsTrigger value="demandes" data-testid="tab-demandes">
-              Demandes ({demandesATraiter.length})
+              {t('portefeuille.ongletDemandes', { n: demandesATraiter.length })}
             </TabsTrigger>
             <TabsTrigger value="visites" data-testid="tab-visites">
-              Visites ({visitesAVenir.length})
+              {t('portefeuille.ongletVisites', { n: visitesAVenir.length })}
             </TabsTrigger>
             <TabsTrigger value="gains" data-testid="tab-gains">
-              Gains
+              {t('portefeuille.gains')}
             </TabsTrigger>
             <TabsTrigger value="partages" data-testid="tab-partages">
-              Partages
+              {t('portefeuille.partages')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="biens">
             <PropositionsMandat cleBiens={CLE_BIENS} />
-            <SiCharge requete={biens} titre="Vos biens n’ont pas pu être chargés">
+            <SiCharge requete={biens} titre={t('portefeuille.vosBiensNOnt')}>
               <OngletBiens biens={biens.data?.results} chargement={biens.isLoading} />
             </SiCharge>
           </TabsContent>
           <TabsContent value="bailleurs">
-            <SiCharge requete={bailleurs} titre="Votre carnet n’a pas pu être chargé">
+            <SiCharge requete={bailleurs} titre={t('portefeuille.votreCarnetNPas')}>
               <OngletBailleurs bailleurs={bailleurs.data?.results} chargement={bailleurs.isLoading} />
             </SiCharge>
           </TabsContent>
           <TabsContent value="demandes">
-            <SiCharge requete={demandes} titre="Les demandes n’ont pas pu être chargées">
+            <SiCharge requete={demandes} titre={t('portefeuille.demandesNOntPas')}>
               <OngletDemandes
                 demandes={demandesATraiter}
                 chargement={demandes.isLoading}
                 demandesAvecVisite={demandesAvecVisite}
-                onErreur={(e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' })}
+                onErreur={(e) => toast({ title: t('portefeuille.erreur'), description: messageErreur(e), variant: 'destructive' })}
               />
             </SiCharge>
           </TabsContent>
           <TabsContent value="visites">
-            <SiCharge requete={visites} titre="Les visites n’ont pas pu être chargées">
+            <SiCharge requete={visites} titre={t('portefeuille.visitesNOntPas')}>
               <OngletVisites visites={visites.data?.results} chargement={visites.isLoading} />
             </SiCharge>
           </TabsContent>
@@ -213,20 +214,20 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
     mutationFn: ({ id, statut }: { id: number; statut: string }) =>
       api.patch(`/api/v1/biens/commissionnaire/${id}/`, { statut_location: statut }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_BIENS }),
-    onError: (e) => toast({ title: 'Statut non modifié', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('portefeuille.statutNonModifie'), description: messageErreur(e), variant: 'destructive' }),
   });
   const statut = useConfirmerStatutLocation((id, valeur) => changerStatut.mutate({ id, statut: valeur }));
 
-  if (chargement) return <EtatChargement texte="Chargement de vos biens…" />;
+  if (chargement) return <EtatChargement texte={t('portefeuille.chargementVosBiens')} />;
   if (!biens?.length) {
     return (
       <EtatVide
         icone={Building2}
-        titre="Aucun bien dans votre portefeuille"
-        description="Ajoutez la première maison qu’un bailleur vous a confiée. Elle sera visible des clients après validation par VillaGo."
+        titre={t('portefeuille.aucunBienDansVotre')}
+        description={t('portefeuille.ajoutezPremiereMaisonQu')}
         action={
           <Link href="/add-property">
-            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Ajouter un bien</Button>
+            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> {t('portefeuille.ajouterBien')}</Button>
           </Link>
         }
       />
@@ -247,7 +248,7 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
               />
             ) : (
               <div className="w-20 h-20 rounded-md bg-muted shrink-0 flex items-center justify-center text-muted-foreground">
-                <Building2 className="w-6 h-6" aria-label="Pas encore de photo" />
+                <Building2 className="w-6 h-6" aria-label={t('portefeuille.pasEncorePhoto')} />
               </div>
             )}
             <div className="min-w-0 flex-1 space-y-1">
@@ -286,12 +287,12 @@ function OngletBiens({ biens, chargement }: { biens?: BienList[]; chargement: bo
                 </Select>
                 <Link href={`/property/${bien.id}/edit`}>
                   <Button variant="outline" size="sm">
-                    <Pencil className="w-3 h-3 mr-1" /> Modifier
+                    <Pencil className="w-3 h-3 mr-1" /> {t('portefeuille.modifier')}
                   </Button>
                 </Link>
               </div>
               {bien.proprietaire && (
-                <p className="text-sm text-muted-foreground">Confié par {bien.proprietaire.full_name}, propriétaire inscrit</p>
+                <p className="text-sm text-muted-foreground">{t('reste.confieParProprietaire', { nom: bien.proprietaire.full_name })}</p>
               )}
               <Expiration bien={bien} routeApi="/api/v1/biens/commissionnaire/" cle={CLE_BIENS} />
             </div>
@@ -311,27 +312,27 @@ function OngletBailleurs({ bailleurs, chargement }: { bailleurs?: Bailleur[]; ch
   const supprimer = useMutation({
     mutationFn: (id: number) => api.delete(`/api/v1/biens/bailleurs/${id}/`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_BAILLEURS }),
-    onError: (e) => toast({ title: 'Bailleur conservé', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('portefeuille.bailleurConserve'), description: messageErreur(e), variant: 'destructive' }),
   });
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Votre carnet. Ni les clients, ni vos confrères, ni la modération VillaGo ne le voient.
+          {t('portefeuille.votreCarnetNiClients')}
         </p>
         <Button size="sm" variant="outline" onClick={() => setCreation(true)} data-testid="button-ajouter-bailleur">
-          <Plus className="w-4 h-4 mr-1" /> Bailleur
+          <Plus className="w-4 h-4 mr-1" /> {t('portefeuille.bailleur')}
         </Button>
       </div>
 
       {chargement ? (
-        <EtatChargement texte="Chargement de votre carnet…" />
+        <EtatChargement texte={t('portefeuille.chargementVotreCarnet')} />
       ) : !bailleurs?.length ? (
         <EtatVide
           icone={UserRound}
-          titre="Votre carnet est vide"
-          description="Enregistrez les bailleurs qui vous confient leur maison. Vous les choisirez en publiant une annonce."
+          titre={t('portefeuille.votreCarnetEstVide')}
+          description={t('portefeuille.enregistrezBailleursQuiVous')}
         />
       ) : (
         bailleurs.map((b) => (
@@ -346,7 +347,7 @@ function OngletBailleurs({ bailleurs, chargement }: { bailleurs?: Bailleur[]; ch
                 </p>
               </div>
               <div className="flex gap-1 shrink-0">
-                <Button size="icon" variant="ghost" onClick={() => setEnEdition(b)} aria-label="Modifier">
+                <Button size="icon" variant="ghost" onClick={() => setEnEdition(b)} aria-label={t('portefeuille.modifier')}>
                   <Pencil className="w-4 h-4" />
                 </Button>
                 <Button
@@ -354,8 +355,8 @@ function OngletBailleurs({ bailleurs, chargement }: { bailleurs?: Bailleur[]; ch
                   variant="ghost"
                   onClick={() => supprimer.mutate(b.id)}
                   disabled={b.nombre_biens > 0 || supprimer.isPending}
-                  title={b.nombre_biens > 0 ? 'Ce bailleur a encore des biens dans votre portefeuille' : 'Supprimer'}
-                  aria-label="Supprimer"
+                  title={b.nombre_biens > 0 ? t('portefeuille.ceBailleurEncoreBiens') : t('portefeuille.supprimer')}
+                  aria-label={t('portefeuille.supprimer')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -427,14 +428,14 @@ function OngletDemandes({
     onError: onErreur,
   });
 
-  if (chargement) return <EtatChargement texte="Chargement des demandes…" />;
+  if (chargement) return <EtatChargement texte={t('portefeuille.chargementDemandes')} />;
   if (!demandes.length) {
     return (
       <EtatVide
         icone={Inbox}
         ton="favorable"
-        titre="Aucune demande en attente"
-        description="Les demandes de visite sur vos biens arrivent ici, et à vous seul."
+        titre={t('portefeuille.aucuneDemandeAttente')}
+        description={t('portefeuille.demandesVisiteVosBiens')}
       />
     );
   }
@@ -449,8 +450,7 @@ function OngletDemandes({
                 <p className="font-medium leading-tight">{d.bien_detail?.titre}</p>
                 <p className="text-sm text-muted-foreground">
                   {nomAffiche(d.client)}
-                  {' · souhaitée le '}
-                  {formaterDateCourte(d.date_souhaitee)} à {formaterHeure(d.heure_souhaitee)}
+                  {t('portefeuille.souhaiteeLe', { quand: t('date.dateEtHeure', { date: formaterDateCourte(d.date_souhaitee), heure: formaterHeure(d.heure_souhaitee) }) })}
                 </p>
               </div>
               <BadgeStatut famille="demande" valeur={d.statut} libelle={d.statut_display} compact />
@@ -478,12 +478,12 @@ function OngletDemandes({
                   data-testid={`button-planifier-${d.id}`}
                 >
                   <CalendarClock className="w-4 h-4 mr-1" />
-                  {d.statut === 'en_attente' ? 'Accepter ce créneau' : 'Fixer la visite'}
+                  {d.statut === 'en_attente' ? t('portefeuille.accepterCeCreneau') : t('portefeuille.fixerVisite')}
                 </Button>
               )}
               {d.statut === 'en_attente' && (
                 <Button size="sm" variant="outline" onClick={() => setARefuser(d)}>
-                  Refuser
+                  {t('portefeuille.refuser')}
                 </Button>
               )}
             </div>
@@ -494,22 +494,22 @@ function OngletDemandes({
       <Dialog open={!!aRefuser} onOpenChange={(o) => !o && setARefuser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Refuser la demande</DialogTitle>
-            <DialogDescription>Le client recevra ce motif. Soyez clair : il pourra chercher autre chose.</DialogDescription>
+            <DialogTitle>{t('portefeuille.refuserDemande')}</DialogTitle>
+            <DialogDescription>{t('portefeuille.clientRecevraCeMotif')}</DialogDescription>
           </DialogHeader>
           <Textarea
             value={motif}
             onChange={(e) => setMotif(e.target.value)}
-            placeholder="Ex : la maison vient d’être louée"
+            placeholder={t('portefeuille.exMaisonVientEtre')}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setARefuser(null)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setARefuser(null)}>{t('portefeuille.annuler')}</Button>
             <Button
               variant="destructive"
               disabled={!motif.trim() || traiter.isPending}
               onClick={() => aRefuser && traiter.mutate({ id: aRefuser.id, statut: 'rejetee', motif_rejet: motif })}
             >
-              Refuser
+              {t('portefeuille.refuser')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -518,10 +518,9 @@ function OngletDemandes({
       <Dialog open={!!aPlanifier} onOpenChange={(o) => !o && setAPlanifier(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Fixer la visite</DialogTitle>
+            <DialogTitle>{t('portefeuille.fixerVisite')}</DialogTitle>
             <DialogDescription>
-              Le créneau proposé par le client est déjà choisi : confirmez, ou prenez-en un autre. Vous
-              accompagnerez le client vous-même ; il est prévenu dans la messagerie.
+              {t('portefeuille.creneauProposeClientEst')}
             </DialogDescription>
           </DialogHeader>
           <ChoixCreneau
@@ -532,9 +531,9 @@ function OngletDemandes({
             marque={aPlanifier ? { jour: aPlanifier.date_souhaitee, heure: aPlanifier.heure_souhaitee } : null}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAPlanifier(null)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setAPlanifier(null)}>{t('portefeuille.annuler')}</Button>
             <Button disabled={!date || !heure || planifier.isPending} onClick={() => planifier.mutate()}>
-              Confirmer
+              {t('portefeuille.confirmer')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -549,16 +548,16 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
     mutationFn: (id: number) =>
       api.post(`/api/v1/visites/commissionnaire/visites/${id}/confirmer/`, { eu_lieu: true }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CLE_VISITES }),
-    onError: (e) => toast({ title: 'Erreur', description: messageErreur(e), variant: 'destructive' }),
+    onError: (e) => toast({ title: t('portefeuille.erreur'), description: messageErreur(e), variant: 'destructive' }),
   });
 
-  if (chargement) return <EtatChargement texte="Chargement des visites…" />;
+  if (chargement) return <EtatChargement texte={t('portefeuille.chargementVisites')} />;
   if (!visites?.length) {
     return (
       <EtatVide
         icone={CalendarCheck}
-        titre="Aucune visite planifiée"
-        description="Acceptez une demande, puis planifiez la visite : elle apparaîtra ici."
+        titre={t('portefeuille.aucuneVisitePlanifiee')}
+        description={t('portefeuille.acceptezDemandePuisPlanifiez')}
       />
     );
   }
@@ -571,11 +570,11 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
           <Card key={v.id}>
             <CardContent className="p-3 space-y-1">
               <div className="flex items-start justify-between gap-2">
-                <p className="font-medium leading-tight">{demande?.bien_detail?.titre ?? `Visite n° ${v.id}`}</p>
+                <p className="font-medium leading-tight">{demande?.bien_detail?.titre ?? t('portefeuille.visiteN', { n: v.id })}</p>
                 <BadgeStatut famille="visite" valeur={v.statut} libelle={v.statut_display} compact />
               </div>
               <p className="text-sm">
-                {formaterDateCourte(v.date_visite)} à {formaterHeure(v.heure_visite)}
+                {t('date.dateEtHeure', { date: formaterDateCourte(v.date_visite), heure: formaterHeure(v.heure_visite) })}
               </p>
               {demande?.client && (
                 <p className="text-sm text-muted-foreground">
@@ -589,7 +588,7 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
               )}
               {demande && <InfosDemande demande={demande} />}
               {v.statut === 'annulee' && v.motif_annulation && (
-                <p className="text-sm text-muted-foreground">Motif d’annulation : {v.motif_annulation}</p>
+                <p className="text-sm text-muted-foreground">{t('portefeuille.motifAnnulation')} {v.motif_annulation}</p>
               )}
               <div className="flex flex-wrap gap-2 pt-1">
                 <ConfirmerVisite visite={v} cle={CLE_VISITES} />
@@ -601,7 +600,7 @@ function OngletVisites({ visites, chargement }: { visites?: Visite[]; chargement
                     onClick={() => terminer.mutate(v.id)}
                     disabled={terminer.isPending}
                   >
-                    Visite faite
+                    {t('portefeuille.visiteFaite')}
                   </Button>
                 )}
                 {/* Ni bail ni frais sur une visite annulée ou qui n'a pas eu
@@ -630,20 +629,20 @@ function InfosDemande({ demande }: { demande: DemandeVisite }) {
       {parConfrere && (
         <p className="flex items-center gap-1">
           <Handshake className="w-3 h-3" />
-          Client présenté par un confrère : {demande.prospect_nom}
+          {t('portefeuille.clientPresente', { nom: demande.prospect_nom })}
           {demande.prospect_telephone ? <> · <LienTelephone numero={demande.prospect_telephone} /></> : null}
-          {` · part du confrère ${demande.part_confrere_pourcent} %`}
+          {t('portefeuille.partConfrere', { part: demande.part_confrere_pourcent })}
         </p>
       )}
       {estPositif(demande.frais_visite) && (
         <p className="flex items-center gap-1 text-muted-foreground">
           <Wallet className="w-3 h-3" />
-          Frais de visite annoncés : {formaterMontant(demande.frais_visite, demande.frais_visite_devise)}
-          {estPositif(demande.frais_visite_regles) ? ' · reçus' : ''}
+          {t('portefeuille.fraisAnnonces', { montant: formaterMontant(demande.frais_visite, demande.frais_visite_devise) })}
+          {estPositif(demande.frais_visite_regles) ? t('portefeuille.recus') : ''}
         </p>
       )}
       {demande.signale_le && (
-        <p className="text-destructive">Le client a signalé un problème : {demande.signalement_motif}</p>
+        <p className="text-destructive">{t('portefeuille.clientSignaleProbleme')} {demande.signalement_motif}</p>
       )}
     </div>
   );
@@ -666,7 +665,7 @@ function ActionsArgent({ demande, visiteFaite = true }: { demande: DemandeVisite
     <>
       {resteFrais > 0 && (
         <Button size="sm" variant="outline" onClick={() => setFraisOuvert(true)} data-testid={`button-frais-recus-${demande.id}`}>
-          <Wallet className="w-4 h-4 mr-1" /> Frais reçus
+          <Wallet className="w-4 h-4 mr-1" /> {t('portefeuille.fraisRecus')}
         </Button>
       )}
       {/* Sans la liste des baux, on ne sait pas si celui-ci est déjà déclaré :
@@ -678,7 +677,7 @@ function ActionsArgent({ demande, visiteFaite = true }: { demande: DemandeVisite
           onClick={() => setBailOuvert(true)}
           data-testid={`button-bail-${demande.id}`}
         >
-          <FilePenLine className="w-4 h-4 mr-1" /> Bail signé
+          <FilePenLine className="w-4 h-4 mr-1" /> {t('portefeuille.bailSigne')}
         </Button>
       )}
       {fraisOuvert && (
@@ -686,7 +685,7 @@ function ActionsArgent({ demande, visiteFaite = true }: { demande: DemandeVisite
           cible={{
             nature: 'frais_visite',
             demande: demande.id,
-            titre: demande.bien_detail?.titre ?? 'Visite',
+            titre: demande.bien_detail?.titre ?? t('portefeuille.visite'),
             devise: demande.frais_visite_devise || demande.bien_detail?.devise || 'USD',
             reste: String(resteFrais),
           }}

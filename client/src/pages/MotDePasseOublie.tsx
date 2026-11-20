@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import { poserErreursSurChamps } from '@/lib/erreurs';
+import { t } from '@/i18n';
 
 /** Les champs que l'API peut désigner dans une erreur (swagger.json :
  *  DemandeCode et NouveauMotDePasse). */
@@ -45,14 +46,14 @@ export default function MotDePasseOublie() {
       recues[champ] = message;
     });
     setErreurs(recues);
-    if (reste) toast({ title: 'Impossible pour le moment', description: reste, variant: 'destructive' });
+    if (reste) toast({ title: t('mdp.impossible'), description: reste, variant: 'destructive' });
   };
 
   const demanderCode = async (e?: FormEvent) => {
     e?.preventDefault();
     setErreurs({});
     if (!email.trim()) {
-      setErreurs({ email: 'Indiquez l’adresse e-mail de votre compte.' });
+      setErreurs({ email: t('mdp.indiquezEmail') });
       return;
     }
     setEnCours(true);
@@ -72,7 +73,7 @@ export default function MotDePasseOublie() {
     e.preventDefault();
     setErreurs({});
     if (motDePasse !== confirmation) {
-      setErreurs({ confirmation: 'Les deux mots de passe ne correspondent pas.' });
+      setErreurs({ confirmation: t('mdp.differents') });
       return;
     }
     setEnCours(true);
@@ -83,8 +84,8 @@ export default function MotDePasseOublie() {
         new_password: motDePasse,
       });
       toast({
-        title: 'Mot de passe changé',
-        description: 'Connectez-vous avec le nouveau. Vos autres sessions ont été fermées.',
+        title: t('mdp.change'),
+        description: t('mdp.changeTexte'),
       });
       setLocation('/login');
     } catch (erreur) {
@@ -100,10 +101,10 @@ export default function MotDePasseOublie() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <img src="/logo.png" alt="" className="w-12 h-12 rounded-xl mx-auto mb-4 object-cover" />
-            <CardTitle className="text-2xl">Mot de passe oublié</CardTitle>
+            <CardTitle className="text-2xl">{t('mdp.titre')}</CardTitle>
             <CardDescription>
               {etape === 'adresse'
-                ? 'Indiquez l’adresse e-mail de votre compte. Nous vous envoyons un code à six chiffres.'
+                ? t('mdp.intro')
                 : annonce}
             </CardDescription>
           </CardHeader>
@@ -111,7 +112,7 @@ export default function MotDePasseOublie() {
             {etape === 'adresse' ? (
               <form onSubmit={demanderCode} className="space-y-4" noValidate>
                 <div className="space-y-2">
-                  <Label htmlFor="mdp-email">E-mail</Label>
+                  <Label htmlFor="mdp-email">{t('connexion.email')}</Label>
                   <Input
                     id="mdp-email"
                     type="email"
@@ -127,16 +128,16 @@ export default function MotDePasseOublie() {
                 </div>
                 <Button type="submit" className="w-full" disabled={enCours} data-testid="button-envoyer-code">
                   <Mail className="mr-2 h-4 w-4" />
-                  {enCours ? 'Envoi…' : 'Recevoir un code'}
+                  {enCours ? t('commun.envoi') : t('mdp.recevoirCode')}
                 </Button>
               </form>
             ) : (
               <form onSubmit={changer} className="space-y-4" noValidate>
                 <p className="text-sm text-muted-foreground">
-                  Le code est valable quinze minutes, pour une seule utilisation. Pensez à regarder dans les courriers indésirables.
+                  {t('mdp.codeValable')}
                 </p>
                 <div className="space-y-2">
-                  <Label htmlFor="mdp-code">Code reçu par e-mail</Label>
+                  <Label htmlFor="mdp-code">{t('mdp.codeRecu')}</Label>
                   <Input
                     id="mdp-code"
                     inputMode="numeric"
@@ -151,7 +152,7 @@ export default function MotDePasseOublie() {
                   {erreurs.code && <p className="text-sm text-destructive">{erreurs.code}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="mdp-nouveau">Nouveau mot de passe</Label>
+                  <Label htmlFor="mdp-nouveau">{t('mdp.nouveau')}</Label>
                   <div className="relative">
                     <Input
                       id="mdp-nouveau"
@@ -167,16 +168,16 @@ export default function MotDePasseOublie() {
                       type="button"
                       className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
                       onClick={() => setVisible((v) => !v)}
-                      aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                      aria-label={visible ? t('mdp.masquer') : t('mdp.afficher')}
                     >
                       {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  <p className="text-sm text-muted-foreground">8 caractères au moins, pas uniquement des chiffres.</p>
+                  <p className="text-sm text-muted-foreground">{t('mdp.8CaracteresMoinsPas')}</p>
                   {erreurs.new_password && <p className="text-sm text-destructive">{erreurs.new_password}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="mdp-confirmation">Confirmez le mot de passe</Label>
+                  <Label htmlFor="mdp-confirmation">{t('mdp.confirmez')}</Label>
                   <Input
                     id="mdp-confirmation"
                     type={visible ? 'text' : 'password'}
@@ -195,14 +196,14 @@ export default function MotDePasseOublie() {
                   data-testid="button-changer-mot-de-passe"
                 >
                   <KeyRound className="mr-2 h-4 w-4" />
-                  {enCours ? 'Enregistrement…' : 'Changer le mot de passe'}
+                  {enCours ? t('commun.enregistrement') : t('mdp.changer')}
                 </Button>
                 <div className="flex flex-wrap justify-between gap-2 text-sm">
                   <button type="button" className="text-primary font-medium min-h-11" onClick={() => demanderCode()} disabled={enCours}>
-                    Renvoyer un code
+                    {t('mdp.renvoyer')}
                   </button>
                   <button type="button" className="text-muted-foreground min-h-11" onClick={() => setEtape('adresse')}>
-                    Changer d’adresse
+                    {t('mdp.changerAdresse')}
                   </button>
                 </div>
               </form>
@@ -210,7 +211,7 @@ export default function MotDePasseOublie() {
 
             <div className="mt-6 text-center text-sm">
               <Link href="/login">
-                <span className="text-primary font-medium cursor-pointer">Retour à la connexion</span>
+                <span className="text-primary font-medium cursor-pointer">{t('mdp.retourConnexion')}</span>
               </Link>
             </div>
           </CardContent>
