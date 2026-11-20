@@ -1,13 +1,14 @@
 import { EtatVide, ErreurRequete } from '@/components/etats';
 import { BadgeStatut } from '@/components/statut/BadgeStatut';
 import { ConfirmerVisite } from '@/components/confiance/ConfirmerVisite';
-import { formaterDateLongue } from '@/lib/dates';
+import { formaterDateLongue, formaterHeure, jourLocalIso } from '@/lib/dates';
+import { numeroLisible } from '@/lib/contact';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { 
   Calendar, Clock, CircleCheck, MapPin, User, FileText,
-  ChevronRight, Play, Square, Download, Eye, Filter,
+  ChevronRight, Square, Download, Eye, Filter,
   House, Phone, Mail, CircleX, CircleAlert, ChevronLeft,
   Droplets, Zap, Car, Trees, Sofa, Wind, Shield, Image,
   Bed, Bath, Ruler, Building, Navigation
@@ -198,16 +199,13 @@ export default function AgentDashboard() {
   };
 
 
-  const formatTime = (timeString: string | null | undefined) => {
-    if (!timeString) return 'N/A';
-    return timeString.substring(0, 5);
-  };
+  const formatTime = (timeString: string | null | undefined) => (timeString ? formaterHeure(timeString) : '—');
 
-  const today = new Date().toISOString().split('T')[0];
+  // Jour de Lubumbashi, et non jour UTC : entre minuit et 2 h, « aujourd'hui » glissait à hier.
+  const today = jourLocalIso();
   const allVisites = visites?.results || [];
   const todayVisites = allVisites.filter(v => v.date_visite === today);
   const planifiedVisites = allVisites.filter(v => v.statut === 'planifiee');
-  const enCoursVisites = allVisites.filter(v => v.statut === 'en_cours');
   const completedVisites = allVisites.filter(v => v.statut === 'terminee');
   const cancelledVisites = allVisites.filter(v => v.statut === 'annulee');
 
@@ -280,7 +278,7 @@ export default function AgentDashboard() {
                   </span>
                   {client.phone && (
                     <a href={`tel:${client.phone}`} className="text-sm text-primary underline-offset-2 hover:underline">
-                      {client.phone}
+                      {numeroLisible(client.phone)}
                     </a>
                   )}
                 </div>
@@ -368,7 +366,7 @@ export default function AgentDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -391,19 +389,6 @@ export default function AgentDashboard() {
                 <div>
                   <p className="text-2xl font-bold" data-testid="stat-planifiees">{planifiedVisites.length}</p>
                   <p className="text-xs text-muted-foreground">Planifiées</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-statut-information-fond flex items-center justify-center">
-                  <Play className="w-5 h-5 text-statut-information" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold" data-testid="stat-encours">{enCoursVisites.length}</p>
-                  <p className="text-xs text-muted-foreground">En cours</p>
                 </div>
               </div>
             </CardContent>
@@ -471,14 +456,6 @@ export default function AgentDashboard() {
                   data-testid="filter-planifiee"
                 >
                   Planifiées ({planifiedVisites.length})
-                </Button>
-                <Button
-                  variant={visiteFilter === 'en_cours' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setVisiteFilter('en_cours')}
-                  data-testid="filter-encours"
-                >
-                  En cours ({enCoursVisites.length})
                 </Button>
                 <Button
                   variant={visiteFilter === 'terminee' ? 'default' : 'outline'}
@@ -947,7 +924,7 @@ export default function AgentDashboard() {
                           </span>
                           {selectedVisite.commissionnaire_detail.phone && (
                             <a href={`tel:${selectedVisite.commissionnaire_detail.phone}`} className="text-sm text-primary underline-offset-2 hover:underline">
-                              {selectedVisite.commissionnaire_detail.phone}
+                              {numeroLisible(selectedVisite.commissionnaire_detail.phone)}
                             </a>
                           )}
                         </div>

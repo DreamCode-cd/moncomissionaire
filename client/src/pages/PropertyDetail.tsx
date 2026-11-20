@@ -783,7 +783,7 @@ export default function PropertyDetail() {
                           d'identité n'existe encore, il ne faut pas l'affirmer. */}
                       <p className="text-sm text-muted-foreground">
                         {libelle === 'Commissionnaire'
-                          ? 'C’est lui qui reçoit votre demande et vous fait visiter.'
+                          ? 'C’est la personne qui reçoit votre demande et vous fait visiter.'
                           : 'Votre demande de visite est suivie par l’équipe VillaGo.'}
                       </p>
                     </div>

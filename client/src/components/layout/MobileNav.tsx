@@ -15,21 +15,21 @@ const clientNavItems = [
   // Seule entrée vers la messagerie sur téléphone : l'icône de l'en-tête y
   // est masquée pour ne pas doublonner.
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/profile', icon: User, label: 'Compte' },
 ];
 
 const proprietaireNavItems = [
   { href: '/', icon: House, label: 'Accueil' },
   { href: '/my-properties', icon: Building2, label: 'Mes biens' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/profile', icon: User, label: 'Compte' },
 ];
 
 const commissionnaireNavItems = [
   { href: '/', icon: House, label: 'Accueil' },
   { href: '/mon-portefeuille', icon: Building2, label: 'Portefeuille' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/profile', icon: User, label: 'Compte' },
 ];
 
 // Trois administrateurs interviennent depuis leur téléphone : l'administration
@@ -38,20 +38,20 @@ const adminNavItems = [
   { href: '/administration', icon: House, label: 'Admin' },
   { href: '/moderation', icon: Building2, label: 'Modération' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/profile', icon: User, label: 'Compte' },
 ];
 
 const moderateurNavItems = [
   { href: '/', icon: House, label: 'Accueil' },
   { href: '/moderation', icon: Building2, label: 'Modération' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/profile', icon: User, label: 'Compte' },
 ];
 
 const agentNavItems = [
   { href: '/agent-dashboard', icon: House, label: 'Mes visites' },
   { href: '/messages', icon: MessageCircle, label: 'Messages' },
-  { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/profile', icon: User, label: 'Compte' },
 ];
 
 export function MobileNav() {
