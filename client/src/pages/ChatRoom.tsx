@@ -408,6 +408,7 @@ export default function ChatRoom() {
           <Input
             ref={inputRef}
             placeholder="Écrivez un message..."
+            maxLength={2000}
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             onKeyDown={handleKeyDown}

@@ -62,7 +62,7 @@ export function PropertyCard({ property, variant = 'default' }: PropertyCardProp
 
       <div className={cn('min-w-0 flex-1 space-y-1', enGrille && 'md:p-3')}>
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold leading-snug line-clamp-2 group-hover:underline underline-offset-2">
+          <h3 className="font-semibold leading-snug line-clamp-2 [overflow-wrap:anywhere] group-hover:underline underline-offset-2">
             {property.titre}
           </h3>
           {!estDisponible && (

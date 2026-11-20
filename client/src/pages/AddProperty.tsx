@@ -386,6 +386,7 @@ export default function AddProperty() {
                         <Textarea 
                           placeholder="Décrivez votre bien en détail..."
                           className="min-h-[120px]"
+                          maxLength={5000}
                           {...field}
                           data-testid="input-description"
                         />
