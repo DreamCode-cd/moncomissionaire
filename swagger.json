@@ -1279,11 +1279,24 @@
         "/auth/change-password/": {
             "post": {
                 "operationId": "auth_change-password_create",
-                "description": "",
-                "parameters": [],
+                "summary": "Change le mot de passe du compte connecté.",
+                "description": "On change souvent son mot de passe parce que quelqu'un d'autre le\nconnaît : comme pour la réinitialisation, toutes les sessions ouvertes\nsont fermées. Celle de l'appareil qui fait la demande reçoit de nouveaux\njetons dans la réponse, pour que son titulaire ne soit pas déconnecté\nau rafraîchissement suivant.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ChangePassword"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": ""
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/NouveauxJetons"
+                        }
                     }
                 },
                 "tags": [
@@ -7220,6 +7233,259 @@
                 }
             ]
         },
+        "/signalements/": {
+            "post": {
+                "operationId": "signalements_create",
+                "summary": "Signaler une annonce, un message ou une personne.",
+                "description": "L'équipe VillaGo est prévenue. L'annonce signalée reste en ligne jusqu'à\nsa décision (choix de David, 21/11/2026). Le même signalement envoyé deux\nfois (même cible, même motif : réseau qui coupe, double toucher) ne crée\nqu'une seule trace : la seconde réponse renvoie la première, avec le code\n200. Un autre motif sur la même cible crée un second signalement.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SignalementCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/SignalementCreate"
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/SignalementCreate"
+                        }
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "parameters": []
+        },
+        "/signalements/blocages/": {
+            "get": {
+                "operationId": "signalements_blocages_list",
+                "summary": "Les personnes que j'ai bloquées.",
+                "description": "Bloquer quelqu'un : ses messages ne s'affichent plus et ne me préviennent\nplus. Il n'en est pas averti. Débloquer : `DELETE /blocages/<id de la\npersonne>/`. Bloquer deux fois la même personne ne change rien.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Un terme de recherche.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Quel champ utiliser pour classer les résultats.",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Blocage"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "post": {
+                "operationId": "signalements_blocages_create",
+                "summary": "Les personnes que j'ai bloquées.",
+                "description": "Bloquer quelqu'un : ses messages ne s'affichent plus et ne me préviennent\nplus. Il n'en est pas averti. Débloquer : `DELETE /blocages/<id de la\npersonne>/`. Bloquer deux fois la même personne ne change rien.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Blocage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Blocage"
+                        }
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "parameters": []
+        },
+        "/signalements/blocages/{bloque}/": {
+            "delete": {
+                "operationId": "signalements_blocages_delete",
+                "summary": "Les personnes que j'ai bloquées.",
+                "description": "Bloquer quelqu'un : ses messages ne s'affichent plus et ne me préviennent\nplus. Il n'en est pas averti. Débloquer : `DELETE /blocages/<id de la\npersonne>/`. Bloquer deux fois la même personne ne change rien.",
+                "parameters": [],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "bloque",
+                    "in": "path",
+                    "required": true,
+                    "type": "string",
+                    "pattern": "\\d+"
+                }
+            ]
+        },
+        "/signalements/equipe/": {
+            "get": {
+                "operationId": "signalements_equipe_list",
+                "summary": "Les signalements d'annonces, de messages et de personnes, pour l'équipe.",
+                "description": "Ceux qui attendent d'abord, les plus anciens en tête. `?traite=true` pour\nrelire ceux qui sont clos, `?traite=false` pour n'avoir que les autres.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Un terme de recherche.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "ordering",
+                        "in": "query",
+                        "description": "Quel champ utiliser pour classer les résultats.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Un numéro de page de l'ensemble des résultats.",
+                        "required": false,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "required": [
+                                "count",
+                                "results"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "count": {
+                                    "type": "integer"
+                                },
+                                "next": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "previous": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "x-nullable": true
+                                },
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/SignalementGeneralEquipe"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "parameters": []
+        },
+        "/signalements/equipe/{id}/": {
+            "get": {
+                "operationId": "signalements_equipe_read",
+                "summary": "Les signalements d'annonces, de messages et de personnes, pour l'équipe.",
+                "description": "Ceux qui attendent d'abord, les plus anciens en tête. `?traite=true` pour\nrelire ceux qui sont clos, `?traite=false` pour n'avoir que les autres.",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/SignalementGeneralEquipe"
+                        }
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
+        "/signalements/equipe/{id}/traiter/": {
+            "post": {
+                "operationId": "signalements_equipe_traiter",
+                "description": "Clore un signalement en notant ce qui a été fait. L'auteur est\nremercié. Un signalement traité ne se rouvre ni ne se réécrit.",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Traitement"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/SignalementGeneralEquipe"
+                        }
+                    }
+                },
+                "tags": [
+                    "signalements"
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ]
+        },
         "/visites/agent/rapports/": {
             "get": {
                 "operationId": "visites_agent_rapports_list",
@@ -9094,6 +9360,51 @@
                     "title": "Nom",
                     "type": "string",
                     "maxLength": 100,
+                    "minLength": 1
+                }
+            }
+        },
+        "ChangePassword": {
+            "required": [
+                "old_password",
+                "new_password"
+            ],
+            "type": "object",
+            "properties": {
+                "old_password": {
+                    "title": "Old password",
+                    "description": "Le mot de passe actuel : une session ouverte sur un téléphone prêté ne doit pas suffire à prendre le compte.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "new_password": {
+                    "title": "New password",
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "NouveauxJetons": {
+            "required": [
+                "message",
+                "access",
+                "refresh"
+            ],
+            "type": "object",
+            "properties": {
+                "message": {
+                    "title": "Message",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "access": {
+                    "title": "Access",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "refresh": {
+                    "title": "Refresh",
+                    "type": "string",
                     "minLength": 1
                 }
             }
@@ -11828,6 +12139,67 @@
                 }
             }
         },
+        "CommissionnaireDeLAnnonce": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "full_name": {
+                    "title": "Full name",
+                    "type": "string",
+                    "readOnly": true
+                },
+                "avatar": {
+                    "title": "Photo de profil",
+                    "type": "string",
+                    "readOnly": true,
+                    "x-nullable": true,
+                    "format": "uri"
+                },
+                "user_type": {
+                    "title": "Type d'utilisateur",
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "client",
+                        "proprietaire",
+                        "agent",
+                        "commissionnaire",
+                        "agence",
+                        "moderateur"
+                    ],
+                    "readOnly": true
+                },
+                "user_type_display": {
+                    "title": "User type display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "identite_verifiee": {
+                    "title": "Identite verifiee",
+                    "description": "Un membre de l'équipe VillaGo a vu sa pièce d'identité.",
+                    "type": "boolean",
+                    "readOnly": true
+                },
+                "nombre_avis": {
+                    "title": "Nombre avis",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "note_moyenne": {
+                    "title": "Note moyenne",
+                    "description": "Nulle sous trois avis : une seule note ne dit rien.",
+                    "type": "number",
+                    "readOnly": true,
+                    "x-nullable": true
+                }
+            },
+            "x-nullable": true
+        },
         "BienPublicDetail": {
             "type": "object",
             "properties": {
@@ -12096,7 +12468,7 @@
                     "x-nullable": true
                 },
                 "commissionnaire_detail": {
-                    "$ref": "#/definitions/ProfilPublic"
+                    "$ref": "#/definitions/CommissionnaireDeLAnnonce"
                 },
                 "agency": {
                     "title": "Agence",
@@ -13495,6 +13867,227 @@
                     "type": "string",
                     "format": "date-time",
                     "readOnly": true
+                }
+            }
+        },
+        "SignalementCreate": {
+            "required": [
+                "cible",
+                "motif"
+            ],
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "cible": {
+                    "title": "Cible",
+                    "type": "string",
+                    "enum": [
+                        "annonce",
+                        "message",
+                        "utilisateur"
+                    ]
+                },
+                "bien": {
+                    "title": "Bien",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "message": {
+                    "title": "Message",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "utilisateur": {
+                    "title": "Utilisateur",
+                    "type": "integer",
+                    "x-nullable": true
+                },
+                "motif": {
+                    "title": "Motif",
+                    "type": "string",
+                    "enum": [
+                        "deja_louee",
+                        "fausse_annonce",
+                        "prix_different",
+                        "arnaque",
+                        "faux_commissionnaire",
+                        "propos_abusifs",
+                        "autre"
+                    ]
+                },
+                "details": {
+                    "title": "Details",
+                    "description": "Ce qui s'est passé, en quelques mots. Facultatif.",
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "created_at": {
+                    "title": "Signalé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "Blocage": {
+            "required": [
+                "utilisateur"
+            ],
+            "type": "object",
+            "properties": {
+                "utilisateur": {
+                    "title": "Utilisateur",
+                    "description": "La personne à bloquer.",
+                    "type": "integer"
+                },
+                "utilisateur_detail": {
+                    "$ref": "#/definitions/ProfilPublic"
+                },
+                "created_at": {
+                    "title": "Created at",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                }
+            }
+        },
+        "SignalementGeneralEquipe": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "title": "ID",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "cible": {
+                    "title": "Cible",
+                    "type": "string",
+                    "enum": [
+                        "annonce",
+                        "message",
+                        "utilisateur"
+                    ],
+                    "readOnly": true
+                },
+                "cible_display": {
+                    "title": "Cible display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "motif": {
+                    "title": "Motif",
+                    "type": "string",
+                    "enum": [
+                        "deja_louee",
+                        "fausse_annonce",
+                        "prix_different",
+                        "arnaque",
+                        "faux_commissionnaire",
+                        "propos_abusifs",
+                        "autre"
+                    ],
+                    "readOnly": true
+                },
+                "motif_display": {
+                    "title": "Motif display",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "details": {
+                    "title": "Précisions",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "contenu_signale": {
+                    "title": "Texte du message au moment du signalement",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "auteur_detail": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "bien": {
+                    "title": "Annonce signalée",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "bien_titre": {
+                    "title": "Bien titre",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "message": {
+                    "title": "Message signalé",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "salon": {
+                    "title": "Salon",
+                    "type": "integer",
+                    "readOnly": true
+                },
+                "utilisateur": {
+                    "title": "Personne signalée",
+                    "type": "integer",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "utilisateur_detail": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "created_at": {
+                    "title": "Signalé le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true
+                },
+                "traite_le": {
+                    "title": "Traité le",
+                    "type": "string",
+                    "format": "date-time",
+                    "readOnly": true,
+                    "x-nullable": true
+                },
+                "traite_par_detail": {
+                    "$ref": "#/definitions/UserList"
+                },
+                "suite": {
+                    "title": "Suite donnée (note interne de l'équipe)",
+                    "type": "string",
+                    "readOnly": true,
+                    "minLength": 1
+                },
+                "autres_signalements": {
+                    "title": "Autres signalements",
+                    "description": "Combien d'autres personnes ont signalé la même chose : un signalement isolé n'a pas le poids de dix.",
+                    "type": "integer",
+                    "readOnly": true
+                }
+            }
+        },
+        "Traitement": {
+            "required": [
+                "suite"
+            ],
+            "type": "object",
+            "properties": {
+                "suite": {
+                    "title": "Suite",
+                    "description": "Ce que l'équipe a fait : annonce retirée, compte averti ou suspendu, rien de reproché… Note interne : l'auteur du signalement reçoit seulement un remerciement, pas ce texte.",
+                    "type": "string",
+                    "maxLength": 2000,
+                    "minLength": 10
                 }
             }
         },

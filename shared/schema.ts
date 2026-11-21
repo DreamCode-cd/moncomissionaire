@@ -911,3 +911,63 @@ export interface SignalementEquipe {
   signalement_traite_par_detail: CompteResume | null;
   signalement_suite: string;
 }
+
+// --- Signaler et bloquer (backendvillago, application `signalements`) -------
+// Contrat : swagger.json, chemins /signalements/. Choix de David (21/11/2026) :
+// une annonce signalée reste en ligne jusqu'à la décision de l'équipe ; un
+// blocage ne vaut que pour celui qui bloque, l'autre n'en est pas averti.
+
+export type CibleSignalement = 'annonce' | 'message' | 'utilisateur';
+export type MotifSignalement =
+  | 'deja_louee'
+  | 'fausse_annonce'
+  | 'prix_different'
+  | 'arnaque'
+  | 'faux_commissionnaire'
+  | 'propos_abusifs'
+  | 'autre';
+
+/** Corps de `POST /api/v1/signalements/` : une seule cible, celle de `cible`. */
+export interface SignalementCreate {
+  id?: number;
+  cible: CibleSignalement;
+  bien?: number | null;
+  message?: number | null;
+  utilisateur?: number | null;
+  motif: MotifSignalement;
+  details?: string;
+  created_at?: string;
+}
+
+/** Un signalement d'annonce, de message ou de personne, pour l'équipe. */
+export interface SignalementGeneralEquipe {
+  id: number;
+  cible: CibleSignalement;
+  cible_display: string;
+  motif: MotifSignalement;
+  motif_display: string;
+  details: string;
+  /** Le texte du message, recopié au moment du signalement. */
+  contenu_signale: string;
+  auteur_detail: CompteResume | null;
+  bien: number | null;
+  bien_titre: string | null;
+  message: number | null;
+  salon: number | null;
+  utilisateur: number | null;
+  utilisateur_detail: CompteResume | null;
+  created_at: string;
+  traite_le: string | null;
+  traite_par_detail: CompteResume | null;
+  /** Note interne : l'auteur reçoit seulement un remerciement. */
+  suite: string;
+  /** Combien d'autres personnes ont signalé la même chose. */
+  autres_signalements: number;
+}
+
+export interface Blocage {
+  /** La personne bloquée. */
+  utilisateur: number;
+  utilisateur_detail: ProfilPublic;
+  created_at: string;
+}

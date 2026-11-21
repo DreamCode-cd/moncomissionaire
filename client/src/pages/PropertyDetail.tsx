@@ -9,7 +9,7 @@ import {
   MapPin, Calendar, User, ChevronLeft, ChevronRight, X,
   Car, Trees, Sofa, Wind, Shield, Star, Share2, Heart,
   Images, SquarePen, Send, ChevronDown, ChevronUp, LoaderCircle,
-  ShieldCheck,
+  ShieldCheck, Flag,
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ import { ReleveMaison } from '@/components/property/ReleveMaison';
 import { ChoixCreneau, heureLisible, jourLisible } from '@/components/confiance/ChoixCreneau';
 import { libelleChambres } from '@/lib/faits';
 import { NoteCommissionnaire } from '@/components/confiance/NoteCommissionnaire';
+import { DialogueSignalement } from '@/components/moderation/DialogueSignalement';
 import { garderBrouillonVisite, oublierBrouillonVisite, reprendreBrouillonVisite, versConnexion } from '@/lib/suite';
 import { langueActive, t } from '@/i18n';
 import { lireStatut } from '@/lib/statuts';
@@ -72,6 +73,7 @@ export default function PropertyDetail() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
+  const [signalementOuvert, setSignalementOuvert] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [visitDate, setVisitDate] = useState('');
@@ -804,6 +806,26 @@ export default function PropertyDetail() {
               })()}
             </CardContent>
           </Card>
+
+          {/* Discret, mais toujours là : un client qui doute doit pouvoir le
+              dire avant de se déplacer. L'annonce reste en ligne jusqu'à la
+              décision de l'équipe (choix de David, 21/11/2026). */}
+          <Button
+            variant="ghost"
+            className="min-h-11 px-2 text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => setSignalementOuvert(true)}
+            data-testid="button-signaler-annonce"
+          >
+            <Flag className="h-4 w-4 mr-2" aria-hidden />
+            {t('fiche.signalerAnnonce')}
+          </Button>
+          <DialogueSignalement
+            ouvert={signalementOuvert}
+            onFermer={() => setSignalementOuvert(false)}
+            cible="annonce"
+            identifiant={property.id}
+            nom={property.titre}
+          />
 
           <Separator />
           <div>

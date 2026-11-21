@@ -3,7 +3,7 @@ import { formaterHeure, formaterSeparateurDeJour } from '@/lib/dates';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, EllipsisVertical, MessageCircle, Phone, Send, Wifi, WifiOff } from 'lucide-react';
+import { Ban, ChevronLeft, EllipsisVertical, Flag, MessageCircle, Phone, Send, Wifi, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +15,27 @@ import { useToast } from '@/hooks/use-toast';
 import type { ChatRoomDetail, Message } from '@shared/schema';
 import { cn } from '@/lib/utils';
 import { libelleRole } from '@/lib/roles';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { DialogueSignalement } from '@/components/moderation/DialogueSignalement';
+import { bloquer, idsBloques, useBlocages } from '@/lib/moderation';
+import { messageErreur } from '@/lib/erreurs';
+import type { CibleSignalement } from '@shared/schema';
 import { t } from '@/i18n';
 
 export default function ChatRoom() {
@@ -29,6 +50,10 @@ export default function ChatRoom() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatSocketRef = useRef<ChatSocket | null>(null);
+  const [aSignaler, setASignaler] = useState<{ cible: CibleSignalement; id: number; nom: string } | null>(null);
+  const [aBloquer, setABloquer] = useState<{ id: number; nom: string } | null>(null);
+  const { data: blocages } = useBlocages(!!user);
+  const bloques = idsBloques(blocages);
 
   const chatroomId = params?.id ? parseInt(params.id) : undefined;
 
@@ -278,7 +303,27 @@ export default function ChatRoom() {
     );
   }
 
-  const messageGroups = groupMessagesByDate(localMessages);
+  // Les messages d'une personne bloquée sont retirés ici aussi : le blocage
+  // se voit tout de suite, sans attendre la réponse du serveur.
+  const messagesVisibles = localMessages.filter((m) => !bloques.has(m.sender));
+  const messageGroups = groupMessagesByDate(messagesVisibles);
+  // Ceux qu'on peut signaler ou bloquer : ni moi, ni l'équipe VillaGo.
+  const autres = [chatroom.client_detail, chatroom.commissionnaire_detail, chatroom.agent_detail].filter(
+    (p): p is NonNullable<typeof p> =>
+      // L'API envoie `user_type` (le `role` normalisé n'est pas posé ici).
+      !!p && p.id !== user?.id && !['moderateur', 'admin'].includes((p as { user_type?: string }).user_type ?? ''),
+  );
+  const confirmerBlocage = async () => {
+    if (!aBloquer) return;
+    try {
+      await bloquer(aBloquer.id);
+      toast({ title: t('moderation.bloque', { nom: aBloquer.nom }) });
+    } catch (e) {
+      toast({ title: t('moderation.blocageImpossible'), description: messageErreur(e), variant: 'destructive' });
+    } finally {
+      setABloquer(null);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -323,13 +368,66 @@ export default function ChatRoom() {
         >
           <Phone className="w-5 h-5" />
         </Button>
-        <Button variant="ghost" size="icon" data-testid="button-more">
-          <EllipsisVertical className="w-5 h-5" />
-        </Button>
+        {autres.length ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" data-testid="button-more" aria-label={t('moderation.optionsConversation')}>
+                <EllipsisVertical className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {autres.map((p, i) => (
+                <div key={p.id}>
+                  {i > 0 ? <DropdownMenuSeparator /> : null}
+                  <DropdownMenuItem
+                    onSelect={() => setASignaler({ cible: 'utilisateur', id: p.id, nom: getParticipantName(p) })}
+                    data-testid={`signaler-personne-${p.id}`}
+                  >
+                    <Flag className="w-4 h-4 mr-2" aria-hidden />
+                    {t('moderation.signalerQui', { nom: getParticipantName(p) })}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onSelect={() => setABloquer({ id: p.id, nom: getParticipantName(p) })}
+                    data-testid={`bloquer-personne-${p.id}`}
+                  >
+                    <Ban className="w-4 h-4 mr-2" aria-hidden />
+                    {t('moderation.bloquerQui', { nom: getParticipantName(p) })}
+                  </DropdownMenuItem>
+                </div>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
 
+      {aSignaler ? (
+        <DialogueSignalement
+          ouvert
+          onFermer={() => setASignaler(null)}
+          cible={aSignaler.cible}
+          identifiant={aSignaler.id}
+          nom={aSignaler.nom}
+        />
+      ) : null}
+
+      <AlertDialog open={!!aBloquer} onOpenChange={(o) => !o && setABloquer(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('moderation.bloquerQui', { nom: aBloquer?.nom ?? '' })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('moderation.bloquerExplication', { nom: aBloquer?.nom ?? '' })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('signaler.annuler')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void confirmerBlocage()} data-testid="confirmer-blocage">
+              {t('moderation.bloquer')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {localMessages.length === 0 ? (
+        {messagesVisibles.length === 0 ? (
           <EtatVide
             icone={MessageCircle}
             titre={t('chat.aucunMessage')}
@@ -354,7 +452,7 @@ export default function ChatRoom() {
                     )}
                     data-testid={`message-${message.id}`}
                   >
-                    <div className="flex items-end gap-2 max-w-[80%]">
+                    <div className="group flex items-end gap-2 max-w-[80%]">
                       {!isOwn && (
                         <Avatar className="w-6 h-6 flex-shrink-0">
                           <AvatarImage src={message.sender_detail?.photo} />
@@ -384,6 +482,19 @@ export default function ChatRoom() {
                           )}
                         </p>
                       </div>
+                      {!isOwn && message.id > 0 ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-11 w-11 shrink-0 text-muted-foreground opacity-60 hover:opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                          aria-label={t('moderation.signalerMessage')}
+                          title={t('moderation.signalerMessage')}
+                          onClick={() => setASignaler({ cible: 'message', id: message.id, nom: message.content.length > 80 ? `${message.content.slice(0, 79).trimEnd()}…` : message.content })}
+                          data-testid={`signaler-message-${message.id}`}
+                        >
+                          <Flag className="w-4 h-4" aria-hidden />
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
                 );

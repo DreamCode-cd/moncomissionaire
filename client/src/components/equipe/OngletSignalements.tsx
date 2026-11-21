@@ -112,9 +112,9 @@ function CarteSignalement({ signalement: s }: { signalement: SignalementEquipe }
         </blockquote>
 
         <div className="grid gap-2 sm:grid-cols-2 text-sm">
-          <Personne role="Client" compte={s.client} />
+          <Personne role={t('signalements.roleClient')} compte={s.client} />
           {s.gestionnaire ? (
-            <Personne role="Commissionnaire du bien" compte={s.gestionnaire} />
+            <Personne role={t('signalements.roleCommissionnaireDuBien')} compte={s.gestionnaire} />
           ) : (
             <p className="text-muted-foreground">{t('signalements.bienSuiviEquipeVillago')}</p>
           )}
@@ -131,7 +131,7 @@ function CarteSignalement({ signalement: s }: { signalement: SignalementEquipe }
           <div className="rounded-md bg-muted p-3 text-sm space-y-1" data-testid={`suite-signalement-${s.id}`}>
             <p className="text-xs text-muted-foreground">
               {t('signalements.traite', { a: formaterDateEtHeure(s.signalement_traite_le) })}
-              {s.signalement_traite_par_detail ? ` par ${s.signalement_traite_par_detail.full_name}` : ''}
+              {s.signalement_traite_par_detail ? t('signalements.parQui', { nom: s.signalement_traite_par_detail.full_name }) : ''}
             </p>
             <p className="whitespace-pre-line">{s.signalement_suite}</p>
           </div>
