@@ -36,6 +36,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Link, useLocation } from 'wouter';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { t } from '@/i18n';
+import { PersonnesBloquees } from '@/components/moderation/PersonnesBloquees';
 
 interface ProfileFormData {
   first_name: string;
@@ -543,6 +544,8 @@ export default function Profile() {
             </Button>
           </CardContent>
         </Card>
+
+        <PersonnesBloquees />
 
         <Card>
           <CardContent className="pt-6">

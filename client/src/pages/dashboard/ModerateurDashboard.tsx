@@ -55,9 +55,11 @@ import { getDjangoImageUrl, getVilleName, nomAffiche, vignetteDe } from '@/lib/u
 import { lieuVisite } from '@/lib/visite';
 import { queryClient } from '@/lib/queryClient';
 import { CLE_SIGNALEMENTS, OngletSignalements } from '@/components/equipe/OngletSignalements';
+import { OngletSignalementsGeneraux } from '@/components/equipe/OngletSignalementsGeneraux';
+import { CLE_SIGNALEMENTS_GENERAUX } from '@/lib/moderation';
 import { OngletCommissions } from '@/components/equipe/OngletCommissions';
 import type { 
-  BienList, BienDetail, DemandeVisite, Visite, RapportVisite, UserList, UserProfile, PaginatedResponse, SignalementEquipe
+  BienList, BienDetail, DemandeVisite, Visite, RapportVisite, UserList, UserProfile, PaginatedResponse, SignalementEquipe, SignalementGeneralEquipe
 } from '@shared/schema';
 import { t } from '@/i18n';
 import { lireStatut } from '@/lib/statuts';
@@ -162,6 +164,10 @@ export default function ModerateurDashboard() {
   // Même clé que la première page de l'onglet : un seul appel au chargement.
   const { data: signalementsEnAttente } = useQuery<PaginatedResponse<SignalementEquipe>>({
     queryKey: [CLE_SIGNALEMENTS, { traite: 'false', page: '1' }],
+  });
+  // Annonces, messages et personnes : même onglet, même compteur.
+  const { data: signalementsGenerauxEnAttente } = useQuery<PaginatedResponse<SignalementGeneralEquipe>>({
+    queryKey: [CLE_SIGNALEMENTS_GENERAUX, { traite: 'false', page: '1' }],
   });
 
   const { data: agents, isLoading: agentsLoading, error: erreurAgents, refetch: rechargerAgents } = useQuery<PaginatedResponse<UserList>>({
@@ -626,15 +632,22 @@ export default function ModerateurDashboard() {
               {t('moderation.ongletAgents', { n: agents?.count || 0 })}
             </TabsTrigger>
             <TabsTrigger value="signalements" data-testid="tab-signalements">
-              {t('moderation.ongletSignalements', { n: signalementsEnAttente?.count ?? 0 })}
+              {t('moderation.ongletSignalements', { n: (signalementsEnAttente?.count ?? 0) + (signalementsGenerauxEnAttente?.count ?? 0) })}
             </TabsTrigger>
             <TabsTrigger value="commissions" data-testid="tab-commissions">
               {t('moderation.commissions')}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="signalements">
-            <OngletSignalements />
+          <TabsContent value="signalements" className="space-y-8">
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">{t('signalementsGeneraux.titre')}</h2>
+              <OngletSignalementsGeneraux />
+            </section>
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">{t('signalementsGeneraux.titreVisites')}</h2>
+              <OngletSignalements />
+            </section>
           </TabsContent>
 
           <TabsContent value="commissions">
